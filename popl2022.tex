@@ -23,7 +23,8 @@
 %\setcopyright{rightsretained}
 %\copyrightyear{2018}           %% If different from \acmYear
 
-
+\newcommand{\timedEffs}{\emph{TimedEffs}}
+\newcommand{\mysharp}{{\mathrel{\texttt{\#}}}}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -964,236 +965,119 @@ A program \code{\mathcal{P} } comprises a list of module definitions \code{ \ove
 Each \code{module} has a name \code{nm}, a list of well-typed arguments \code{ \overrightarrow{\tau\ x} } and $ \overrightarrow{\tau\ \textbf{S}}$, a statement-oriented body \code{{p}}, associated with a precondition \code{\effect_{pre}} and a postcondition \code{\effect_{post}}. (The syntax of effects specification \code{\effect} is given in \figref{fig:Syntax_of_Types_and_Effects})
 
 
-{ 
-
-\begin{figure*}[h]
-  \vspace{0mm}
-\renewcommand{\arraystretch}{1.1}
+{
+ 
+\begin{figure}[!ht]
+\renewcommand{\arraystretch}{1.2}
 \centering
   $
   \begin{array}{lrcl}
- \m{(Program)} &  \code{\mathcal{P} }&\code{  ::= }& \
+
+    \m{(Program)} &  \code{\mathcal{P} }&\code{  ::= }&
     \code{%{datat^*}  \  
-   \overrightarrow{module}} 
-\qquad  \ \ 
-    \m{(Basic\ Types)} \quad  \code{\tau\ } \code{  ::= } \
-     \code{IN\ |\ OUT\ |\ INOUT \ | \ int }
+   {meth^*}} 
+\qquad   \qquad
+    \m{(Basic\ Types)} \quad  \code{\tau} \code{\ \ ::= \ \ }
+     \code{int\ 
+    % |\ bool\ 
+     |\ void}
     \\
-  
-      \m{(Module\ Def.)} &  \code{module}&\code{  ::= }&
-  \code{ \ nm  \ \ {(\overrightarrow{\tau\ x}, \  \overrightarrow{\tau\ \textbf{S}} )}\ \ \langle\textbf{requires}\ \ \effect_{pre}\ \ \textbf{ensures}\ \  \effect_{post} \rangle\ \  {p} }
+    
+%     \m{(Data\ Struct.)} &  \code{datat}&\code{  ::= }&
+ %    \code{\textbf{struct}\ d\ \{ {(t\ f)^*} \}}  
+ %   \\
+
+%     \m{(Types)} &  \code{t}&\code{  ::= }&
+% \code{d\ |\ \tau} 
+% \\    
+  \m{(Method\ Def.)} &  \code{meth}&\code{  ::= }&
+  \code{\tau \ mn  \ {( \tau\ x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \}}
   \\
-
-  \m{(Statement)} &  \code{{{p, \ q}}}&\code{  ::= }&
- \textcolor{purple} {  \code{ 
-    \ nothing
-         \ |\ yield
-      \ |\ emit \ \textbf{S}
-     \ |\ present \ \textbf{S} \ {p} \ {q}
-     \ |\ seq\  {p} \ {q}  
-          \  |\ fork\  {p}  \ {q}    
-   }}\\
-&&&  
- \textcolor{purple} {\code{ 
-        |\ loop \ {p} 
-%\  |\ run \ nm \ {( x ^*, \textbf{S}^*)}
-\ | \ run \ nm \ {( \overrightarrow{x}, \overrightarrow{ \textbf{S}})}
-%\  | \ every \  \textbf{S} \  {p}
-  \   |\ abort\ {p}\ when\ d  
-%  \ |\ trap \  \textbf{T} \ \textbf{p}
- % \  |\ exit \   \textbf{T}_k
-   } }
-   \\
-%&&&  
-% \textcolor{purple} {\code{ 
-% %  
-%%   |\ signal \ \textbf{S} \ {p}
-%
-%}}
-%   \\
-%   
-   &&&
-
+  \code{(Values)} &  {v}&\code{  ::= }&
+  ()\ |\ c \ | \  x 
   
-     \textcolor{ blue} {|\ async\ \textbf{S} \ {p} \ d
- \ |\ await\ \textbf{S}
- } 
- \ |\ assert\ \effect
+ \\
+  \m{(Expressions)} &  \code{e}&\code{  ::= }&
+    \code{ v\ 
+    |\ mn({x^*}) \ 
+    |\ \textbf{let}\ x{=}e_1\ \textbf{in} \ e_2
+    |\ \textbf{if}\ v\ \textbf{then}\ e_1\ \textbf{else}\ e_2 
+ }\\ %|\ \textbf{assert}\ \effect  }  \\
+ &   & & \code{
+  |\ \textbf{emit} [\anyevent{a}]\ 
+  | \  \textbf{timeout}\ e \ d \ | \ \textbf{abort} \ e \ d 
+  }  \\~\\
 
-
-    
-  \\~\\
-
-
-
-    
+ 
  
     \multicolumn{4}{c}{
-      \code{\textbf{S} \in \text{signal variables}}  
-      \qquad\quad \ 
-\code{\text{nm, x} \in \textbf{var}}
-   \qquad\quad \ 
-       \code{
-          \m{(Finite\ List) \ \overrightarrow{}}}
- \qquad\quad \ 
-\m{(Time\ Bounds)}\ \code{d} \code{\in \mathbb{Z^+}}    
-    }\\
-       
+      \code{c::\in \mathbb{Z}} \qquad\quad\ \ \
+\code{x, mn  ::\in \textbf{var}}  
+\qquad\quad\ \ \ \ \code{(Events)  \anyevent{A} ::\in \Sigma  } 
+\qquad\quad\ \ \ \  \code{d::\in  \mathbb{Z}^{+}}  
+    }\\  
     \hline
   \end{array}  
   $
-    \vspace{0mm}
- \caption{Syntax of \code{\lambda_{HH}}.} 
- \label{fig:Hiphop_Syntax}
-  \vspace{0mm}
-\end{figure*}
+ \caption{$\lambda^t$ Syntax.} 
+ \label{work3_fig:lambda_t}
+
+\end{figure}
 }
 
 
-We here explain the intuitive semantics, while the axiomatic semantics model is defined in \secref{sec:Verification}.
-The statement \code{nothing} in \code{\lambda_{HH}} resets all the output signals into absent. 
-%is the Esterel equivalent of unit, void or skip in other languages. 
-A thread of execution suspends itself for the current time instance using the \code{yield}  construct, and resumes when the next time instance started. The statement $emit \ \textbf{S}$ broadcasts the signal {\textbf{S}} to be set as  present and terminates instantaneously. The emission of {\textbf{S}} is valid for the current instance only. 
-
-The statement $present \ \textbf{S} \ p \ q$ immediately starts \code{p} if {\textbf{S}} is present in the current instance; otherwise it starts \code{q} when {\textbf{S}} is absent.
-The sequence statement \code{seq\  p \ q} immediately starts \code{p} and behaves 
-as \code{p} as long as \code{p} remains active.
-When \code{p} terminates, control is passed instantaneously to \code{q}, which determines the behaviour of the sequence from then on. \emph{(Notice that `$emit\ \textbf{S1};\ emit \  \textbf{S2}$' leads to $\{S1, S2\}$, which  emits {{\textbf{S1}}} and ${\textbf{S2}}$ simultaneously and terminates instantaneously.)}
-
-%If \code{p} exits a \code{trap}, so does the whole sequence,
-%  \code{q} being discarded in this case. 
-  
- %\code{q} is never started if \code{p} always pauses. 
- 
- The parallel statement \code{fork\  p  \ q} runs p  and q in parallel. It remains active as long as one of its branches remains active. The parallel statement terminates when both \code{p} and \code{q} are terminated. The branches can terminate in different instances, and the parallel waits for the last one to terminate. 
-
- 
- The statement \code{loop \ p} implements an infinite loop, but it is possible to be aborted or suspended by enclosing it within a preemptive statement.  
-% escape from the loop by enclosing it within a trap and executing an exit statement. 
- When \code{p} terminates, it is immediately restarted. 
- %If \code{p} exits a trap, so does the whole loop. 
- The body of a loop is not allowed to terminate instantaneously when started, i.e., it must execute a yield statement to avoid an `infinite instance'. 
-For example, `$loop \ emit\ \textbf{S}$' is not a correct program. 
-
-
-%The statement \code{run \ nm \ {( x ^*, \textbf{S}^*)}} makes a function calls to \code{nm} with parameters. 
-
-The statement $run \ nm \ {( \overrightarrow{x}, \overrightarrow{ \textbf{S}})}$ is a call to module \code{nm}, parametrising with values and signals.
-
-%providing the list of IO signals. 
-
-%The statement \code{every \  \textbf{S} \  {p}} behaves as its body p once the \textbf{S} is present occurs, where the whole watchdog statement terminates without transferring control to p in this instant. The watchdog construct is used to abort the body when an event occurs.
-
-%To facilitate the preemptive concurrency, \code{\lambda_{HH}} includes two primitive statements: \code{every}  and \code{abort}. 
-
-
-
-
-
-To facilitate a preemptive concurrency, as well as provide necessary  real-time bounds, \code{\lambda_{HH}} includes the primitive statement  \code{abort\ p\ when\ d}, which runs statement \code{p} to completion. If the execution  reached the time bound \code{d}, it terminates immediately. 
- 
-
-
-%Parallel branches may simultaneously exit traps. If one branch exits a trap \code{\textbf{T}} or both branches exit the same trap \code{\textbf{T}}, then the parallel exits \code{\textbf{T}}. If both statements exit distinct traps \code{\textbf{T}} and \code{\textbf{U}} in the same instant, then the parallel only exits the higher prioritized one.
-
-
-%The statement  \code{signal \ \textbf{S} \ p} starts p with a fresh signal \textbf{S}, overriding any that might already exist. 
-
-
-%The statement \code{abort\ {p}\ when\ d  } is used to abort the body when an event occurs. It behaves as its body \code{p} until the first following instant where \code{\textbf{S}} occurs, where the whole statement terminates without transferring control to \code{p} in this instant.
-
-
-
-%In the \code{suspend \   {p}\  when \   \textbf{S}} suspension statement, \textbf{S} is called the guard. The guard controls execution of the body in each instant except for the first one, where it is ignored (masked in common terminology). In the initial instant, the body \code{p} is started; if p terminates or exits a trap, so does the suspend statement, and the guard is transparent. Interesting things only happen in the following instants if p paused in the first instant. Then, as long as p remains active, the guard signal \textbf{S} is tested for presence.
-%– If \textbf{S} is present, then p is not executed in the instant and it is kept frozen for the next instant. The whole suspend statement pauses. In this case, we say that p is suspended for the instant.
-%– If \textbf{S} is absent, then p receives the control for the instant. We say that p is activated for the instant. If p terminates or exits a trap, so does the suspend statement. If p pauses, then the suspend statement also pauses.
-
-
-\emph{Async statements implement long lasting background operations. They are the essential ingredient for mixing indeterministic asynchronous computation and deterministic synchronous computations.} In other words, the \code{async} statement enables well-behaving synchronous to regulate unsteady asynchronous computations. The statement  $async\ \textbf{S} \ p \ d$ is supposed to spawn a long lasting background computation, where \code{d} represents an execution delay. When it completes, the asynchronous block will resume the synchronous machine.
-%by calling the function that composes the async JavaScript API. 
-Therefore when a signal {\textbf{S}} is specified with the {async} call, it emits {\textbf{S}} when the asynchronous block completes.
-
-The statement $await\ \textbf{S}$ blocks the execution and waits for the signal {\textbf{S}} to be emitted across the threads. 
-%The assertion statement is parametrized with effects $\effect$.
-The statement assert \code{\effect} is used to guarantee the temporal property \code{\effect} asserted at a certain point of the programs.
-%Prior work
-\cite{kambona2013evaluation} shows that such a language combination makes reactive programming more powerful and flexible than the traditional web programming. % (cf. \secref{subsection:HipHop}). 
-
-%
-
-
 \subsection{The Specification Language}
-\label{subsec:Specification_language}
+\label{work3_subsec:Specification_language}
 
-We plant the effects specifications into the Hoare-style verification system, using \code{ \effect_{pre}} and \code{  \effect_{post} }  to capture the temporal pre/post 
-condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
+The effects specifications are planted into the Hoare-style verification system, 
+using \code{ \effect_{pre}} and \code{  \effect_{post} }  to capture the temporal pre/post 
+condition. 
 
 {
     \vspace{0mm}
-\begin{figure*}[h]
+\begin{figure*}[!ht]
 \renewcommand{\arraystretch}{1.1}
 \centering
   $
   \begin{array}{rrcl}
  
-    \m{(Timed\ Effects)} &  \effect &\code{\  ::=\ }&
+    \m{(\timedEffs)} &  \effect &\code{\  ::=\ }&
     \code{
-          \pure{\pi} : \es  
+          {\pi} \wedge es  
    \ | \ \effect_1 \vee \effect_2
 }
     \\
- \m{(Timed \ Sequence)}  & \ \code{\es}   &\code{\ ::=\ }&
+ \m{(Timed \ Sequence)}  & \ \code{es}   &\code{\ ::=\ }&
    
-   \code{ \bott
-   \  | \ \empt 
-    \ | \ I 
-    \ | \ \textbf{S}?
-    %   \ | \ \anyevent{a}
-   \  | \ \es_1 {\seq} \es_2
-    \ | \ \es_1 {\vee} \es_2
-      %    \  | \ \es_1 \times \es_2
-      \  | \ \es_1  ||  \es_2
-      \ | \ \es \# t 
- %  \  | \  \esn{\es}{t}    
-   \  | \  \esn{\es}{\star}    
-   \  | \ \esn{\es}{\omega} 
+   \code{ \bot
+   \  | \ \epsilon 
+    \ | \ \anyevent{A}
+   \  | \ es_1 {\cdot} es_2
+    \ | \ es_1 {\vee} es_2
+      \ | \ es \mysharp  t 
+ %  \  | \  \esn{es}{t}    
+   \  | \  \esn{es}{\star}    
+   \  | \ \esn{es}{\omega} 
     }
-            \\
-    \m{(Time \ Instance)} &  \code{I} &\code{::= }&
-    
-    \code{
-    \{ \} \ | \ \{ \textbf{S} \} \ | \ \{ \overline{\textbf{S}} \} \ | \ I_1 \cup I_2
-    }
-%(\textbf{S} \mapsto \theta )^*
-
-
-
-%    \\
-%        \m{(Real\ Time)} &  \mathcal{O} &\code{::= }&
-%    
-%    \code{
-%   %n \ | \ 
-%   c \ | \ (c, {+}\infty) \ | \  [0, c) \ | \  \mathcal{O}_1 \wedge \mathcal{O}_2 \ | \  \mathcal{O}_1 \vee \mathcal{O}_2
-%    }
 
 
     \\
     
-    \m{(Pure)}  & \code{\code{\pure{\pi}}}&\code{\  ::=\ }&
-\pure{ \pure{True}}
-   \ | \  \pure{False}
-   \ | \ \pure{A(}{t_1, t_2}\pure{)}
-  \   | \  \pure{\pure{\pi_1}} \wedge \code{\pure{\pi}}_2
-   \  | \ \pure{\pure{\pi_1}} \vee \code{\pure{\pi}}_2
-   \  | \ \neg\code{\pure{\pi}}
+    \m{(Pure)}  & \code{\code{{\pi}}}&\code{\  ::=\ }&
+{ \m{True}}
+   \ | \  \m{False}
+   \ | \ {A(}{t_1, t_2}{)}
+  \   | \  {{\pi_1}} \wedge \code{{\pi}}_2
+   \  | \ {{\pi_1}} \vee \code{{\pi}}_2
+   \  | \ \neg\code{{\pi}}
 
     
     \\
     
     & &&\code{
-       | \  \pure{\pure{\pi_1}} \Rightarrow \pure{\pure{\pi_2}}
-   \  | \ \forall x. \code{\pure{\pi}}
-   \  | \ \exists x. \code{\pure{\pi}}
+       | \  {{\pi_1}} \Rightarrow {{\pi_2}}
+   \  | \ \forall x. \code{{\pi}}
+   \  | \ \exists x. \code{{\pi}}
    }\\
     
     \m{(Real\text{-}Time\ Term)}  & \code{t} &\code{\  ::=\ }&
@@ -1205,8 +1089,8 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
    }
  
     \\~\\
-    \multicolumn{4}{l}{
-   \qquad   \code{\textbf{S} \in \text{signal variables}}   
+    \multicolumn{4}{c}{
+   \qquad   \code{\anyevent{A} \in \Sigma}   
    \qquad\qquad\qquad\quad
     \code{c ::\in \mathbb{R}^{+}} 
      \qquad \qquad\qquad \quad
@@ -1214,10 +1098,8 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
         
      }\\  
      
-         \multicolumn{4}{l}{
-       \   \m{(Blocking)}\ \code{?}
-          \qquad  \qquad \ \
-     \m{(Real\ Time\ Bound)}\ \code{\#}
+         \multicolumn{4}{c}{
+     \m{(Real\ Time\ Bound)}\ \code{\mysharp }
      \qquad\qquad \ \
         \m{(Kleene\ Star) \ \star}   
          \qquad\qquad \ \
@@ -1228,13 +1110,12 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
     
   \end{array}  
   $ \\
-  \caption{Syntax of Timed Synchronous Effects.}
-  \label{fig:Syntax_of_Types_and_Effects}
+  \caption{Syntax of \timedEffs\ .}
+  \label{work3_fig:Syntax_of_Types_and_Effects}
   \vspace{0mm}
 \end{figure*}
 
 }
-
 
 
 
