@@ -5,6 +5,36 @@
 3. application: motivation exampale.  
 
 
+void addSugar(int n)
+// requires n>0 /\ Cup 
+// ensures  t>=n /\ Sugar # t
+{
+    if n == 0 then event[Sugar] 
+    else {
+        timeout (oneSugar(), 1);
+        addSugar (n-1);
+    }
+}
+
+void makeCoffee (int n)
+// requires n>0 /\ emp 
+// ensures  5>t>=n/\ t1<3 /\ Cup.(Sugar # t).(Coffee # t1).Done
+{
+    event[Cup];
+    deadline (getSugar(n), 5);
+    deadline (event[Coffee], 3);
+    event[Done];
+}
+
+void main () 
+// requires true /\ emp 
+// ensures  t < 8 /\ (_^*.Done) # t
+{
+    makeCoffee(3);
+}
+
+
+
 send (d:int[0, 5000]) = 
     ....
 
