@@ -99,7 +99,7 @@
 \newcommand\pure[1]{ \textcolor{black}{#1}}
 \usepackage{epigraph}
 \newcommand{\anyevent}[1]{{\textcolor{darkred}
-{\underline{\textbf{\footnotesize #1}}}}}
+{{\textbf{\footnotesize #1}}}}}
 \newcommand{\seq}{\cdot}
 \newcommand{\choice}{\vee}
 \newcommand{\fullname}{Integrated Dependent Effects}
@@ -260,32 +260,33 @@ xleftmargin=1.5em,
 %% article.
 \begin{abstract} 
 In this work, we study temporal verification of 
-compositional real-time systems, which are modeled 
+compositional real-time systems, modeled 
 using mutable variables and timed processes.  
 Instead of explicitly manipulating clock variables, 
-a number of compositional timed behavioral patterns, 
+several compositional timed behavioral patterns, 
 such as \emph{delay}, \emph{timeout}, \emph{deadline},  
 are introduced to capture quantitative timing constraints.
-The idea is to dynamically create clocks, 
+The idea is to dynamically create clocks  
 and solve constraints on the clocks. 
 
 We propose a novel solution for timed verification via a 
 compositional Hoare-style forward verifier and a 
 term rewriting system (TRS) on \emph{Timed Effects} (\timedEffects).  
-More specifically, we formally define 
-a core language \timedL, generalizing the timed systems.
-Secondly, we introduce \timedEffects, a new effects logic, 
+We formally define 
+a core language \timedL, generalizing the timed processes.
+Secondly, to capture real-time specifications, 
+we introduce \timedEffects, a new effects logic, 
 that extends 
-\emph{Kleene Algebra} with value-dependent real-time constraints. 
-Thirdly,  we establish an  axiomatic semantics for  
-\timedL\  to infer temporal behaviors  of  given 
-programs, expressed in \timedEffects. 
+\emph{Kleene Algebra} with dependent
+values and arithmetic constraints.
+Thirdly,  the forward verifier infers temporal behaviors of given 
+\timedL\ programs, expressed in \timedEffects. 
 Lastly, we present a purely algebraic TRS, to 
-efficiently prove  language inclusions between 
- \timedEffects.
+efficiently prove language inclusions between 
+ \timedEffects. 
 To demonstrate the feasibility of our proposals, 
 we prototype the verification system; prove its 
-correctness; report case studies and the experimental results. 
+correctness; report on case studies and the experimental results. 
 %we prototype the  verification system in OCaml; then prove soundness of both the effects inference process and the term rewriting process. % in Coq. 
 
  
@@ -321,34 +322,73 @@ Reactive System Design}
 \section{Introduction}
 \label{Introduction}
 
-Existing techniques are based on a transformation to convert the asynchronous chunk into semantically equivalent synchronization\footnote{Usually the transformation is incomplete, i.e., not all the asynchronous programs can be translated into a semantically equivalent synchronization.}; then reason about the behaviours based on the synchronous semantics \cite{damian2019communication,gleissenthall2019pretend,tarawneh2018formal}. This approach (i) suffers from the limited expressiveness, restricted by finite-state automata (FSA); (ii) lacks the modularity to reason about programs compositionally; (iii) loses time awareness due to the conversion to synchronous models; and (iv) has the \emph{state explosion problem}  when proving language inclusions between FSA.
- %finite-state automata
- % PSPACE-complete complexity 
+Specification and verification of real-time systems are important 
+research topics which have practical implications. During the last 
+(more than) two decades, a popular approach for specifying real-time systems is 
+based on Timed Automata \cite{DBLP:journals/tcs/AlurD94}. 
+Timed Automata are powerful 
+in designing real-time models with explicit clock variables. Real-time 
+constraints are captured by explicitly setting/reseting clock variables. 
+A number of automatic verification support for Timed Automata have proven 
+to be successful, such as UPPAAL \cite{DBLP:journals/sttt/LarsenPY97}.
 
-To tackle the above issues and exploit the best of both synchronous and asynchronous concurrency models, we propose a novel temporal specification language, which enables a compositional verification via a  Hoare-style forward verifier and a term rewriting system (TRS). 
-More specifically, we specify system behaviours in the form of \emph{Timed Synchronous Effects (TSE)}, which integrates the Synchronous Kleene Algebra (SKA) \cite{prisacariu2010synchronous,broda2015deciding} with dependent values and arithmetic constraints, 
+
+Models based on Timed Automata often adapt a simple structure, e.g. a 
+network with no hierarchy. The benefit is that 
+efficient model checking is made feasible. Nonetheless, designing and 
+verifying compositional real-time systems is becoming an increasingly 
+difficult task due to the widespread applications and increasing complexity 
+of such systems. In industrial case studies of real-time system verification, system 
+requirements are often structured into phases, which are then composed 
+sequentially, in parallel and alternatively \cite{DBLP:conf/emsoft/LarsenMNS05}. 
+Unlike timed process algebras, Timed Automata lack high-level 
+compositional patterns for hierarchical design. As a result, users often 
+need to manually cast those terms into a set of clock variables with 
+carefully calculated clock constraints. The process is tedious and error-prone.
+
+We propose a novel temporal specification language, 
+which enables a compositional verification via a  Hoare-style 
+forward verifier and a term rewriting system (TRS). 
+More specifically, we specify system behaviours in the form of 
+{Timed Effects} (\timedEffects), which integrates the Kleene Algebra with dependent values and arithmetic constraints, 
 %gaining the expressive power beyond finite-state machines; and (ii) introduces a new parallel operator 
 to 
 %capture the parallelism between event-triggered (sync) and  time-triggered (async) execution traces, 
-provide real-time abstractions into traditional synchronous verification. 
+provide real-time abstractions into traditional linear temporal logics. 
 %Resource usages, provided by a \emph{dynamic ticks}\cite{von2017real}, incorporating the time-triggered (physical time) and event-triggered (logical time) execution loops. 
-For example, one safety property, \textit{"The event \anyevent{Done} will be triggered no later than one second"}\footnote{For simplicity, we  follow the convention of JavaScript, and use integer values to represent milliseconds in this paper, while it can be easily extended to real numbers and other time measurement units.}, is expressed in our effects logic as: 
+For example, one safety property, \textit{"The event \anyevent{Done} 
+will be triggered no later than one second"}\footnote{For 
+simplicity, we use integer values to represent seconds in this 
+paper, while it can bes extended to real numbers and other 
+time measurement units.}, is expressed in \timedEffects\ as: 
 \begin{align*}
-&\code{\effect \defeq \  0 {\leq} t {<}1000 : (\{{\anyevent{}\}^\star} \cdot \{\anyevent{Done}\} ) \# t}.
+&\code{\effect \defeq \  0 {\leq} t {<}1 : ({\_^\star} \cdot \anyevent{Done} ) \# t}.
 \end{align*}  
 %The timed effects incorporates different kinds of existing temporal logics, such as linear-time temporal logic (LTL)
 %and .
 %which replaces temporal operators by time-constrained versions from 
-Here, \code{\#} is the parallel operator specifying the \emph{real-time} constraints for the \emph{logical-time} sequences \cite{von2017real}; 
-curly braces \code{\{\}} enclose a single  logical-time instance\footnote{A time instance is a set of signals (possible empty) with status, logically concurring at the same time (cf. {\secref{subsec:Specification_language}}).}; 
+Here, \code{\#} is the novel operator specifying the \emph{real-time} 
+constraints for the \emph{logical-time} sequences \cite{von2017real}; 
+\code{\_} is a wildcard matching to any event; 
 Kleene star \code{\star} denotes trace repetition.
-The above formula \code{\effect} corresponds to `\code{\Diamond_{[0, 1000)}\ }\anyevent{Done}' in metric temporal logic (MTL), reads \textit{"within one second, \anyevent{Done} finally happens"}. Moreover, the time bounds can be dependent on the program inputs. For example, we express, the effects of \code{send(d)} as:
+The above formula \code{\effect} corresponds to `\code{\Diamond_{[0, 1)}\ }\anyevent{Done}' 
+in metric temporal logic (MTL), reads \textit{"within one second, 
+\anyevent{Done} finally happens"}. Moreover, the time bounds can be dependent on the program inputs. For example, we express, the effects of \code{send(d)} as:
 \begin{align*}
-&\code{\effect^{send (d)} \defeq \  (0 {<} d {\leq}5000 \wedge  0 {\leq} t {<} d) : (\{{\anyevent{Send}\} \# t)} \cdot \{\anyevent{Done}\}}.
+&\code{\effect^{send (d)} \defeq \  (0 {<} d {\leq}5 \wedge  0 {\leq} t {<} d) : ({\anyevent{Send} \# t)} \cdot \anyevent{Done}}.
 \end{align*}  
-The \code{send} method takes a parameter \code{d}, and \anyevent{Send}s out a message at time \code{t}.  
-The above formula  \code{\effect^{send (d)}} indicates that the input  \code{d} is positive and smaller or equal to \code{5000}; the method generates a finite trace, with the first time instance containing the event \anyevent{Send}, followed by a second time instance containing the event \anyevent{Done}; and the instance \code{\{}\anyevent{Send}\code{\}} takes a no more than \code{d} milliseconds delay to finish. 
-Although these examples are simple, they show the benefits of deploying value-dependent time bounds. Intuitively, if traditional timed automata \cite{larsen1997uppaal} define an \emph{exact} transition system, our timed effects define a set (possibly infinite) of exact transition systems. 
+The \code{send} method takes a parameter \code{d}, and \anyevent{Send}s 
+out a message at time \code{t}.  
+The above formula  \code{\effect^{send (d)}} indicates that the 
+input  \code{d} is positive and smaller or equal to \code{5}; the method 
+generates a finite trace, with the first event \anyevent{Send}, followed by 
+a second event \anyevent{Done}; and \anyevent{Send} takes a no more 
+than \code{d} milliseconds delay to finish. 
+Although these examples are simple, they show the benefits of deploying 
+value-dependent 
+time bounds. Intuitively, if traditional timed automata define an 
+\emph{exact} transition system, our timed effects define a set 
+(possibly infinite) of exact transition systems. 
 
 
 
@@ -414,7 +454,7 @@ prove the correctness, report on a case study investigating how it can help to d
 
 %\subsection{HipHop.js and Dependent Effects}
 \subsection{Timed Synchronous Effects}
-As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specifications (enclosed in \textcolor{darklavender}{\ttfamily{{/*@ ... @*/}}}) for each program, which leads to a compositional verification strategy, where static checking and timed temporal verification can be done locally. %The set of signals to be present in one logical time instance are represented within one \code{\{\}}.
+As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specifications (enclosed in \textcolor{darklavender}{\ttfamily{{/*@ ... @*/}}}) for each program, which leads to a compositional verification strategy, where static checking and timed temporal verification can be done locally. %The set of signals to be present in one logical time instance are represented within one \code{\_}.
 
 \begin{figure}[h]
       \vspace{0mm}
@@ -457,9 +497,9 @@ The {\ttfamily{authenticate}} module checks the validity of the identity at each
 
 
 After emitting the signal \anyevent{Connecting}, it emits  \anyevent{Connected} if the connection succeeds before the  preemptive deadline; otherwise, no signal is emitted. 
-The precondition \code{d{>}3000 : \{
-\}^\star \cdot\{\m{Login}\} } requires that the input variable \code{d} is greater than 3000, and before entering into this module, the signal \anyevent{Login} should be emitted at the last time instance, indicating that a login request has been sent. 
-The postcondition contains two parts and connected using the disjunction mark \code{{\vee}}: when \code{3000{<}t{<}d}, the effects contains two time instances, \code{\{\m{Connecting}\}} and \code{\{\m{Connected}\}}, while the first  time instance finishes at time \code{t}, %(assuming to reset the clock when executing the module), 
+The precondition \code{d{>}3 : \{
+\}^\star \cdot\{\m{Login}\} } requires that the input variable \code{d} is greater than 3, and before entering into this module, the signal \anyevent{Login} should be emitted at the last time instance, indicating that a login request has been sent. 
+The postcondition contains two parts and connected using the disjunction mark \code{{\vee}}: when \code{3{<}t{<}d}, the effects contains two time instances, \code{\{\m{Connecting}\}} and \code{\{\m{Connected}\}}, while the first  time instance finishes at time \code{t}, %(assuming to reset the clock when executing the module), 
 which is no later than \code{\m{d}} milliseconds; otherwise, the effects contains one time instance \code{\{Connecting\}} which finishes at time \code{d}. \emph{(See a demo from \cite{CODE1})}
 
 
@@ -468,7 +508,7 @@ As for another example, shown in \figref{fig:overview_eg2}, the module {\ttfamil
 spawns two threads running in  parallel.
 The first thread firstly waits for the signal \anyevent{Ready}, then emits  \anyevent{Go}. 
 The second thread firstly emits  \anyevent{Prep}, then calls the function {\ttfamily{cook}} asynchronously. 
-The precondition of {\ttfamily{main}} requires no arithmetic constraints on its input values (expressed as \code{\m{true}}), neither any pre-traces  (expressed as \code{\m{emp}} or \code{\epsilon}, indicating an empty trace). The postcondition ensures a trace, where the second time instance contains at least one signal \code{\anyevent{Cook}} and finishes within 3000 milliseconds after the completion of the first time instance. Then we do not care about the rest of the trace (\code{\{\}} is similar to a wildcard). 
+The precondition of {\ttfamily{main}} requires no arithmetic constraints on its input values (expressed as \code{\m{true}}), neither any pre-traces  (expressed as \code{\m{emp}} or \code{\epsilon}, indicating an empty trace). The postcondition ensures a trace, where the second time instance contains at least one signal \code{\anyevent{Cook}} and finishes within 3 milliseconds after the completion of the first time instance. Then we do not care about the rest of the trace (\code{\_} is similar to a wildcard). 
 %We omit the implementation of \code{cook} here, while provide the specifications of it. 
 Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is presented in the following sub-section. \emph{(See a demo from \cite{CODE2})}
 
@@ -477,17 +517,17 @@ Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is
 \begin{lstlisting}[columns=fullflexible]
 hiphop module main (out Prep, in Tick, out Ready, out Go, out Cook)
 /*@ requires true : emp @*/
-/*@ ensures  0<=t/\t<3000 : {}.({Cook})#t.{}^* @*/
+/*@ ensures  0<=t/\t<3 : {}.({Cook})#t.{}^* @*/
 {
 	fork{ // The effects of the first thread is true : Ready?.{Go}
 		await Ready; emit Go; 
-	}par{ // The effects of the second thread is 0<t<3000 : {Prep, Cook}#t.{Ready}
+	}par{ // The effects of the second thread is 0<t<3 : {Prep, Cook}#t.{Ready}
 		emit Prep;
-		async Ready { run cook (3000, Tick, Cook); }}}
-// The final effects for main is  0<=t/\t<3000 : ({Prep}.{Cook})#t.{Ready}.{Go} 
+		async Ready { run cook (3, Tick, Cook); }}}
+// The final effects for main is  0<=t/\t<3 : ({Prep}.{Cook})#t.{Ready}.{Go} 
       
 hiphop module cook (var d, in Tick, out Cook)
-/*@ requires d>2000  : {}^*.{Prep} @*/
+/*@ requires d>2  : {}^*.{Prep} @*/
 /*@ ensures  0<=t/\t<d : ({}.{Cook})#t @*/
 {	abort count(d, Tick) { yield; emit Cook; }}
 \end{lstlisting}  
@@ -519,7 +559,7 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
                   \textcolor{mGray}{  \emph{(– emp indicates an empty trace –)}}
   \item    \code{~\qquad \key{await}\ Ready;}
    \\
- \code{\langle  \textcolor{darklavender}{true : Ready? \cdot\{\} } \rangle }
+ \code{\langle  \textcolor{darklavender}{true : Ready? \cdot\_ } \rangle }
      \siderule{ [FV\text{-}Await]}
      \\
    \item    \code{~\qquad \key{emit}\ Go;}
@@ -539,33 +579,33 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
   \item    \code{~\qquad \key{async}\ Ready\{}
   %   \item    \code{~\qquad \key{yield}; }
  %     \\
-% \code{\langle  \textcolor{darklavender}{true : Ready? \cdot\{\}} \rangle }
+% \code{\langle  \textcolor{darklavender}{true : Ready? \cdot\_} \rangle }
  %    \siderule{ [FV\text{-}Yield]}
 %     \\
-  \item      \code{~\qquad \ \qquad \key{run}\ cook\ (3000, Cook) 
+  \item      \code{~\qquad \ \qquad \key{run}\ cook\ (3, Cook) 
      \}\}\}}
       \\
                      \textcolor{mGray}{\emph{(-TRS: check the  precondition of module cook-) }} \\
-              \code{  \textcolor{darkred}{d{=}3000 : \{Prep\}  \CONTAIN  d{>}2000 \wedge \{Prep\}} }   \\
+              \code{  \textcolor{darkred}{d{=}3 : \{Prep\}  \CONTAIN  d{>}2 \wedge \{Prep\}} }   \\
              
                \textcolor{mGray}{\emph{(-TRS: succeed-) }}
       \\
-     \code{\langle  \textcolor{darklavender}{ 0{\leq}t {<}3000 : (\{Prep\}\cdot \{Cook\})\# t}  \rangle } 
+     \code{\langle  \textcolor{darklavender}{ 0{\leq}t {<}3 : (\{Prep\}\cdot \{Cook\})\# t}  \rangle } 
      \siderule{ [FV\text{-}Call]}
       \\
-     \code{\langle  \textcolor{darklavender}{ 0{\leq}t {<}3000 : (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\}}  \rangle } 
+     \code{\langle  \textcolor{darklavender}{ 0{\leq}t {<}3 : (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\}}  \rangle } 
      \siderule{ [FV\text{-}Async]}
      \\ \item
-                   \code{\langle \textcolor{huntergreen}{(true \wedge 0{\leq}t {<}3000) :  Ready? \cdot\{Go\}  \ || \  (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\}} \rangle }   \siderule{ [FV\text{-}Fork]} 
+                   \code{\langle \textcolor{huntergreen}{(true \wedge 0{\leq}t {<}3) :  Ready? \cdot\{Go\}  \ || \  (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\}} \rangle }   \siderule{ [FV\text{-}Fork]} 
         \\ 
-         \code{\langle \textcolor{huntergreen}{0{\leq}t {<}3000 : (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\} \cdot \{Go\}} \rangle }
+         \code{\langle \textcolor{huntergreen}{0{\leq}t {<}3 : (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\} \cdot \{Go\}} \rangle }
          \siderule{ [Effects\text{-}Normalization]} 
          \\
               \item 
                \textcolor{mGray}{  \emph{(-TRS: check the  postcondition of module main; Succeed, cf. \tabref{tab:rewriting_tree_send}-) }}\\
                   \code{  \textcolor{darkred}{
-{0 {\leq} t {<}3000} : (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN {0 {\leq} t  {<}3000} : \{\}\cdot (\{Cook\})\# t \cdot\{\}^\star} 
+{0 {\leq} t {<}3} : (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\} \cdot \{Go\}
+ \CONTAIN {0 {\leq} t  {<}3} : \_\cdot (\{Cook\})\# t \cdot\_^\star} 
                   }    \\
      
 \end{enumerate}}
@@ -631,15 +671,15 @@ demonstrate how the TRS handles arithmetic constraints and dependent values.
 %We use the postcondition proving for module \code{main} as an example to briefly demonstrate the rewriting process. 
 As shown in \tabref{tab:rewriting_tree_send}, it automatically proves that the inferred effects of {\ttfamily{main}}
  satisfy the declared postcondition. 
-%property \code{\effect^\prime  {=} 0{\leq} t {<}3 : \{\}\cdot(\{Cook\}\# t)\cdot\{\}^\star}, 
-%where \code{\effect^\prime} simply indicates that the signal \anyevent{Cook} needs to happen at the second time instance, and takes no more than \code{3000} milliseconds after the first time instance has completed; and \code{\{\}^\star} means we do not care the rest of the traces. 
+%property \code{\effect^\prime  {=} 0{\leq} t {<}3 : \_\cdot(\{Cook\}\# t)\cdot\_^\star}, 
+%where \code{\effect^\prime} simply indicates that the signal \anyevent{Cook} needs to happen at the second time instance, and takes no more than \code{3} milliseconds after the first time instance has completed; and \code{\_^\star} means we do not care the rest of the traces. 
 We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{mGray}{[gray]}.
 
 {
 \begin{table*}[h]
 \centering
       \vspace{0mm}
-\caption{\label{tab:rewriting_tree_send} The inclusion proving example. (For simplicity, we use 3 seconds to replace the 3000 milliseconds.)}
+\caption{\label{tab:rewriting_tree_send} The inclusion proving example. (For simplicity, we use 3 seconds to replace the 3 milliseconds.)}
       
 \vspace{-1mm}
 \begin{adjustbox}{width=1\textwidth}
@@ -654,34 +694,34 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 }  \Rightarrow 
 \textcolor {darkred}{t_R {<}3}
 } \qquad
-\code{emp  \CONTAIN  \{\}^\star}
+\code{emp  \CONTAIN  \_^\star}
 }
 \Infer[dashed]1[{\siderule{\textcircled{8}[PROVE]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
 {\wedge}   t_L^2 {=} t_R
 } :  emp
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \bot \vee \{\}^\star}}
+ \CONTAIN \textcolor {darkred}{t_R {<}3} : \bot \vee \_^\star}}
 \Infer[dashed]1[{\siderule{\textcircled{7}[UNFOLD]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
 {\wedge}   t_L^2 {=} t_R
 } :  \cancel{\{Go\}}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{emp} \vee \cancel{\{\}} \cdot \{\}^\star}}
+ \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{emp} \vee \cancel{\_} \cdot \_^\star}}
 \Infer[dashed]1[{\siderule{\textcircled{6}[Normalization]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
 {\wedge}   t_L^2 {=} t_R
 } :  \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \bot \vee  \{\}^\star}}
+ \CONTAIN \textcolor {darkred}{t_R {<}3} : \bot \vee  \_^\star}}
 \Infer[dashed]1[{\siderule{\textcircled{5}[UNFOLD]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
 {\wedge}   t_L^2 {=} t_R
 } 
 :  \cancel{\{ Ready\}} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{emp} \vee \cancel{\{\}} \cdot \{\}^\star}}
+ \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{emp} \vee \cancel{\_} \cdot \_^\star}}
 \Infer[dashed]1[{\siderule{\textcircled{4}[UNFOLD{-}UNIFY]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L
  } : \cancel{\{Cook\} \# t_L^2} \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{\{Cook\}\# t_R}\cdot\{\}^\star}  }
+ \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{\{Cook\}\# t_R}\cdot\_^\star}  }
 \Infer[dashed]1[{\siderule{\textcircled{3}[UNFOLD]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L } : \cancel{\{Prep\}\# t_L^1} \cdot \{Cook\} \# t_L^2 \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} :  \cancel{\{\}}\cdot\{Cook\}\# t_R \cdot\{\}^\star}  }
+ \CONTAIN \textcolor {darkred}{t_R {<}3} :  \cancel{\_}\cdot\{Cook\}\# t_R \cdot\_^\star}  }
 \Infer[dashed]1[{\siderule{\textcircled{2}[SPLIT]}}]{\code{ \textcolor {darkred}{t_L {<}3} : (\{Prep\}\cdot \{Cook\})\# t_L \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \{\}\cdot\{Cook\}\# t_R\cdot\{\}^\star}  }
+ \CONTAIN \textcolor {darkred}{t_R {<}3} : \_\cdot\{Cook\}\# t_R\cdot\_^\star}  }
  \Infer[dashed]1[{\siderule{\textcircled{1}[RENAME]}}]{\code{ \textcolor {darkred}{t {<}3} : (\{Prep\}\cdot \{Cook\})\# t \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t {<}3} : \{\}\cdot\{Cook\}\# t\cdot\{\}^\star}  }
+ \CONTAIN \textcolor {darkred}{t {<}3} : \_\cdot\{Cook\}\# t\cdot\_^\star}  }
 \end{prooftree}}
 \\~\\
 
@@ -695,7 +735,7 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 
 
 
-Note that time instance \code{\{Prep\}} entails \code{\{\}} because the former contains more constraints. We formally define the subsumption for time instances in \defref{Subsumption}.
+Note that time instance \code{\{Prep\}} entails \code{\_} because the former contains more constraints. We formally define the subsumption for time instances in \defref{Subsumption}.
 Intuitively, we use \code{[DISPROVE]} wherever the left-hand side (LHS) is \emph{nullable}\footnote{If the event sequence is possibly empty, i.e. contains \code{\empt}, we call it nullable, formally defined in \defref{Nullable}.} while the right-hand side (RHS) is not. 
 \code{[DISPROVE]} is the heuristic refutation step to disprove the inclusion early, improving the verification efficiency.
 
@@ -703,13 +743,13 @@ Intuitively, we use \code{[DISPROVE]} wherever the left-hand side (LHS) is \emph
 As shown in \tabref{tab:rewriting_tree_send}, in step \code{\textcircled{1}}, we rename the time variables to avoid the name clashes between the antecedent and the consequent.  
 In step \code{\textcircled{2}}, we design a new rule \code{[SPLIT]} to accommodate the extended real-time constraints, which introduces two new time variables \code{t_L^1} and \code{t_L^2}, and 
 extends the previous constraint \code{t_L {<} 3} with constraints  \code{t_L^1 {+} t_L^2 {=} t_L}. Then \code{t_L^1} and \code{t_L^2} mark the real-time constraints for time instances  \code{\{Prep\}} and \code{\{Cook\}} respectively. 
-Then in step \code{\textcircled{3}}, we eliminate \code{\{Prep\}} from the LHS and \code{\{\}} from the RHS, as the instances entailment  \code{\{Prep\} \subseteq \{\}} holds.  
+Then in step \code{\textcircled{3}}, we eliminate \code{\{Prep\}} from the LHS and \code{\_} from the RHS, as the instances entailment  \code{\{Prep\} \subseteq \_} holds.  
 In step \code{\textcircled{4}}, in order to conduct a further unfolding, we unify time variables \code{t_L^2} and \code{t_R} by adding the constraint \code{t_L^2 {=} t_R}. 
-In step \code{\textcircled{5}}, from the RHS, since \code{\{\}^\star {=} emp \vee \{\} \cdot \{\}^\star}, eliminating one time instance \code{\{Ready\}} from it will lead to \code{\bot \vee \{\}^\star}, which can be normalised into \code{\{\}^\star} in step \code{\textcircled{6}}.
+In step \code{\textcircled{5}}, from the RHS, since \code{\_^\star {=} emp \vee \_ \cdot \_^\star}, eliminating one time instance \code{\{Ready\}} from it will lead to \code{\bot \vee \_^\star}, which can be normalised into \code{\_^\star} in step \code{\textcircled{6}}.
 At the end of the rewriting, we manage to prove that \code{(t_L {<}3 {\wedge} t_L^1 {+} t_L^2 {=}t_L {\wedge}t_L^2 {=} t_R)  \Rightarrow  t_R {<} 3} \footnote{The proof obligations generated by the verifier are discharged using constraint solver Z3 \cite{de2008z3}.}; therefore, the proof succeed.
 
-%(\code{\{Go\} \Rightarrow \{\}})
-%(\code{\{Ready\} \Rightarrow \{\}}, \code{t_L^2 \Rightarrow true})
+%(\code{\{Go\} \Rightarrow \_})
+%(\code{\{Ready\} \Rightarrow \_}, \code{t_L^2 \Rightarrow true})
 Termination is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using \emph{memorization} \cite{brotherston2005cyclic} (cf. \tabref{tab:rewriting_tree_case_study_finit_infinit}). 
 
 
@@ -723,7 +763,7 @@ Termination is guaranteed because the set of derivatives to be considered is fin
 To formulate the target language, we generalise the design of  Hiphop.js into a core language \code{\lambda_{HH}}, 
 %Based on the design of , but not too specific to Hiphop.js, we summarise a core language to be our target language, 
 which provides the infrastructure for mixing synchronous and asynchronous concurrency models. 
-We here formally define the syntax of \code{\lambda_{HH}}, as shown in \figref{fig:Hiphop_Syntax} The statements marked as \textcolor{purple} {purple} come from the  Esterel v5 \cite{berry1999constructive,berry2000esterel} endorsed by current academic compilers; while the statements marked as \textcolor{blue} {blue} provide the asynchrony coming from the usage of JavaScript promises. 
+We here formally define the syntax of \code{\lambda_{HH}}, as shown in \figref{fig:Hiphop_Syntax} The statements marked as \textcolor{purple} {purple} come from the  Esterel v5 \cite{berry1999constructive,berry2esterel} endorsed by current academic compilers; while the statements marked as \textcolor{blue} {blue} provide the asynchrony coming from the usage of JavaScript promises. 
 In this work, we are mainly interested in signal status and control propagation, which are not related to data, therefore the data variables and data-handling primitives are abstracted away. 
 
 %as our target language because it Given that Hiphop.js is an integration of Esterel and JavaScript, 
@@ -1048,7 +1088,7 @@ ${+}{+}$ to represent the append operation of two traces;
 \code{{\tt{SAT}(\pi)} } indicates the pure \code{\pi} is satisfiable, which is discharged by the constraint solver Z3 \cite{de2008z3}.  
 \code{I} is a list of mappings from signals to status. For example, the time instance $\{\textbf{S}\}$ indicates that signal \textbf{S} is present regardless of the status of other non-mentioned signals, i.e.,  time instances which at least contain $\textbf{S}$ to be present. Any time instance contains contradictions, such as $\{\textbf{S}, \overline{\textbf{S}}\}$, will lead to \code{false}, as a signal {\textbf{S}} can not be both present and absent. 
 
-%The signals shown in one time instance  represent the \emph{minimal} set of signals which are required/guaranteed to be there. An empty set \code{\{\}} represents any set of signals
+%The signals shown in one time instance  represent the \emph{minimal} set of signals which are required/guaranteed to be there. An empty set \code{\_} represents any set of signals
 
 
 
@@ -1422,7 +1462,7 @@ The TRS  is an automated entailment checker to prove language inclusions among t
 During the effects rewriting process, the inclusions are in the form of \code{\Gamma \vdash  \effect_1 \CONTAIN^{\effect}  \effect_2 }, a shorthand for: \code{\Gamma \vdash  \effect \cdot \effect_1 \CONTAIN   \effect \cdot  \effect_2}. To prove such inclusions is to check whether all the possible timed traces in the antecedent \code{\effect_1} are legitimately allowed  in the possible timed traces from the consequent \code{\effect_2}.
 \code{\Gamma} is the proof context, i.e., a set of effects inclusion hypothesis, \code{\effect} is the history effects from the antecedent that have been used to match the effects from the consequent.
 Note that \code{\Gamma}, \code{\effect} are derived during the inclusion proof. 
-The inclusion checking is initially invoked with \code{\Gamma{=}\{\}} and \code{\effect{=} True : \empt}. 
+The inclusion checking is initially invoked with \code{\Gamma{=}\_} and \code{\effect{=} True : \empt}. 
 
 
 
@@ -1489,8 +1529,8 @@ To better outline our contribution, we first present the original \emph{First} f
 Let \code{fst^\prime(\es){:=}\{ I\ |\  (I \cdot \es^\prime) \in \llbracket  \es \rrbracket  \}} be the set of initial instances derivable from  sequence \code{\es}. (\code{\llbracket  \es \rrbracket } represents all the traces contained in \code{\es}.)
 { 
  \begin{gather*} 
-\code{fst^\prime( \bott) {=} \{ \} } \qquad\ 
-\code{ fst^\prime(\empt) {=} \{ \}} \qquad\ 
+\code{fst^\prime( \bott) {=} \_ } \qquad\ 
+\code{ fst^\prime(\empt) {=} \_} \qquad\ 
 \code{fst^\prime( I) {=} \{ I \} }
  \qquad\ 
 \code{fst^\prime(  \es_1 {\vee} \es_2) {=} fst^\prime(  \es_1) \cup fst^\prime(  \es_2)}
@@ -1518,8 +1558,8 @@ the real-time bounds constructor \code{\#}. Next, we define the novel  \emph{Fir
 Let \code{fst_{\pure{\pi}}(\es){:=}\{ (I,  \pi, t) \ |\  \pi {\wedge} t{\geq}0 : (I\# t) \cdot \es^\prime \in \llbracket  \pi {:} \es \rrbracket \}} be the set of initial time instances derivable from effects \code{\pi {:} \es}. (\code{\llbracket  \pi {:} \es \rrbracket } represents all the time  traces contained in \code{\pi {:} \es}) 
 { 
  \begin{gather*} 
-\code{fst_{\pure{\pi}}( \bott) {=} \{ \} } \qquad\quad
-\code{fst_{\pure{\pi}}(\empt) {=} \{ \} } \qquad\quad
+\code{fst_{\pure{\pi}}( \bott) {=} \_ } \qquad\quad
+\code{fst_{\pure{\pi}}(\empt) {=} \_ } \qquad\quad
 \code{fst_{\pure{\pi}}( I ) {=} \{ (I, \pi {\wedge} t{\geq}0, t) \}  \ (t\ is\ fresh)} 
 \qquad\quad
    \code{fst_{\pure{\pi}}(  \es \# t) {=}  fst_{pi}(\es)}
@@ -1903,7 +1943,7 @@ CEC is an open-source compiler designed for research in both hardware and softwa
 
 
 
-%The core implementation is less than 3500 LOC, roughly, 1000{+} LOC for the verifier, and 2000{+} LOC for the TRS. We prove the soundness of the TRS. 
+%The core implementation is less than 3500 LOC, roughly, 1{+} LOC for the verifier, and 2{+} LOC for the TRS. We prove the soundness of the TRS. 
 %Next, we show case studies to demonstrate the feasibilities of our timed synchronous effects comparing to timed automata. 
 
 %We summarize the underlying reasons which lead to the improvement: (1)When the transition states of the models are small, the average execution time spent by the T.r.s is even less than the automata construction time, which means it is not necessary to construct the automata when a TRS solves it faster; (2)When the total states become larger, on average, the TRS outperforms automata-based algorithms, due to the significantly reduced search branches provided by the normalization lemmas; and (3)For the invalid cases, the TRS disproves them earlier without constructing the whole automata.
@@ -2027,17 +2067,17 @@ The inclusion checking process on the \code{send}'s postcondition is demonstrate
 \begin{prooftree}
 \Hypo{
 \code{
-\textcolor {darkred}{n{=}0} \Rightarrow \textcolor {darkred}{n{\geq}0} \qquad emp \subseteq \{\}^\star \qquad  \code{\siderule{[PROVE]}}
+\textcolor {darkred}{n{=}0} \Rightarrow \textcolor {darkred}{n{\geq}0} \qquad emp \subseteq \_^\star \qquad  \code{\siderule{[PROVE]}}
 }
 }
 \Infer[dashed]1[]{\code{ \textcolor {darkred}{n{=}0} : emp
- \CONTAIN \textcolor {darkred}{n{\geq}0} :  \bot \vee \{\}^\star \vee emp }  
+ \CONTAIN \textcolor {darkred}{n{\geq}0} :  \bot \vee \_^\star \vee emp }  
  }
 \Infer[dashed]1[]{\code{ \textcolor {darkred}{n{=}0} : {\{Done\}} 
- \CONTAIN \textcolor {darkred}{n{\geq}0} : \{\}^\star \cdot\{Done\} }  
+ \CONTAIN \textcolor {darkred}{n{\geq}0} : \_^\star \cdot\{Done\} }  
  }
 \Infer[dashed]1[]{\code{ \textcolor {darkred}{n{=}0} : \{Done\} 
- \CONTAIN \textcolor {darkred}{n{\geq}0} : \{\}^\star \cdot\{Done\} \vee
+ \CONTAIN \textcolor {darkred}{n{\geq}0} : \_^\star \cdot\{Done\} \vee
  \textcolor {darkred}{n{<}0} :
   \{Send\}^\omega}  }
   \Hypo{
@@ -2062,11 +2102,11 @@ The inclusion checking process on the \code{send}'s postcondition is demonstrate
   \{Send\}^\omega}  
   }
   \Infer[dashed]1[]{\code{ \textcolor {darkred}{n {\neq} 0} : \{Send\} \cdot \effect^{send}_{post} 
- \CONTAIN \textcolor {darkred}{n{\geq}0} : \{\}^\star \cdot\{Done\} \vee
+ \CONTAIN \textcolor {darkred}{n{\geq}0} : \_^\star \cdot\{Done\} \vee
  \textcolor {darkred}{n{<}0} :
   \{Send\}^\omega}  }
  \Infer[dashed]2[]{\code{ \textcolor {darkred}{n{=}0} : \{Done\} \vee  \textcolor {darkred}{n {\neq} 0} : \{Send\} \cdot \effect^{send}_{post} 
- \CONTAIN \textcolor {darkred}{n{\geq}0} : \{\}^\star \cdot\{Done\} \vee
+ \CONTAIN \textcolor {darkred}{n{\geq}0} : \_^\star \cdot\{Done\} \vee
  \textcolor {darkred}{n{<}0} :
   \{Send\}^\omega}  }
 \end{prooftree}}
@@ -2085,8 +2125,8 @@ The inclusion checking process on the \code{send}'s postcondition is demonstrate
 \subsubsection{Prove it when Reoccur}~\\
 
       \vspace{-2mm}
-%(\code{\{Go\} \Rightarrow \{\}})
-%(\code{\{Ready\} \Rightarrow \{\}}, \code{t_L^2 \Rightarrow true})
+%(\code{\{Go\} \Rightarrow \_})
+%(\code{\{Ready\} \Rightarrow \_}, \code{t_L^2 \Rightarrow true})
 Termination of TRS is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using \emph{memorization} \cite{brotherston2005cyclic}, i.e., the rule \code{[REOCCUR]}. % Check out this following example: 
 
 
@@ -2313,7 +2353,7 @@ ii) Timed CSP does not allow explicit representation of real-time through the ma
 %relies on implicit clocks, which means it 
 
 
-There have been a number of translation-based approaches on building verification support for timed process algebras. For example, Timed CSP \cite{dong2008timed} is translated to Timed Automata (TA) so that the model checker Uppaal can be \cite{larsen1997uppaal} applied. 
+There have been a number of translation-based approaches on building verification support for timed process algebras. For example, Timed CSP \cite{dong2008timed} is translated to Timed Automata (TA) so that the model checker Uppaal can be \cite{DBLP:journals/sttt/LarsenPY97} applied. 
 TA are finite state automata equipped with clock variables. Models based on TA often have simple structures. For example, the input models of the Uppaal are networks of TA with no hierarchy. 
 
 %Given the well-established TA techniques, 
