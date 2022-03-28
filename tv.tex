@@ -100,6 +100,8 @@
 \usepackage{epigraph}
 \newcommand{\anyevent}[1]{{\textcolor{darkred}
 {{\textbf{\footnotesize #1}}}}}
+\newcommand{\anynotevent}[1]{{\textcolor{darkred}
+{{\textbf{\footnotesize $\overline{\text{#1}}$}}}}}
 \newcommand{\seq}{\cdot}
 \newcommand{\choice}{\vee}
 \newcommand{\fullname}{Integrated Dependent Effects}
@@ -477,36 +479,32 @@ prove the correctness, report on case studies and experimental results.
 \subsection{\timedEffects}
 As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specifications (enclosed in \textcolor{darklavender}{\ttfamily{{/*@ ... @*/}}}) for each program, which leads to a compositional verification strategy, where static checking and timed temporal verification can be done locally. %The set of signals to be present in one logical time instance are represented within one \code{\_}.
 
-\begin{figure}[h]
+\begin{figure}[ht]
       \vspace{0mm}
 \begin{lstlisting}[columns=fullflexible]
-  void addSugar(int n)
-  // requires n>0 /\ Cup 
-  // ensures  t>=n /\ Sugar # t
-  {
-      if n == 0 then event[Sugar] 
-      else {
-          timeout (oneSugar(), 1);
-          addSugar (n-1);
-      }
-  }
+void addSugar(int n)
+/* requires n>0,  _^*.Cup */
+/* ensures  t>=n, Sugar # t */
+{ if n == 0 then event[Sugar] 
+  else {
+    timeout (oneSugar(), 1);
+    addSugar (n-1);}}
   
-  void makeCoffee (int n)
-  // requires n>0 /\ emp 
-  // ensures  5>t>=n/\ t1<3 /\ Cup.(Sugar # t).(Coffee # t1).Done
-  {
-      event[Cup];
-      deadline (getSugar(n), 5);
-      deadline (event[Coffee], 3);
-      event[Done];
-  }
+void makeCoffee (int n)
+/* requires n>0, emp */
+/* ensures  t<5/\t>=n/\t1<3, 
+ Cup.(Sugar#t).(Coffee#t1).Done */
+{ event[Cup];
+  deadline (getSugar(n), 5);
+  deadline (event[Coffee], 3);
+  event[Done];}
   
-  void main () 
-  // requires true /\ emp 
-  // ensures  t < 8 /\ (_^*.Done) # t
-  {
-      makeCoffee(3);
-  }
+void main () 
+/* requires true, emp */
+/* ensures  t<8, (_^*.Done)#t */
+{ makeCoffee(3);}
+// make coffee with 3 lumps of sugar
+
 \end{lstlisting}  
       \vspace{0mm}
       \caption{Dependent Values for Time Bounds (the program is from  \cite{berry2020hiphop}).}\label{fig:overview_eg1}
@@ -533,7 +531,7 @@ The precondition of {\ttfamily{main}} requires no arithmetic constraints on its 
 %We omit the implementation of \code{cook} here, while provide the specifications of it. 
 Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is presented in the following sub-section. \emph{(See a demo from \cite{CODE2})}
 
-\begin{figure}[h]
+\begin{figure}[ht]
       \vspace{-2mm}
 \begin{lstlisting}[columns=fullflexible]
 hiphop module main (out Prep, in Tick, out Ready, out Go, out Cook)
@@ -566,7 +564,7 @@ hiphop module cook (var d, in Tick, out Cook)
 As shown in \figref{fig:forward_example}, we demonstrate the forward verification process of the module  {\ttfamily{main}}. The program effects states  are captured in the form of \code{\langle \textcolor{huntergreen}{\effect} \rangle}. To facilitate the illustration, we label the verification steps by (1), ..., (9), and mark the deployed inference rules (cf. \secref{Forward_Rules}) in \textcolor{mGray}{[gray]}.
 
 {
-\begin{figure}[h]
+\begin{figure}[ht]
       \vspace{0mm}
      \begin{minipage}[c]{\columnwidth}
       \vspace{0mm}
@@ -697,7 +695,7 @@ As shown in \tabref{tab:rewriting_tree_send}, it automatically proves that the i
 We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{mGray}{[gray]}.
 
 {
-\begin{table*}[h]
+\begin{table*}[ht]
 \centering
       \vspace{0mm}
 \caption{\label{tab:rewriting_tree_send} The inclusion proving example. (For simplicity, we use 3 seconds to replace the 3 milliseconds.)}
@@ -875,7 +873,7 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 
 {
     \vspace{0mm}
-\begin{figure*}[h]
+\begin{figure*}[ht]
 \renewcommand{\arraystretch}{1.1}
 \centering
   $
@@ -883,7 +881,7 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
  
     \m{(Timed\ Effects)} &  \effect &\code{\  ::=\ }&
     \code{
-          \pure{\pi} : \es  
+          (\pure{\pi}, \es)
    \ | \ \effect_1 \vee \effect_2
 }
     \\
@@ -892,9 +890,12 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
    \code{ \bott
    \  | \ \empt 
     \ | \ \anyevent{A} 
+    \ | \ \anynotevent{A}
+    \ | \ \_  
     %   \ | \ \anyevent{a}
    \  | \ \es_1 {\seq} \es_2
     \ | \ \es_1 {\vee} \es_2
+    \ | \ \es_1 {||} \es_2
       %    \  | \ \es_1 \times \es_2
       \ | \ \es \# t 
  %  \  | \  \esn{\es}{t}    
@@ -1009,7 +1010,7 @@ qual to  0.
 
 
 
-\begin{figure}[h]
+\begin{figure}[ht]
     \vspace{-1mm}
     \renewcommand{\arraystretch}{1}
 \begin{align*} 
@@ -1717,7 +1718,7 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 
 
 
-%\begin{table}[h]
+%\begin{table}[ht]
 %\vspace{0mm}
 %  \caption{Some Normalization Lemmas for \timedEffects.}
 %  \label{table:normalization}
@@ -1773,7 +1774,7 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 %\vspace{0mm}
 %\end{table}
 
-\begin{table}[h]
+\begin{table}[ht]
 \caption{Normalization Axioms for \timedEffects.}
 \label{table:normalization}
 \setlength{\tabcolsep}{10pt}
@@ -1980,7 +1981,7 @@ A term rewriting system is efficient because \emph{it only constructs automata a
 %\subsubsection{Experimental Results}~\\
 %\label{subsec:Experimental_Results}
 %
-%\begin{table}[h]
+%\begin{table}[ht]
 %        \vspace{-2mm}
 %\caption{\label{tab:Experimental} The experiments are based on 16 real world C programs, we record the lines of code (LOC), the number of testing temporal properties ($\#$Prop.), and the (dis-) proving times (in milliseconds) using PAT and our T.r.s respectively. }
 %\centering
@@ -2064,7 +2065,7 @@ In our work, by merging finite and infinite effects into a single disjunctive fo
 The inclusion checking process on the \code{send}'s postcondition is demonstrated in \tabref{tab:rewriting_tree_case_study_finit_infinit} [REOCCUR], which finds the syntactic identity, as a companion, of the current open goal, as a bud, from the internal proof tree \cite{brotherston2005cyclic}. 
 
 {
-\begin{table*}[h]
+\begin{table*}[ht]
 \centering
       \vspace{0mm}
 \caption{\label{tab:rewriting_tree_case_study_finit_infinit} Term Rewriting for \figref{fig:case_study_finit_infinit} (We use \code{(\dagger)} to indicate the pairing of buds with companions.)}
@@ -2191,7 +2192,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 
 
 {
-\begin{table}[h]
+\begin{table}[ht]
       \vspace{0mm}
 \caption{\label{tab:reoccur} The reoccurrence proving example. 
 \code{I:} The main rewriting proof tree; \code{II:} Right hand side sub-tree of the rewriting process.}

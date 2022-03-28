@@ -25,7 +25,7 @@
 
 \newcommand{\timedEffs}{\emph{TimedEffs}}
 \newcommand{\mysharp}{{\mathrel{\texttt{\#}}}}
-
+\newcommand{\lappend}{\mathrel{\texttt{++}}}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Note: Authors migrating a paper from PACMPL format to traditional
@@ -1164,9 +1164,8 @@ qual to  0.
 
 
 
-\begin{figure}[h]
-    \vspace{-1mm}
-    \renewcommand{\arraystretch}{1}
+\begin{figure}[!ht]
+  \renewcommand{\arraystretch}{1.2}
 \begin{align*} 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                          Disjunction                          %%
@@ -1178,88 +1177,71 @@ qual to  0.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                          EMPTY                          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models \pi : \empt }  
+&\code{d, \varphi \models \pi : \epsilon }  
 &\m{iff}\quad 
-&  d{=}0 \ and\  {\tt{SAT}(\pi)}  \ and \ \varphi {=} [] 
+&  d{=}0 \ and\  {\m{SAT}(\pi)}  \ and \ \varphi {=} [] 
 \\[0.2em]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                          I                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : I }  &\m{iff}\quad 
-& d {\geq} 0 \ and\ {\tt{SAT}(\pi)}  \ and \ 
-\varphi {=} \code{[I]}
-  \\[0.2em]
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                          waiting                            %%
+&\code{d, \varphi \models  \pi : \anyevent{A} }  &\m{iff}\quad 
+& d {\geq} 0 \ and\ {\m{SAT}(\pi)}  \ and \ 
+\varphi {=} \code{[\anyevent{A}]}
+\\[0.2em]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : \textbf{S}?}  &\m{iff}\quad 
-& d {\geq} 0  \ and\  {\tt{SAT}(\pi)}  \ and \
-\exists n {\geq} 0.\ \varphi {=} \code{\{ \overline{\textbf{S}} \}^{n} {+}{+} [\{ {\textbf{S}} \}] }
-  \\[0.2em]
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                            CONCATE                            %%
+%%                            CONCATEnate                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : (\es_1{\cdot}\es_2)}  
+&\code{d, \varphi \models  \pi : (es_1{\cdot}es_2)}  
 &\m{iff}\quad 
-& {\tt{SAT}(\pi)}  \ and \ \exists \code{\varphi_1, \varphi_2, d_1, d_2}\ and\ \code{
-\varphi {=} \varphi_1 {+}{+} \varphi_2, d {=} d_1 {+} d_2 \ and 
+& {\m{SAT}(\pi)}  \ and \ \exists \code{\varphi_1, \varphi_2, d_1, d_2}\ and\ \code{
+\varphi {=} \varphi_1 \lappend \varphi_2, d {=} d_1 {+} d_2 
 }\\
 & & &
-\code{d_1, \varphi_1 \models  \pi : \es_1}  \ and \ 
-\code{d_2, \varphi_2 \models  \pi : \es_2}  
- \\[0.2em]
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\m{and}\ \code{d_1, \varphi_1 \models  \pi : es_1}  \ and \ 
+\code{d_2, \varphi_2 \models  \pi : es_2}  
+\\[0.2em]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                       DISJUNCTION                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : (\es_1 {\vee} \es_2)}  
+&\code{d, \varphi \models  \pi : (es_1 {\vee} es_2)}  
 &\m{iff}\quad 
-& {\tt{SAT}(\pi)}  \ and \ \code{d, \varphi \models  \pi :  \es_1 } \ or \ 
- \code{d, \varphi \models  \pi :  \es_2}  
+& {\m{SAT}(\pi)}  \ and \ \code{d, \varphi \models  \pi :  es_1 } \ or \ 
+\code{d, \varphi \models  \pi :  es_2}  
 \\[0.2em]
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                       par                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : (\es_1 || \es_2) }  
-&\m{iff}\quad 
-& {\tt{SAT}(\pi)}  \ and \ \code{d, \varphi \models  \pi :  \es_1 } \ and \ 
- \code{d, \varphi \models  \pi :  \es_2}  
-\\[0.2em]
- %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                       timed                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : \es \# t }  
+&\code{d, \varphi \models  \pi : es \mysharp  t }  
 &\m{iff}\quad 
-& d, \varphi \models  (\pi \wedge t{=}d) : \es
+& d, \varphi \models  (\pi \wedge t{=}d) : es
 \\[0.2em]
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            KLEENE                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d,  \varphi \models \pi : \esn{\es}{\star}  }  
+&\code{d,  \varphi \models \pi : \esn{es}{\star}  }  
 &\m{iff}\quad 
-&d, \varphi \models \pi :  \empt \ or \ 
-d, \varphi \models \pi :  (\es \cdot \esn{\es}{\star} ) 
- \\[0.2em]
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&d, \varphi \models \pi :  \epsilon \ or \ 
+d, \varphi \models \pi :  (es \cdot \esn{es}{\star} ) 
+\\[0.2em]
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            OMEGA                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d,  \varphi \models \pi : \esn{\es}{\omega}   }  
+&\code{d,  \varphi \models \pi : \esn{es}{\omega}   }  
 &\m{iff}\quad 
 &
-d, \varphi \models \pi :  (\es \cdot \esn{\es}{\omega} )  
- \\[0.2em]
-   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+d, \varphi \models \pi :  (es \cdot \esn{es}{\omega} )  
+\\[0.2em]
+ %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            FALSE                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-& \code{d, \varphi \models False : \bot }  
+& \code{d, \varphi \models \m{False} : \bot }  
 &\m{iff}\quad 
 &   otherwise
-%{\tt{UNSAT}(\pi)}  \ or \  \varphi  {=} \bot
-%\exists t, d(t) \not\models \llbracket \pure{\pi} \rrbracket_{t}
+%{\m{UNSAT}(\pi)}  \ or \  \varphi  {=} \bot
+%\exists t, d(t) \not\models \llbracket {\pi} \rrbracket_{t}
 \end{align*}
-    \vspace{-3mm}
-\caption{Semantics of Timed Synchronous Effects.}
-\label{fig:Sementic}
-  \vspace{-1mm}
+\caption{Semantics of \timedEffs\ .}
+\label{work3_fig:Sementic}
 \end{figure}
 
 
