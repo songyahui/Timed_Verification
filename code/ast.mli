@@ -14,7 +14,7 @@ type var = string
 type includ = string 
 
 type head = 
-        Ev    of (event * terms option) 
+        Ev    of (event * terms) 
       | Tau   of terms 
 
 (*E vent sequence *)
@@ -26,15 +26,7 @@ type es = Bot
         | Ttimes of es * terms
         | Kleene of es
 
-(*
-type esIn = BotIn
-        | EmpIn
-        | EventIn  of event 
-        | TtimesIn of event * terms
-        | ConsIn   of esIn  * esIn
-        | ESOrIn   of esIn  * esIn
-        | KleeneIn of esIn
-*)
+
 
 (*Arithimetic pure formulae*)
 type pure = TRUE
