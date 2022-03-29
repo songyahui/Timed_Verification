@@ -70,7 +70,7 @@ expres_help :
 | t = type_ name = VAR EQ e = expres_help {LocalDel (t, name, e)}
 | name = VAR LPAR vlist = real_param RPAR {Call (name, vlist)}
 | v = VAR EQ e = expres_help{Assign (v, e)}
-| EVENTKEY LPAR ev = STRING p=parm RPAR {EventRaise (ev,p)}
+| EVENTKEY LPAR ev = STRING {EventRaise (ev)}
 | TimeoutKEY LPAR e = expres_help COMMA t = INTE  RPAR  {Timeout(e, t)}
 | DeadlineKEY LPAR e = expres_help COMMA t = INTE  RPAR {Deadline(e, t)}
 | DelayKEY t = INTE {Delay t}
@@ -131,20 +131,20 @@ pure:
 | a = pure DISJ b = pure {PureOr (a, b)}
 
 
+(*
 parm:
 | {None}
 | LPAR i=INTE RPAR {Some i}
-
+*)
 
 es:
 | EMPTY { Emp }
-| str = EVENT p=parm { Event ( str, p) }
-| NEGATION str = EVENT p=parm {Not ( str, p)}
+| str = EVENT (*p=parm*) { Event (Present str) }
+| NEGATION str = EVENT {Event (Absent str)}
 | LPAR r = es RPAR { r }
 | a = es CHOICE b = es { ESOr(a, b) }
-| a = es CONJ b = es { ESAnd(a, b) }
 | LPAR r = es SHARP t = term RPAR { Ttimes(r, t )}
-| UNDERLINE {Underline}
+| UNDERLINE {Event (Any)}
 | a = es CONCAT b = es { Cons(a, b) } 
 | LPAR a = es POWER KLEENE RPAR{Kleene a}
 

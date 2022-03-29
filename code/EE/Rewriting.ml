@@ -40,6 +40,7 @@ let rec getAfreeVar (varList:string list):string  =
   findOne freeVar
 ;;
 
+(*
 let rec nullable (pi :pure) (es:es) : bool=
   match es with
     Bot -> false 
@@ -47,11 +48,8 @@ let rec nullable (pi :pure) (es:es) : bool=
   | Event _ -> false 
   | Cons (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
   | ESOr (es1 , es2) -> (nullable pi es1) || (nullable pi es2)
-  | ESAnd (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
   | Ttimes (es1, t) -> askZ3 (PureAnd (pi, Eq (t, Number 0))) 
-  | Underline -> false
   | Kleene es1 -> true
-  | _ -> raise (Foo "nullable")
 ;;
 
 let rec getSize (es:es) : int=
@@ -88,30 +86,17 @@ let rec isEmpES (es:es) :bool =
 
 
 
-let rec fst (pi :pure) (es:es): (event* int option) list = 
-  let rec common (left:(string* int option) list) (right:(string*int option) list) (acc:(string*int option) list): (string*int option) list =
-    match left with 
-      [] -> acc 
-    | x :: xs -> 
-      let rec oneOF (ele:(string*int option )) (li:(string*int option) list):bool =
-        (match li with 
-          [] -> false 
-        | y::ys -> if compareEvent ele y then true else oneOF ele ys
-        )
-      in 
-      if oneOF x right then common xs right (append acc [x]) else common xs right acc
-  in 
+let rec fst (varList:string list) (pi :pure) (es:es): head list = 
   match es with
     Bot -> []
   | Emp -> []
-  | Event (str, p) ->  [(str, p)]
+  | Event ev ->  [One (ev, Var (getAfreeVar varList))]
+  | Not ev -> [Zero (ev, Var (getAfreeVar varList))]
   | Ttimes (es1, t) -> fst pi es1
   | Cons (es1 , es2) ->  if nullable pi es1 then append (fst pi es1) (fst pi es2) else fst pi es1
   | ESOr (es1, es2) -> append (fst pi es1) (fst pi es2)
-  | ESAnd (es1, es2) -> common (fst pi es1) (fst pi es2) []
   | Underline -> [("_",None)]
   | Kleene es1 -> fst pi es1
-  | _ -> raise (Foo "fst")
 ;;
 
 let rec appendEff_ES eff es = 
@@ -168,20 +153,7 @@ let rec compareES es1 es2 =
   | _ -> false
 ;;
 
-let rec compareEff eff1 eff2 =
-  match (eff1, eff2) with
-  | (Effect(FALSE, _ ), Effect(FALSE, _)) -> true 
-  | (Effect(FALSE, _ ), Effect(_, Bot )) -> true 
-  | (Effect(_, Bot), Effect(FALSE, _ )) -> true 
-  | (Effect(_, Bot ), Effect(_, Bot)) -> true 
 
-  | (Effect (pi1, es1), Effect (pi2, es2 )) -> compareES es1 es2
-  | (Disj (eff11, eff12), Disj (eff21, eff22)) -> 
-      let one =  (compareEff eff11  eff21) && (compareEff eff12  eff22) in
-      let two =  (compareEff eff11  eff22) && (compareEff eff12  eff21 ) in
-      one || two
-  | _ -> false
-  ;;
 
 let rec splitEffects eff : (pure * es) list = 
   match eff with 
@@ -289,15 +261,33 @@ let rec normalES_Bot es pi =
 
 
   ;;
+  *)
+
+let rec compareEff eff1 eff2 =
+  match (eff1, eff2) with
+  | (Effect(FALSE, _ ), Effect(FALSE, _)) -> true 
+  | (Effect(FALSE, _ ), Effect(_, Bot )) -> true 
+  | (Effect(_, Bot), Effect(FALSE, _ )) -> true 
+  | (Effect(_, Bot ), Effect(_, Bot)) -> true 
+
+  | (Effect (pi1, es1), Effect (pi2, es2 )) -> aCompareES es1 es2
+  | (Disj (eff11, eff12), Disj (eff21, eff22)) -> 
+      let one =  (compareEff eff11  eff21) && (compareEff eff12  eff22) in
+      let two =  (compareEff eff11  eff22) && (compareEff eff12  eff21 ) in
+      one || two
+  | _ -> false
+  ;;
+
+let rec concertive (es:es) (t:int): es = 
+  if t ==0 then Emp 
+  else Cons (es, concertive es (t -1))
+  ;;
 
 let rec normalES (es:es) (pi:pure) :es = 
   match es with
     Bot -> es
   | Emp -> es
   | Event _ -> es
-  | Not _ -> es
-
-  | Underline -> Underline
   | Cons (Cons (esIn1, esIn2), es2)-> normalES (Cons (esIn1, Cons (esIn2, es2))) pi 
   | Cons (es1, es2) -> 
       let normalES1 = normalES es1 pi  in
@@ -350,23 +340,6 @@ let rec normalES (es:es) (pi:pure) :es =
         |  _-> ESOr (norml_es1, norml_es2)
         )
       ;)
-
-  | ESAnd (es1, es2) -> 
-      (match (normalES es1 pi , normalES es2 pi ) with 
-
-      | (Bot, norml_es2) -> Bot
-      | (norml_es1, Bot) -> Bot
-      | (Event (s1, p1), Event (s2, p2)) -> if compareEvent (s1, p1) (s2, p2) then Event (s1, p1) else Bot
-
-      | (Emp, norml_es2) -> if nullable pi norml_es2 then Emp else Bot 
-      | (norml_es1, Emp) -> if nullable pi norml_es1 then Emp else Bot 
-
-      | (norml_es1, norml_es2) -> 
-        if aCompareES  norml_es1 norml_es2 == true then norml_es1
-        else ESAnd (norml_es1, norml_es2)
-
-      )
-
 
 
   | Ttimes (es1, terms) -> 
@@ -430,6 +403,7 @@ let rec normalEffect (eff:effect) :effect =
       | _ -> Disj (normaedEff1, normaedEff2)
   ;;
 
+(*
 let trunItIntoWideCard (pi:pure) (esIn: es) : es = 
   let rec helper (esI: es) : es = 
     match esI with 
@@ -509,37 +483,6 @@ let rec derivative (p :pure) (es:es) (varL: var list) (ev:(string*int option)): 
 ----------------------CONTAINMENT--------------------
 ----------------------------------------------------*)
 
-
-
-let rec reoccurCtxSet (esL:CS.t) (esR:CS.t) (ctx:ctxSet) = 
-  match ctx with 
-  | [] -> false 
-  | (es1, es2) :: rest -> 
-
-    if (CS.subset esL es1 && CS.subset es2 esR ) then 
-    (
-      (*print_string ("\n=======\n");
-      CS.iter (fun a -> print_string (to_string a ^"  ")) es1;
-      print_string ("\n");
-      CS.iter (fun a -> print_string (to_string a ^"  ")) es2;
-      print_string ("\n-------\n");
-      CS.iter (fun a -> print_string (to_string a ^"  ")) esL;
-      print_string ("\n");
-      CS.iter (fun a -> print_string (to_string a ^"  ")) esR;
-      print_string ("\n");
-      *)
-      true
-    )
-    else reoccurCtxSet esL esR rest (*REOCCUR*) 
-  ;;
-
-let rec splitCons (es:es) : es list = 
-
-  match es with 
-    ESOr (es1, es2) -> append (splitCons es1) (splitCons es2)
-  | _ -> [es]
-
-  ;;
 
 
 
@@ -1048,12 +991,15 @@ let rec sublist b e l =
      if b>0 then tail else h :: tail
 ;;
 
-let rec containment1 (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool * int * hypotheses) = 
+*)
+
+let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
   let showEntail  = (*showEntailmentEff effL effR ^ " ->>>> " ^*) showEntailmentEff normalFormL normalFormR in 
+  
 
-  (Node (showEntail ^ "   [UNFOLD]",[] ), true, 0, [])
+  (Node (showEntail ^ "   [UNFOLD]",[] ), true)
   (*
     print_string (string_of_int (List.length delta)^"\n");
   let startTimeStamp = Sys.time() in
@@ -1369,9 +1315,9 @@ let rec extendREpitation (eff:effect) : effect =
   | Disj (eff1, eff2) -> Disj (extendREpitation eff1, extendREpitation eff2)
   ;;
 
-let printReportHelper lhs rhs : (binary_tree * bool * int * hypotheses) = 
+let printReportHelper lhs rhs : (binary_tree * bool) = 
 
-  containment1 (normalEffect (extendREpitation lhs ) ) rhs [] 
+  containment TRUE (normalEffect (extendREpitation lhs) ) rhs [] 
   ;;
 
 
@@ -1380,10 +1326,9 @@ let printReportHelper lhs rhs : (binary_tree * bool * int * hypotheses) =
 
 let printReport lhs rhs :string =
   let startTimeStamp = Sys.time() in
-  let (tree, re, states, hypo) =  printReportHelper lhs rhs  in
+  let (tree, re) =  printReportHelper lhs rhs  in
   let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
   let result = printTree ~line_prefix:"* " ~get_name ~get_children tree in
-  let states = "[Explored "^ string_of_int (states) ^ " States]\n" in 
-  let buffur = ( "===================================="^"\n" ^(showEntailmentEff lhs rhs)^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n") ^ states ^verification_time^" \n\n"^ result)
+  let buffur = ( "===================================="^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n") ^verification_time^" \n\n"^ result)
   in buffur
   ;;

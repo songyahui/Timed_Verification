@@ -8,22 +8,33 @@ type terms = Var of string
            | Minus of terms * terms 
 
 (* We use a string to represent an single event *)
-type event =  string 
+type event =  Present of string | Absent of string | Any 
 type mn = string
 type var = string 
 type includ = string 
 
+type head = 
+        Ev    of (event * terms option) 
+      | Tau   of terms 
+
 (*E vent sequence *)
 type es = Bot 
         | Emp 
-        | Event of event * int option 
-        | Not of event * int option 
-        | Cons of es * es
-        | ESOr of es * es
-        | ESAnd of es * es
+        | Event  of event 
+        | Cons   of es * es
+        | ESOr   of es * es
         | Ttimes of es * terms
         | Kleene of es
-        | Underline
+
+(*
+type esIn = BotIn
+        | EmpIn
+        | EventIn  of event 
+        | TtimesIn of event * terms
+        | ConsIn   of esIn  * esIn
+        | ESOrIn   of esIn  * esIn
+        | KleeneIn of esIn
+*)
 
 (*Arithimetic pure formulae*)
 type pure = TRUE
@@ -62,7 +73,7 @@ type expression = Unit
           | Call of mn * expression list 
           | Assign of var * expression
           | Seq of expression * expression
-          | EventRaise of (event*int option)
+          | EventRaise of string 
           | Timeout of (expression * int)  
           | Deadline of (expression * int)
           | Delay of int

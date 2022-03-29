@@ -57,8 +57,7 @@ let rec printExpr (expr: expression):string =
   | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
   | Assign (v, e) -> v ^ " = " ^ printExpr e
   | Seq (e1, e2) -> printExpr e1 ^ ";" ^ printExpr e2
-  | EventRaise (ev,None) -> ev
-  | EventRaise (ev,Some n) -> ev ^"(" ^string_of_int n ^")"
+  | EventRaise (ev) -> ev
   | Deadline (e, n) -> "deadline (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
   | Timeout (e, n) -> "timeout (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
 
@@ -164,33 +163,11 @@ let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_ty
 
 
 
-(*n >0 /\ A^n  -> n = 2 /\ n > 0 /\ A^n
-let substituteEffWithPure (eff:effect) (realArgs: expression list) (formal: (_type * var) list ) =
-    let exprToTerm (ex:expression):terms = 
-      match ex with 
-        Integer num -> Number num
-      | _ -> print_string (printExpr ex^"\n");
-      raise (Foo "substituteEffWithPure");
-    in 
-    let realArgs' = List.filter (fun x -> 
-                                match x with 
-                                Unit -> false 
-                              | _-> true ) realArgs in 
-    let formalArgs = List.map (fun (a, b) -> b) formal in 
-    let pairs = List.combine realArgs' formalArgs in 
-    let constrains = List.map (fun (a, b) -> Eq (Var b, exprToTerm a )) pairs in 
-
-    let consNew = List.fold_right (fun con acc -> PureAnd (acc, con ) ) (constrains) TRUE in 
-    addConstrain eff consNew
-    ;;
-
-*)
-
 let checkPrecondition (state:effect) (pre:effect)  = 
   let reverseState =  (reverseEff state) in
   let reversePre =  (reverseEff pre) in 
   (*check containment*)
-  let (result_tree, result, states, hypo) =  Rewriting.printReportHelper reverseState reversePre in 
+  let (result_tree, result) =  Rewriting.printReportHelper reverseState reversePre in 
   let tree = Node (showEntailmentEff reverseState reversePre, [result_tree]) in
 
   if result == false then 
@@ -214,7 +191,7 @@ let condToPure (expr :expression) :pure =
 
 let rec verifier (caller:string) (expr:expression) (state_H:effect) (state_C:effect) (prog: program): effect = 
   match expr with 
-    EventRaise (ev,p) -> concatEffEs state_C (Event (ev,p))
+    EventRaise (ev) -> concatEffEs state_C (Event (Present ev))
   | Seq (e1, e2) -> 
     let state_C' = verifier caller e1 state_H state_C prog in 
     verifier caller e2 state_H state_C' prog
@@ -294,12 +271,11 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     
     (*let varList = (*append*) (getAllVarFromEff acc) (*(getAllVarFromEff post)*) in  
     *)
-    let (result_tree, result, states, hypos) =  Rewriting.printReportHelper acc post in 
+    let (result_tree, result) =  Rewriting.printReportHelper acc post in 
     let result = "[Result: "^ (if result then "Succeed" else "Fail") ^"]\n" in 
-    let states = "[Explored "^ string_of_int (states+1)  ^ " States]\n" in 
     let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
     let printTree = printTree ~line_prefix:"* " ~get_name ~get_children result_tree in
-    "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ result ^ states ^verification_time^ "\n" ^ printTree ^ "\n" 
+    "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ result ^verification_time^ "\n" ^ printTree ^ "\n" 
     
  ;;
 

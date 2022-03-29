@@ -1,10 +1,8 @@
 ====================================
-true&((Green . (Yellow . Red))^*) |- true&((_^n) . (Green^*))
 [Result] Succeed
-[Explored 0 States]
-[Verification Time: 0.013 ms]
+[Verification Time: 0.017 ms]
  
 
-* true&((Green . (Yellow . Red))^*) |- true&((_^n) . (Green^*))   [UNFOLD]
+* t>1&(A^t) |- t>5&(A^t)   [UNFOLD]
 
 

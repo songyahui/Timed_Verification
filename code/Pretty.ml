@@ -30,51 +30,6 @@ let rec getAfreeVar (varList:string list):string  =
   findOne freeVar
 ;;
 
-(*
-let rec translateLTL (pi:pure) (ltl:ltl) (varList:string list) :(pure * es * string list) =
-  match ltl with 
-    Lable str -> (pi, Event (str, None), varList)
-  | Next l -> 
-    let (piii, ess, varList') =  translateLTL pi l varList in 
-    (piii,  Cons (Underline,ess), varList')
-  | Until (l1, l2) -> 
-      let newVar = getAfreeVar varList in 
-      let newPi = PureAnd (pi, Gt (Var newVar, Number 0)) in 
-      let (pi1, ess1, varList1) =  translateLTL newPi l1 (newVar :: varList) in 
-      let (pi2, ess2, varList2) =  translateLTL pi1 l2 varList1 in 
-      let prefix = Ttimes (ess1, Var newVar) in 
-      (*(pi2, Cons (Cons(ess1, Kleene (ess1)) , ess2), varList2)*)
-      (pi2, Cons (prefix, ess2), varList2)
-  | Global l -> 
-      let (piii , ess1, varList') =  translateLTL pi l varList in 
-
-      (piii, Kleene (ess1), varList')
-  | Future l -> 
-      let newVar = getAfreeVar varList in 
-      let prefix = Ttimes (Underline, Var newVar) in 
-      let (piii, ess, varList') =  translateLTL pi l (newVar::varList) in 
- 
-      (*(piii, Cons (Kleene(Not ess ), ess), varList')*)
-      (piii, Cons (prefix, ess), varList')
-  | NotLTL l -> 
-      let (piii, ess, varList') =  translateLTL pi l varList in 
-      (piii, Not (ess), varList')
-  | Imply (l1, l2) -> 
-      let (pi1, ess1, varList1) =  translateLTL pi l1 varList in 
-      let (pi2, ess2, varList2) =  translateLTL pi1 l2 varList1 in 
-      (pi2, ESOr ( (Not (ess1)),   ess2), varList2)
-  | AndLTL (l1, l2) -> 
-      let (pi1, ess1, varList1) =  translateLTL pi l1 varList in 
-      let (pi2, ess2, varList2) =  translateLTL pi1 l2 varList1 in 
-      (pi2, ESAnd (ess1, ess2), varList2)
-  | OrLTL (l1, l2) -> 
-      let (pi1, ess1, varList1) =  translateLTL pi l1 varList in 
-      let (pi2, ess2, varList2) =  translateLTL pi1 l2 varList1 in 
-      (pi2, ESOr (ess1, ess2), varList2)
-  ;;
-*)
-
-
 
 let rec input_lines file =
   match try [input_line file] with End_of_file -> [] with
@@ -197,25 +152,55 @@ let rec showTerms (t:terms):string =
 
   ;;
 
+let string_of_event ev : string = 
+  match ev with 
+  | Present str -> str 
+  | Absent str -> "!" ^ str
+  | Any -> "_"
+  ;;
+
 (*To pretty print event sequences*)
 let rec showES (es:es):string = 
   match es with
     Bot -> "_|_"
   | Emp -> "emp"
-  | Event (ev, None) -> ev  
-  | Event (ev, Some num) -> ev ^"("^string_of_int num^")"
-  | Not (ev, None) ->  "!(" ^ (ev) ^")"
-  | Not (ev, Some num) -> "!(" ^ ev ^"("^string_of_int num^")" ^")"
+  | Event (ev) -> string_of_event ev  
   | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
   | ESOr (es1, es2) -> "("^(showES es1) ^ "|" ^ (showES es2)^")"
-  | ESAnd (es1, es2) -> "("^(showES es1) ^ "/\\" ^ (showES es2)^")"
   | Ttimes (es, t) -> "("^(showES es) ^ "^" ^ (showTerms t)^")"
-  | Underline -> "_"
   | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
   ;;
 
 
+let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):terms = 
+  match t with 
+    Var str -> if String.compare formalArg str == 0 then 
+    (
+      match realArg with 
+        Integer n -> Number n
+      | Variable v -> Var v
+      | Bool true -> Number 1
+      | Bool false -> Number 0
+      | BinOp (Variable v, Integer n, "+") -> Plus (Var v, Number n)
+      | BinOp (Variable v, Integer n, "-") -> Minus (Var v, Number n)
+      | _ -> raise (Foo "substituteTermWithAgr exception")
+    )
+    else Var str 
+  | Number n -> Number n
+  | Plus (term, n) -> Plus (substituteTermWithAgr term realArg formalArg, n)
+  | Minus (term, n) -> Minus (substituteTermWithAgr term realArg formalArg, n)
+  ;;
 
+let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es = 
+  match es with 
+    Bot  -> es
+  | Emp  -> es
+  | Event _  -> es
+  | Cons (es1, es2) ->  Cons (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
+  | ESOr (es1, es2) ->  ESOr (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
+  | Ttimes (esIn, t) -> Ttimes (substituteESWithAgr esIn realArg formalArg, substituteTermWithAgr t realArg formalArg)
+  | Kleene esIn -> Kleene (substituteESWithAgr esIn realArg formalArg)
+  ;;
 
 
 
@@ -282,12 +267,9 @@ let rec reverseEs (es:es) : es =
     Bot -> Bot
   | Emp -> Emp
   | Event _ -> es
-  | Not _ ->  es
   | Cons (es1, es2) -> Cons (reverseEs es2, reverseEs es1)
   | ESOr (es1, es2) -> ESOr (reverseEs es1, reverseEs es2)
-  | ESAnd (es1, es2) -> ESAnd (reverseEs es1, reverseEs es2)
   | Ttimes (es1, t) -> Ttimes (reverseEs es1, t)
-  | Underline -> Underline
   | Kleene es1 ->  Kleene (reverseEs es1)
   ;;
 
@@ -316,19 +298,7 @@ let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):te
   | Minus (term, n) -> Minus (substituteTermWithAgr term realArg formalArg, n)
   ;;
 
-let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es = 
-  match es with 
-    Bot  -> es
-  | Emp  -> es
-  | Event _  -> es
-  | Not _  -> es
-  | Cons (es1, es2) ->  Cons (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
-  | ESOr (es1, es2) ->  ESOr (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
-  | ESAnd (es1, es2) ->  ESAnd (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
-  | Ttimes (esIn, t) -> Ttimes (substituteESWithAgr esIn realArg formalArg, substituteTermWithAgr t realArg formalArg)
-  | Kleene esIn -> Kleene (substituteESWithAgr esIn realArg formalArg)
-  | Underline -> es
-  ;;
+
 
 
 let rec splitDisj (p:pure) (es:es):effect =
@@ -419,35 +389,24 @@ let rec normalTerms (t:terms):terms  =
   | _ -> t 
   ;;
 
-
+let compareEvent ev1 ev2 : bool=
+  match (ev1, ev2) with 
+  | (Present str1, Present str2) -> if String.compare str1 str2 = 0 then true else false 
+  | (Absent str1, Absent str2) -> if String.compare str1 str2 = 0 then true else false 
+  | (Any, Any) -> true 
+  | _ -> false 
+  ;;
 
 let rec aCompareES es1 es2 = 
-  (*let rec subESsetOf (small : es list) (big : es list) :bool = 
-    let rec oneOf a set :bool = 
-      match set with 
-        [] -> false 
-      | y:: ys -> if aCompareES a y then true else oneOf a ys
-    in 
-    match small with 
-      [] -> true 
-    | x :: xs -> if oneOf x big == false then false else subESsetOf xs big
-  in 
-  *)
-
   match (es1, es2) with 
     (Bot, Bot) -> true
   | (Emp, Emp) -> true
-  | (Event (s1, p1), Event (s2,p2)) -> 
-    String.compare s1 s2 == 0 && compareParm p1 p2 
-  | (Not (s1, p1), Not (s2,p2)) -> 
-    String.compare s1 s2 == 0 && compareParm p1 p2 
+  | (Event ev1, Event ev2) -> 
+    compareEvent ev1 ev2 
   | (Cons (es1L, es1R), Cons (es2L, es2R)) -> 
     if (aCompareES es1L es2L) == false then false
     else (aCompareES es1R es2R)
   | (ESOr (es1L, es1R), ESOr (es2L, es2R)) -> 
-      if ((aCompareES es1L es2L) && (aCompareES es1R es2R)) then true 
-      else ((aCompareES es1L es2R) && (aCompareES es1R es2L))
-  | (ESAnd (es1L, es1R), ESAnd (es2L, es2R)) -> 
       if ((aCompareES es1L es2L) && (aCompareES es1R es2R)) then true 
       else ((aCompareES es1L es2R) && (aCompareES es1R es2L))
   | (Kleene esL, Kleene esR) -> aCompareES esL esR
