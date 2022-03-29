@@ -2,7 +2,7 @@
 true&((Green . (Yellow . Red))^*) |- true&((_^n) . (Green^*))
 [Result] Succeed
 [Explored 0 States]
-[Verification Time: 0.015 ms]
+[Verification Time: 0.013 ms]
  
 
 * true&((Green . (Yellow . Red))^*) |- true&((_^n) . (Green^*))   [UNFOLD]

@@ -1,9 +1,0 @@
-pdflatex popl2022.tex
-bibtex popl2022.aux
-pdflatex popl2022.tex
-pdflatex popl2022.tex
-rm *.aux
-rm *.out
-rm *.log
-rm *.bbl
-rm *.blg

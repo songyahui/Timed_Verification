@@ -28,7 +28,8 @@ let () =
     print_string final_result;
     *)
     flush stdout;                (* 现在写入默认设备 *)
-    close_in ic                  (* 关闭输入通道 *) 
+    close_in ic;                 (* 关闭输入通道 *) 
+    print_string (final_result ^ "\n")
 
   with e ->                      (* 一些不可预见的异常发生 *)
     close_in_noerr ic;           (* 紧急关闭 *)
