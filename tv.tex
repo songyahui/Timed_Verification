@@ -483,25 +483,25 @@ As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specificatio
       \vspace{0mm}
 \begin{lstlisting}[columns=fullflexible]
 void addSugar(int n)
-/* requires n>0,  _^*.Cup */
-/* ensures  t>=n, Sugar # t */
+/* requires n>0,  _^*.Cup 
+   ensures  t>=n, Sugar # t */
 { if n == 0 then event[Sugar] 
   else {
     timeout (oneSugar(), 1);
     addSugar (n-1);}}
   
 void makeCoffee (int n)
-/* requires n>0, emp */
-/* ensures  t<5/\t>=n/\t1<3, 
+/* requires n>0, emp 
+ ensures  t<5/\t>=n/\t1<3, 
  Cup.(Sugar#t).(Coffee#t1).Done */
 { event[Cup];
-  deadline (getSugar(n), 5);
+  deadline (addSugar(n), 5);
   deadline (event[Coffee], 3);
   event[Done];}
   
 void main () 
-/* requires true, emp */
-/* ensures  t<8, (_^*.Done)#t */
+/* requires true, emp 
+ ensures  t<8, (_^*.Done)#t */
 { makeCoffee(3);}
 // make coffee with 3 lumps of sugar
 
