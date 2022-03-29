@@ -1,0 +1,14 @@
+#!/bin/bash
+# My first script
+
+rm *.cmi
+rm *.cmo
+rm *.txt
+rm lexer.ml
+rm parser.ml
+rm parser.mli
+rm trs
+rm verify
+rm gen
+rm ltl
+rm verifyLTL
