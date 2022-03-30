@@ -53,17 +53,102 @@ let rec nullable (pi :pure) (es:es) : bool=
   | Kleene es1 -> true
 ;;
 
+let nullableEff (eff:effect) : bool = 
+  List.fold_left (fun acc (pi, es) -> acc || (nullable pi es)) false eff;;
+
+assert (nullable (Eq (Var "t", Number 0)) (Ttimes (Emp, Var "t")) == true);;
+assert (nullable (Eq (Var "t", Number 1)) (Ttimes (Emp, Var "t")) == false);;
 
 let rec fst (pi :pure) (es:es): head list = 
   match es with
     Bot -> []
   | Emp -> []
   | Event ev ->  let t = getAfreeVar () in [Ev(ev, Var t)]
+  | Ttimes (Emp, t) -> [Tau t]
   | Ttimes (es1, t) ->  fst pi es1
   | Cons (es1 , es2) ->  if nullable pi es1 then append (fst pi es1) (fst pi es2) else fst pi es1
   | ESOr (es1, es2) -> append (fst pi es1) (fst pi es2)
   | Kleene es1 -> fst pi es1
 ;;
+
+let fstEff (eff:effect) : head list = List.flatten (List.map (fun (pi, es) -> fst pi es) eff);; 
+
+let appendEff_ES eff es: effect = List.map (fun (pi, es1) -> (pi, Cons (es1, es))) eff;;  
+
+let entailEvent ev1 ev2 : bool =
+  match (ev1, ev2) with 
+  | (_, Any) -> true 
+  | (Present str1, Present str2) -> String.compare str1 str2 == 0 
+  | (Present str1, Absent str2) -> String.compare str1 str2 != 0 
+  | (Absent str1, Absent str2) ->  String.compare str1 str2 == 0
+  | _ -> false 
+;;
+
+
+let rec derivitive (pi :pure) (es:es) (f:head) : effect =
+  match f with 
+  | Tau  t ->
+    (match es with 
+      Bot -> [(FALSE, Bot)]
+    | Emp -> [(FALSE, Bot)]
+    | Event ev -> [(pi, Event ev)]
+    | Ttimes (es1, tIn) -> 
+      let t_new = getAfreeVar () in 
+      let p_new = PureAnd (pi, Eq(Plus (t,Var t_new) , tIn)) in 
+      [(p_new, Ttimes (es1, Var t_new))]
+
+    | Cons (es1 , es2) ->  
+      let eff1 = derivitive pi es1 f in 
+      let eff1' = appendEff_ES eff1 es2 in 
+      let eff2 = derivitive pi es2 f in    
+      if nullable pi es1 
+        then List.append eff1' eff2  
+        else eff1'
+
+    | ESOr (es1, es2) -> 
+      let eff1 = derivitive pi es1 f in 
+      let eff2 = derivitive pi es2 f in
+      List.append eff1 eff2  
+
+    | Kleene es1 -> 
+      let eff1 = derivitive pi es1 f in 
+      appendEff_ES  eff1 es
+    )
+  | Ev (ev, t) -> 
+    (match es with 
+      Bot -> [(FALSE, Bot)]
+    | Emp -> [(FALSE, Bot)]
+    | Event ev1 -> if entailEvent ev ev1 then [(pi, Emp)] else [(FALSE, Bot)]
+    | Ttimes (es1, tIn) -> 
+      let eff1 = derivitive pi es1 f in 
+      let t_new = getAfreeVar () in 
+      let p_new = PureAnd (pi, Eq(Plus (t,Var t_new) , tIn)) in 
+      List.map (fun (pii, ess) -> (p_new, Ttimes (ess, Var t_new)) ) eff1 
+
+    | Cons (es1 , es2) ->  
+      let eff1 = derivitive pi es1 f in 
+      let eff1' = appendEff_ES eff1 es2 in 
+      let eff2 = derivitive pi es2 f in    
+      if nullable pi es1 
+        then List.append eff1' eff2  
+        else eff1'
+
+    | ESOr (es1, es2) -> 
+      let eff1 = derivitive pi es1 f in 
+      let eff2 = derivitive pi es2 f in
+      List.append eff1 eff2  
+
+    | Kleene es1 -> 
+      let eff1 = derivitive pi es1 f in 
+      appendEff_ES  eff1 es
+    )
+
+
+  
+;;
+
+let derivitiveEff (eff:effect) (f:head) : effect = 
+  List.flatten (List.map (fun (pi, es) -> derivitive pi es f) eff);; 
 
 (*
 
@@ -391,10 +476,44 @@ let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) :
   (Node (showEntail ^ "   [UNFOLD]",[] ), true)
   ;;
 
+let rec reNameTerms t str: terms = 
+match t with
+  Var name -> Var (str^name)
+| Number n -> t
+| Plus (t1, t2) -> Plus (reNameTerms t1 str, reNameTerms t2 str)
+| Minus (t1, t2) -> Minus (reNameTerms t1 str, reNameTerms t2 str)
+
+;; 
+
+
+let rec reNamePure p str : pure =
+  match p with
+| Gt (t1, t2) -> Gt (reNameTerms t1 str, reNameTerms t2 str)
+| Lt (t1, t2) ->  Lt (reNameTerms t1 str, reNameTerms t2 str)
+| GtEq (t1, t2) ->  GtEq (reNameTerms t1 str, reNameTerms t2 str)
+| LtEq (t1, t2) ->  LtEq (reNameTerms t1 str, reNameTerms t2 str)
+| Eq (t1, t2) ->  Eq (reNameTerms t1 str, reNameTerms t2 str)
+| PureOr (p1, p2) -> PureOr (reNamePure p1 str, reNamePure p2 str)
+| PureAnd (p1, p2) -> PureAnd (reNamePure p1 str, reNamePure p2 str)
+| Neg p1 -> Neg (reNamePure p1 str)
+| _ -> p 
+;; 
+
+let rec reNameEs es str =
+  match es with
+| Cons (es1, es2) -> Cons (reNameEs es1 str, reNameEs es2 str)
+| ESOr (es1, es2) -> ESOr (reNameEs es1 str, reNameEs es2 str)
+| Ttimes (es1, t) -> Ttimes (reNameEs es1 str, reNameTerms t str) 
+| Kleene es1 -> Kleene (reNameEs es1 str )
+| _ -> es 
+;;
+
+let reNameEffect (eff:effect) str: effect = 
+  List.map (fun (p, es) -> (reNamePure p str, reNameEs es str )) eff
+;;
 
 let printReportHelper lhs rhs : (binary_tree * bool) = 
-
-  containment TRUE (normalEffect ( lhs) ) rhs [] 
+  containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") [] 
   ;;
 
 

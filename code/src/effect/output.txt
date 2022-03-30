@@ -1,8 +1,8 @@
 ====================================
 [Result] Succeed
-[Verification Time: 0.021 ms]
+[Verification Time: 0.016 ms]
  
 
-* t>1&(A^t) |- t>5&(A^t)   [UNFOLD]
+* lt>1&(A^lt) |- rt>5&(A^rt)   [UNFOLD]
 
 
