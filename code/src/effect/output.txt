@@ -1,6 +1,6 @@
 ====================================
 [Result] Succeed
-[Verification Time: 0.017 ms]
+[Verification Time: 0.021 ms]
  
 
 * t>1&(A^t) |- t>5&(A^t)   [UNFOLD]

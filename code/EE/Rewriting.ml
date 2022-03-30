@@ -270,16 +270,15 @@ let rec normalES_Bot es pi =
 
 let rec compareEff eff1 eff2 =
   match (eff1, eff2) with
-  | (Effect(FALSE, _ ), Effect(FALSE, _)) -> true 
-  | (Effect(FALSE, _ ), Effect(_, Bot )) -> true 
-  | (Effect(_, Bot), Effect(FALSE, _ )) -> true 
-  | (Effect(_, Bot ), Effect(_, Bot)) -> true 
-
-  | (Effect (pi1, es1), Effect (pi2, es2 )) -> aCompareES es1 es2
-  | (Disj (eff11, eff12), Disj (eff21, eff22)) -> 
+  | ([(FALSE, _ )], [(FALSE, _)]) -> true 
+  | ([(FALSE, _ )], [(_, Bot )]) -> true 
+  | ([(_, Bot)], [(FALSE, _ )]) -> true 
+  | ([(_, Bot )], [(_, Bot)]) -> true 
+  | ( [(pi1, es1)], [ (pi2, es2 )]) -> aCompareES es1 es2
+  (*| ( (eff11, eff12),  (eff21, eff22)) -> 
       let one =  (compareEff eff11  eff21) && (compareEff eff12  eff22) in
       let two =  (compareEff eff11  eff22) && (compareEff eff12  eff21 ) in
-      one || two
+      one || two*)
   | _ -> false
   ;;
 
@@ -372,40 +371,13 @@ let rec normalES (es:es) (pi:pure) :es =
 
 
 let rec normalEffect (eff:effect) :effect =
-  let noPureOr  = deletePureOrInEff eff in 
-  match noPureOr with
-    Effect (p, es) -> 
-      (*if (askZ3 p) == false then 
-        ( 
-          (*print_string (showPure p^"   "^ showES es^ "\n 11********\n");*)
-          Effect (FALSE, es)
-        )
-      else 
-      *)
-      
-        let p_normal = normalPure p in 
-        let es_normal  = normalES es p  in
-        (match es_normal with 
-          ESOr (es_nor1, es_nor2) -> Disj (Effect (p_normal, es_nor1), Effect (p_normal, es_nor2))
-        | _ -> Effect ( p_normal, es_normal)
-        )
-  | Disj (eff1, eff2) -> 
-      let normaedEff1 = normalEffect eff1  in 
-      let normaedEff2 = normalEffect eff2  in 
-      match (normaedEff1, normaedEff2 ) with
-        (Effect (_,  Bot  ), _) -> normaedEff2
-      | (_, Effect (_,  Bot)) -> normaedEff1
-      | (Effect (FALSE,  _), _) -> normaedEff2
-      | (_, Effect (FALSE,  _)) -> normaedEff1
-
-      | (Disj(eff1In, eff2In), norml_eff2 ) ->
-        if compareEff norml_eff2 eff1In || compareEff norml_eff2 eff2In then Disj(eff1In, eff2In)
-        else Disj (Disj(eff1In, eff2In), norml_eff2 )
-      | (norml_eff2, Disj(eff1In, eff2In) ) ->
-        if compareEff norml_eff2 eff1In || compareEff norml_eff2 eff2In then Disj(eff1In, eff2In)
-        else Disj (norml_eff2, Disj(eff1In, eff2In))
-
-      | _ -> Disj (normaedEff1, normaedEff2)
+  let noPureOr:effect  = deletePureOrInEff eff in 
+  List.filter (fun (p, es) -> 
+  match (p, es) with 
+  | (_,  Bot) -> false 
+  | (Ast.FALSE,  _) -> false  
+  | _ -> true 
+  ) noPureOr
   ;;
 
 
@@ -419,24 +391,11 @@ let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) :
   (Node (showEntail ^ "   [UNFOLD]",[] ), true)
   ;;
 
-let rec extendREpitationES (es:es) : es = 
-  match es with 
-    Cons (es1, es2) -> Cons (es1, extendREpitationES es2)
-  | _ ->  es 
-;;
-
-let rec extendREpitation (eff:effect) : effect = 
-  match eff with 
-    Effect (pi, es) -> Effect (pi, extendREpitationES es) 
-  | Disj (eff1, eff2) -> Disj (extendREpitation eff1, extendREpitation eff2)
-  ;;
 
 let printReportHelper lhs rhs : (binary_tree * bool) = 
 
-  containment TRUE (normalEffect (extendREpitation lhs) ) rhs [] 
+  containment TRUE (normalEffect ( lhs) ) rhs [] 
   ;;
-
-
 
 
 

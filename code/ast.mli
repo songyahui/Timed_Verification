@@ -41,9 +41,7 @@ type pure = TRUE
           | Neg of pure
 
 (*Effects*)
-type effect = 
-            Effect of pure * es
-          | Disj of effect * effect
+type effect = (pure * es) list 
 
 
 type entilment = EE of effect * effect

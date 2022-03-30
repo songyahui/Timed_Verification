@@ -82,27 +82,14 @@ let rec input_lines file =
   | _ -> failwith "Weird input_line return value"
 
 
-let rec concatEffEs (eff:effect) (es:es) : effect = 
-  match eff with 
-    Effect (p,e) -> Effect (p, Cons (e, es))
-  | Disj (eff1, eff2) -> Disj ((concatEffEs eff1 es), (concatEffEs eff2 es))
-  ;; 
+let rec concatEffEs (eff:effect) p es : effect = 
+  List.map (fun (p1, e1) -> (PureAnd(p1,p), Cons (e1, es))) eff
+;; 
  
 
 let rec concatEffEff (eff1:effect) (eff2:effect) : effect = 
-  match eff1 with 
-    Effect (p1,e1) -> 
-      (match eff2 with
-        Effect (p2,e2) -> Effect (PureAnd(p1,p2) , Cons(e1, e2))
-      | Disj (ef1, ef2) -> Disj ((concatEffEff eff1 ef1), (concatEffEff eff1 ef2))
-      )
-  | Disj (ef1, ef2) -> 
-      (match eff2 with
-        Effect (p2,e2) -> Disj ((concatEffEff ef1 eff2), (concatEffEff ef2 eff2))
-      | Disj (_, _ ) -> Disj ((concatEffEff ef1 eff2), (concatEffEff ef2 eff2))
-      
-      )
-
+  List.flatten (List.map (fun (p2, e2) -> concatEffEs eff1 p2 e2) eff2 )
+  
 
       ;;
 
@@ -139,10 +126,8 @@ let rec substitutePureWithAgr (pi:pure) (realArg:expression) (formalArg: var):pu
 
 
 let rec substituteEffWithAgr (eff:effect) (realArg:expression) (formalArg: var):effect = 
-  match eff with 
-    Effect (pi, es) -> Effect (substitutePureWithAgr pi realArg formalArg, substituteESWithAgr es realArg formalArg)
-  | Disj (eff1, eff2) -> Disj (substituteEffWithAgr eff1 realArg formalArg, substituteEffWithAgr eff2 realArg formalArg)
-  ;;
+  List.map (fun (pi, es) ->  (substitutePureWithAgr pi realArg formalArg, substituteESWithAgr es realArg formalArg)) eff
+;;
 
 let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_type * var) list ) =
   let realArgs' = List.filter (fun x -> 
@@ -191,7 +176,7 @@ let condToPure (expr :expression) :pure =
 
 let rec verifier (caller:string) (expr:expression) (state_H:effect) (state_C:effect) (prog: program): effect = 
   match expr with 
-    EventRaise (ev) -> concatEffEs state_C (Event (Present ev))
+  (*  EventRaise (ev) -> concatEffEs state_C (Event (Present ev))
   | Seq (e1, e2) -> 
     let state_C' = verifier caller e1 state_H state_C prog in 
     verifier caller e2 state_H state_C' prog
@@ -244,14 +229,13 @@ let rec verifier (caller:string) (expr:expression) (state_H:effect) (state_C:eff
       
       )
     )
+    *)
   | _ -> state_C
     ;;
 
 let rec extracPureFromPrecondition (eff:effect) :effect = 
-  match eff with 
-    Effect (pi, es) -> Effect (pi, Emp)
-  | Disj (eff1, eff2) -> Disj (extracPureFromPrecondition eff1, extracPureFromPrecondition eff2)
-  ;;
+  List.map (fun (pi, es) ->  (pi, Emp))eff
+;;
 
 let rec verification (decl:(bool * declare)) (prog: program): string = 
   let (isIn, dec) = decl in 

@@ -78,11 +78,8 @@ let rec iter f = function
       f false x;
       iter f tl
 
-let rec addConstrain effect addPi =
-  match effect with
-    Effect (pi, eff) -> Effect ( (PureAnd (pi, addPi)), eff)
-  | Disj (effL1, effL2) -> Disj (addConstrain effL1 addPi, addConstrain effL2 addPi)
-  ;;
+let rec addConstrain effect addPi = List.map (fun (pi, eff) -> ( (PureAnd (pi, addPi)), eff))  effect
+   ;;
 
 let to_buffer ?(line_prefix = "") ~get_name ~get_children buf x =
   let rec print_root indent x =
@@ -222,10 +219,10 @@ let rec showPure (p:pure):string =
 
 (*To pretty print effects*)
 let rec showEffect (e:effect) :string = 
-  match e with
-    Effect (p, es) -> 
-      showPure p ^ "&" ^ showES es 
-  | Disj (es1, es2) ->  showEffect es1 ^ " \\/ "  ^ showEffect es2 
+  match e with 
+  | [] -> ""
+  | [(p, es)] -> showPure p ^ "&" ^ showES es 
+  | (p, es):: rest -> showPure p ^ "&" ^ showES es  ^ " \\/ "  ^ showEffect rest 
   ;;
 
 (*To pretty print effects entialments*)
@@ -273,11 +270,8 @@ let rec reverseEs (es:es) : es =
   | Kleene es1 ->  Kleene (reverseEs es1)
   ;;
 
-let rec reverseEff (eff:effect) : effect =
-  match eff with 
-    Effect (p,es) ->  Effect (p, reverseEs es)
-  | Disj (eff1, eff2) -> Disj ((reverseEff eff1), (reverseEff eff2)) 
-  ;;
+let rec reverseEff (eff:effect) : effect = List.map (fun (p,es) ->  (p, reverseEs es) ) eff 
+;;
 
 let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):terms = 
   match t with 
@@ -303,8 +297,8 @@ let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):te
 
 let rec splitDisj (p:pure) (es:es):effect =
   match p with 
-    PureOr (p1, p2) -> Disj (splitDisj p1 es , splitDisj p2 es ) 
-  | _ -> Effect (p, es) 
+    PureOr (p1, p2) -> List.append (splitDisj p1 es)  (splitDisj p2 es ) 
+  | _ -> [(p, es)] 
   ;;
 
 let rec normalPureToDisj (p:pure):pure = 
@@ -323,12 +317,9 @@ let rec normalPureToDisj (p:pure):pure =
   | _ -> p
   ;;
 
-let rec deletePureOrInEff (eff:effect):effect = 
-  match eff with 
-    Effect (pi, es) -> 
-      let disjPure = normalPureToDisj pi in
-      splitDisj disjPure es 
-  | Disj (eff1, eff2) -> Disj ((deletePureOrInEff eff1), (deletePureOrInEff eff2))
+let rec deletePureOrInEff (eff:effect):effect = List.flatten (List.map (fun (pi, es) -> 
+  let disjPure = normalPureToDisj pi in
+  splitDisj disjPure es ) eff)
   ;;
 
 let rec compareTerm (term1:terms) (term2:terms) : bool = 
