@@ -8,6 +8,15 @@ open Pretty
 open Rewriting 
 open Sys
 
+let verifier_counter: int ref = ref 0;;
+
+let verifier_getAfreeVar () :string  =
+
+  let x = "t"^string_of_int (!counter) in 
+  let _ = verifier_counter := !verifier_counter + 1 in 
+  x 
+;;
+
 
 let rec printType (ty:_type) :string =
   match ty with
@@ -174,30 +183,55 @@ let condToPure (expr :expression) :pure =
   | _ -> raise (Foo "exception in condToPure")
   ;;
 
-let rec verifier (caller:string) (expr:expression) (state_H:effect) (state_C:effect) (prog: program): effect = 
+let concatanateEffEff eff1 eff2 : effect = 
+  List.flatten (List.map (fun (p1, es1) -> List.map (fun (p2, es2) -> 
+    (PureAnd(p1, p2), Cons (es1, es2))
+  ) eff2) eff1)
+  ;;
+
+let rec verifier (caller:string) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
-  (*  EventRaise (ev) -> concatEffEs state_C (Event (Present ev))
+  | EventRaise (ev) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present ev )))) current
   | Seq (e1, e2) -> 
-    let state_C' = verifier caller e1 state_H state_C prog in 
-    verifier caller e2 state_H state_C' prog
-  | Assign (v, e) -> verifier caller e state_H state_C prog 
-  | LocalDel (t, v , e) ->   verifier caller e state_H state_C prog      
+    let eff1 = verifier caller e1 precondition current prog in 
+    verifier caller e2 precondition eff1 prog
   | IfElse (e1, e2, e3) -> 
     let condIf = condToPure e1 in 
     let condElse = Neg condIf in 
-    let state_C_IF  = addConstrain state_C condIf in 
-    let state_C_ELSE  = addConstrain state_C condElse in 
-    Disj ((verifier caller e2 state_H state_C_IF prog), (verifier caller e3 state_H state_C_ELSE prog))
+    let state_C_IF  = addConstrain current condIf in 
+    let state_C_ELSE  = addConstrain current condElse in 
+    List.append (verifier caller e2 precondition state_C_IF prog) (verifier caller e3 precondition state_C_ELSE prog)
+
+  | Assign (v, e) -> verifier caller e precondition current prog 
+  | Timeout (e, n) -> 
+    let eff = verifier caller e precondition [(TRUE, Emp)] prog in 
+    let x = verifier_getAfreeVar () in 
+    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, Number n)), es)) eff in 
+    concatanateEffEff current addABound
+
+  | Deadline (e, n) -> 
+    let eff = verifier caller e precondition [(TRUE, Emp)] prog in 
+    let x = verifier_getAfreeVar () in 
+    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, LtEq(Var x, Number n)), es)) eff in 
+    concatanateEffEff current addABound
+
+  | Delay n -> 
+    let x = verifier_getAfreeVar () in 
+
+    List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, Number n)), Cons (es, Ttimes (Emp, Number n)))) current
+
+  (*  
+  | LocalDel (t, v , e) ->   verifier caller e precondition current prog      
   | Assertion eff ->   
-    let his_cur =  (concatEffEff state_H state_C) in 
+    let his_cur =  (concatEffEff precondition current) in 
     let (result, tree) = checkPrecondition (his_cur) eff in 
-    if result == true then state_C 
+    if result == true then current 
     else raise (Foo ("Assertion " ^ showEffect eff ^" does not hold!"))
             
   | Call (name, exprList) -> 
     (match searMeth prog name with 
       None -> 
-       if (String.compare name "printf" == 0) then state_C
+       if (String.compare name "printf" == 0) then current
        else raise (Foo ("Method: "^ name ^" not defined!"))
     | Some me -> 
       (
@@ -212,7 +246,7 @@ let rec verifier (caller:string) (expr:expression) (state_H:effect) (state_C:eff
             let subPre = substituteEffWithPure pre exprList list_parm in 
             let subPost = substituteEffWithPure post exprList list_parm in 
 *)
-            let his_cur =  (concatEffEff state_H state_C) in 
+            let his_cur =  (concatEffEff precondition current) in 
 
             let (result, tree) = checkPrecondition (his_cur) subPre in 
             (*print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree));*)
@@ -220,7 +254,7 @@ let rec verifier (caller:string) (expr:expression) (state_H:effect) (state_C:eff
             if result == true then 
               (
                 (*print_string ("[Precondition holds] when " ^caller ^" is calling " ^ mn ^"\n\n");*)
-              let newState = ( (concatEffEff ( state_C) ( subPost))) in
+              let newState = ( (concatEffEff ( current) ( subPost))) in
               newState)
             else 
             
@@ -230,7 +264,7 @@ let rec verifier (caller:string) (expr:expression) (state_H:effect) (state_C:eff
       )
     )
     *)
-  | _ -> state_C
+  | _ -> current
     ;;
 
 let rec extracPureFromPrecondition (eff:effect) :effect = 
@@ -248,7 +282,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     let head = "[Verification for method: "^mn^"]\n"in 
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
     let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
-    let acc =  (verifier mn expression (pre) (extracPureFromPrecondition pre) prog) in 
+    let acc =  (verifier mn expression (pre) [(TRUE, Emp)] prog) in 
     
     let accumulated = "[Real Effect: " ^(showEffect ( normalEffect acc)) ^ "]\n" in 
     (*print_string((showEntailmentEff acc post) ^ "\n") ;*)
