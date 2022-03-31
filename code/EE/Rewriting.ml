@@ -92,6 +92,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) : effect =
       Bot -> [(FALSE, Bot)]
     | Emp -> [(FALSE, Bot)]
     | Event ev -> [(pi, Event ev)]
+    | Ttimes (Emp, tIn) -> [(PureAnd (pi, Eq(t , tIn)), Emp)]
     | Ttimes (es1, tIn) -> 
       let t_new = getAfreeVar () in 
       let p_new = PureAnd (pi, Eq(Plus (t,Var t_new) , tIn)) in 
@@ -465,15 +466,57 @@ let rec normalEffect (eff:effect) :effect =
   ) noPureOr
   ;;
 
+let reoccur normalFormL normalFormR delta : bool = false ;;
 
 
-let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool) = 
+
+let rec containment (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
-  let showEntail  = (*showEntailmentEff effL effR ^ " ->>>> " ^*) showEntailmentEff normalFormL normalFormR in 
+  let showEntail  = (*showEntailmentEff effL effR ^ " ->>>> " ^*) showEntailmentEff normalFormL normalFormR in
+  print_string (showEntail^"\n");
+  if nullableEff  normalFormL = true &&  (nullableEff normalFormR = false) then   (Node (showEntail ^ showRule DISPROVE,[] ), false)
+  else if reoccur normalFormL normalFormR delta then  (Node (showEntail ^ showRule REOCCUR,[] ), true)
+
+  else 
+    let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
+      let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
+        let (subtreeIn, reIn) = 
+          if askZ3 (PureAnd (pL, pR)) == false then (Node (showEntail ^ " [PURE ER] ", []), false)
+          else (
+            let fstSet = fst pL esL in
+            let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
+            let derL = derivitiveEff normalFormL f in 
+            let derR = derivitiveEff normalFormR f in 
+            let (subtree, result) = containment  derL derR ((normalFormL, normalFormR) :: delta) in 
+            (List.append accT [subtree], accR && result) 
+            ) ([], true) fstSet in 
+            (Node (showEntail ^ showRule UNFOLD, subtrees ), re)
+
+          )in 
+        (subtreeIn::accInT, reIn || accInR)  
+      ) ([], false) normalFormR in 
+      (Node (showEntail ^ " [SPLITRHS] ", subtree) :: accT, re && accR)
+
+    ) ([], true) normalFormL in 
+
+    (Node (showEntail ^ " [SPLITLHS] ", finalTress), finalRe)
+
+
+  
+  
   
 
-  (Node (showEntail ^ "   [UNFOLD]",[] ), true)
+
+
+
+  
+(*
+  (Node (showEntail ^ "not yet",[] ), true)
+  
+*)
+  
+
   ;;
 
 let rec reNameTerms t str: terms = 
@@ -513,7 +556,7 @@ let reNameEffect (eff:effect) str: effect =
 ;;
 
 let printReportHelper lhs rhs : (binary_tree * bool) = 
-  containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") [] 
+  containment (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") [] 
   ;;
 
 
