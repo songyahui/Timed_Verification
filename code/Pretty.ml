@@ -163,7 +163,7 @@ let rec showES (es:es):string =
   | Emp -> "emp"
   | Event (ev) -> string_of_event ev  
   | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
-  | ESOr (es1, es2) -> "("^(showES es1) ^ "|" ^ (showES es2)^")"
+  | ESOr (es1, es2) -> "("^(showES es1) ^ " + " ^ (showES es2)^")"
   | Ttimes (es, t) -> "("^(showES es) ^ "^" ^ (showTerms t)^")"
   | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
   ;;

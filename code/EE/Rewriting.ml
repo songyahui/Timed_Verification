@@ -23,14 +23,20 @@ module CS = Set.Make(Int32) (*context set*)
 
 type ctxSet = (CS.t * CS.t) list
 
+let varNames = ["t1"; "t2"; "t3"; "t4";"t5";"t6";"t7";"t8";"t9";"t10"
+;"t11"; "t12"; "t13"; "t14";"t15";"t16";"t17";"t18";"t19";"t20"
+;"t21"; "t22"; "t23"; "t24";"t25";"t26";"t27";"t28";"t29";"t30"];;
 
 (*used to generate the free veriables, for subsititution*)
-let freeVar: string list ref = ref ["t1"; "t2"; "t3"; "t4";"t5";"t6";"t7";"t8";"t9";"t10"
-              ;"t11"; "t12"; "t13"; "t14";"t15";"t16";"t17";"t18";"t19";"t20"
-              ;"t21"; "t22"; "t23"; "t24";"t25";"t26";"t27";"t28";"t29";"t30"];;
+let freeVar: string list ref = ref varNames;;
 
-let globelVar : string list ref = ref []
+let globelVar : string list ref = ref [];;
 
+let initialise () = 
+  let _ = globelVar := [] in 
+  let _ = freeVar :=  varNames in 
+  ()
+;;
 
 let getAfreeVar () :string  =
   if List.length !freeVar == 0 then  raise ( Foo "freeVar list too small exception!")
@@ -49,15 +55,16 @@ let rec nullable (pi :pure) (es:es) : bool=
   | Event _ -> false 
   | Cons (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
   | ESOr (es1 , es2) -> (nullable pi es1) || (nullable pi es2)
-  | Ttimes (es1, t) ->  askZ3 (PureAnd (pi, Eq (t , Number 0))) 
+  | Ttimes (es1, t) ->  false
   | Kleene es1 -> true
 ;;
 
 let nullableEff (eff:effect) : bool = 
   List.fold_left (fun acc (pi, es) -> acc || (nullable pi es)) false eff;;
 
-assert (nullable (Eq (Var "t", Number 0)) (Ttimes (Emp, Var "t")) == true);;
+(*assert (nullable (Eq (Var "t", Number 0)) (Ttimes (Emp, Var "t")) == true);;
 assert (nullable (Eq (Var "t", Number 1)) (Ttimes (Emp, Var "t")) == false);;
+*)
 
 let rec fst (pi :pure) (es:es): head list = 
   match es with
@@ -95,7 +102,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
     | Ttimes (Emp, tIn) -> (Emp,  Eq(t , tIn))
     | Ttimes (es1, tIn) -> 
       let t_new = getAfreeVar () in 
-      (Ttimes (es1, Var t_new), Eq(Plus (t,Var t_new) , tIn))
+      (Ttimes (es1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), Gt (Var t_new, Number 0)))
 
     | Cons (es1 , es2) ->  
       let (es1_der, side1) = derivitive pi es1 f in 
@@ -122,7 +129,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
     | Ttimes (es1, tIn) -> 
       let (es1_der, side1) = derivitive pi es1 f in 
       let t_new = getAfreeVar () in 
-      let p_new = PureAnd (side1, Eq(Plus (t,Var t_new) , tIn)) in 
+      let p_new = PureAnd (side1, PureAnd(Eq(Plus (t,Var t_new) , tIn), Gt (Var t_new, Number 0))) in 
       (Ttimes (es1_der, Var t_new), p_new)
 
     | Cons (es1 , es2) ->  
@@ -383,6 +390,7 @@ let rec normalES (es:es) (pi:pure) :es =
         (Emp, _) -> normalES2 
       | (_, Emp) -> normalES1
       | (Bot, _) -> Bot
+      | (_, Bot) -> Bot
 
       | (Kleene (esIn1), Kleene (esIn2)) -> 
           if aCompareES esIn1 esIn2 == true then normalES2
@@ -393,11 +401,7 @@ let rec normalES (es:es) (pi:pure) :es =
 
       | (normal_es1, normal_es2) -> 
 
-        match (normal_es1, normal_es2) with 
-        (*|  (Cons (esIn1, esIn2), es2)-> normalES (Cons (esIn1, Cons (esIn2, es2))) pi *)
-        (*|  (ESOr (or1, or2), es2) ->  (ESOr (normalES  (Cons (or1, es2)) pi ,  normalES (Cons (or2, es2)) pi )) *)
-        |  (es1, ESOr (or1, or2)) -> normalES (ESOr ( (Cons (es1, or1)),  (Cons (es1, or2)))) pi 
-        | _-> Cons (normal_es1, normal_es2)
+        Cons (normal_es1, normal_es2)
         
       )
   | ESOr (es1, es2) -> 
@@ -428,12 +432,12 @@ let rec normalES (es:es) (pi:pure) :es =
         )
       ;)
 
-
+  | Ttimes (Bot, _) -> Bot        
   | Ttimes (es1, terms) -> 
       let t = normalTerms terms in 
       let normalInside = normalES es1 pi  in 
       (match normalInside with
-        Emp -> Emp
+        
       | _ -> 
         let allPi = getAllPi pi [] in 
         if (existPi (Eq (terms, Number 0)) allPi) then Emp else 
@@ -455,12 +459,14 @@ let rec normalES (es:es) (pi:pure) :es =
 
 let rec normalEffect (eff:effect) :effect =
   let noPureOr:effect  = deletePureOrInEff eff in 
-  List.filter (fun (p, es) -> 
-  match (p, es) with 
+  let final = List.filter (fun (p, es) -> 
+  match (p,  es ) with 
   | (_,  Bot) -> false 
   | (Ast.FALSE,  _) -> false  
   | _ -> true 
-  ) noPureOr
+  ) (List.map (fun (p, es) -> (p, normalES es p)) noPureOr) in 
+  if List.length final == 0 then [(FALSE, Bot)]
+  else final 
   ;;
 
 let reoccur normalFormL normalFormR delta : bool = false ;;
@@ -470,8 +476,8 @@ let reoccur normalFormL normalFormR delta : bool = false ;;
 let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
-  let showEntail  = (*showEntailmentEff effL effR ^ " ->>>> " ^*) showEntailmentEff normalFormL normalFormR in
-  print_string (showEntail^"\n");
+  let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side)) in
+  (*  print_string (showEntail^"\n");*)
   if nullableEff  normalFormL = true &&  (nullableEff normalFormR = false) then   (Node (showEntail ^ showRule DISPROVE,[] ), false)
   else if reoccur normalFormL normalFormR delta then  (Node (showEntail ^ showRule REOCCUR,[] ), true)
 
@@ -566,6 +572,7 @@ let printReportHelper lhs rhs : (binary_tree * bool) =
 
 
 let printReport lhs rhs :string =
+  let _ = initialise () in 
   let startTimeStamp = Sys.time() in
   let (tree, re) =  printReportHelper lhs rhs  in
   let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in

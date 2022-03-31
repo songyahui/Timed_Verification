@@ -1,10 +1,30 @@
 ====================================
-[Result] Fail
-[Verification Time: 2.547 ms]
+[Result] Succeed
+[Verification Time: 5.803 ms]
  
 
-* lt>1&(A^lt) |- rt>5&(A^rt) [UNFOLD] 
-* └── lt>1&(emp^t2) |- rt>5&(emp^t3) [UNFOLD] 
-*     └── lt>1&emp |- rt>5&emp [PURE ER] 
+* lt>5&(A^lt) |- rt>5&(A^rt)  ***> true [UNFOLD] 
+* └── lt>5&(emp^t2) |- rt>5&(emp^t3)  ***> (t2>0/\(t1+t3=rt/\(t3>0/\t1+t2=lt))) [UNFOLD] 
+*     └── lt>5&emp |- rt>5&emp  ***> (t2>0/\(t1+t3=rt/\(t3>0/\(t2=t3/\t1+t2=lt)))) [NO FST]
+
+====================================
+[Result] Succeed
+[Verification Time: 5.176 ms]
+ 
+
+* lt1<10&(B^lt1) |- rt1<30&(B^rt1)  ***> true [UNFOLD] 
+* └── lt1<10&(emp^t2) |- rt1<30&(emp^t3)  ***> (t2>0/\(t1+t3=rt1/\(t3>0/\t1+t2=lt1))) [UNFOLD] 
+*     └── lt1<10&emp |- rt1<30&emp  ***> (t2>0/\(t1+t3=rt1/\(t3>0/\(t2=t3/\t1+t2=lt1)))) [NO FST]
+
+====================================
+[Result] Succeed
+[Verification Time: 17.425 ms]
+ 
+
+* (lt>5/\lt1<10)&((A^lt) . (B^lt1)) |- (rt>5/\rt1<30)&((A^rt) . (B^rt1))  ***> true [UNFOLD] 
+* └── (lt>5/\lt1<10)&((emp^t2) . (B^lt1)) |- (rt>5/\rt1<30)&((emp^t4) . (B^rt1))  ***> (t2>0/\(t1+t4=rt/\(t4>0/\t1+t2=lt))) [UNFOLD] 
+*     └── (lt>5/\lt1<10)&(B^lt1) |- (rt>5/\rt1<30)&(B^rt1)  ***> (t2>0/\(t1+t4=rt/\(t4>0/\(t2=t4/\t1+t2=lt)))) [UNFOLD] 
+*         └── (lt>5/\lt1<10)&(emp^t9) |- (rt>5/\rt1<30)&(emp^t10)  ***> (t2>0/\(t1+t4=rt/\(t4>0/\(t2=t4/\(t8+t9=lt1/\(t9>0/\(t8+t10=rt1/\(t10>0/\t1+t2=lt)))))))) [UNFOLD] 
+*             └── (lt>5/\lt1<10)&emp |- (rt>5/\rt1<30)&emp  ***> (t2>0/\(t1+t4=rt/\(t4>0/\(t2=t4/\(t8+t9=lt1/\(t9>0/\(t8+t10=rt1/\(t10>0/\(t9=t10/\t1+t2=lt))))))))) [NO FST]
 
 
