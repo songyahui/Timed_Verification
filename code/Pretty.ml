@@ -135,7 +135,7 @@ type rule = LHSOR   | RHSOR
 (*the effects entailment context*)
 type context =  ( pure * es * pure * es) list
 
-type hypotheses = (effect * effect) list
+type hypotheses = (es * es) list
 
 
 
@@ -388,6 +388,16 @@ let compareEvent ev1 ev2 : bool=
   | _ -> false 
   ;;
 
+let rec acompareTerms t1 t2 : bool =
+  match (t1, t2) with 
+  | (Var _, Var _) -> true 
+  | (Number n1, Number n2) -> n1 = n2 
+  | (Plus (t11, t12), Plus (t21, t22)) -> acompareTerms t11 t21 && acompareTerms t12 t22
+  | (Minus (t11, t12), Minus (t21, t22)) -> acompareTerms t11 t21 && acompareTerms t12 t22
+  | _ -> false 
+;;
+
+
 let rec aCompareES es1 es2 = 
   match (es1, es2) with 
     (Bot, Bot) -> true
@@ -401,6 +411,7 @@ let rec aCompareES es1 es2 =
       if ((aCompareES es1L es2L) && (aCompareES es1R es2R)) then true 
       else ((aCompareES es1L es2R) && (aCompareES es1R es2L))
   | (Kleene esL, Kleene esR) -> aCompareES esL esR
+  | (Ttimes (esL, t1), Ttimes (esR, t2)) -> aCompareES esL esR && acompareTerms t1 t2 
   | _ -> false
 ;;
  
