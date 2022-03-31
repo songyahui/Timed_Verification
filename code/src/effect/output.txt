@@ -1,16 +1,10 @@
 ====================================
-[Result] Succeed
-[Verification Time: 2.979 ms]
+[Result] Fail
+[Verification Time: 2.547 ms]
  
 
-* lt>1&(A^lt) |- rt>5&(A^rt) [SPLITLHS] 
-* └── lt>1&(A^lt) |- rt>5&(A^rt) [SPLITRHS] 
-*     └── lt>1&(A^lt) |- rt>5&(A^rt) [UNFOLD] 
-*         └── (lt>1/\t1+t2=lt)&(emp^t2) |- (rt>5/\t1+t3=rt)&(emp^t3) [SPLITLHS] 
-*             └── (lt>1/\t1+t2=lt)&(emp^t2) |- (rt>5/\t1+t3=rt)&(emp^t3) [SPLITRHS] 
-*                 └── (lt>1/\t1+t2=lt)&(emp^t2) |- (rt>5/\t1+t3=rt)&(emp^t3) [UNFOLD] 
-*                     └── ((lt>1/\t1+t2=lt)/\t2=t2)&emp |- ((rt>5/\t1+t3=rt)/\t2=t3)&emp [SPLITLHS] 
-*                         └── ((lt>1/\t1+t2=lt)/\t2=t2)&emp |- ((rt>5/\t1+t3=rt)/\t2=t3)&emp [SPLITRHS] 
-*                             └── ((lt>1/\t1+t2=lt)/\t2=t2)&emp |- ((rt>5/\t1+t3=rt)/\t2=t3)&emp [UNFOLD] 
+* lt>1&(A^lt) |- rt>5&(A^rt) [UNFOLD] 
+* └── lt>1&(emp^t2) |- rt>5&(emp^t3) [UNFOLD] 
+*     └── lt>1&emp |- rt>5&emp [PURE ER] 
 
 

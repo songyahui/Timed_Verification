@@ -85,71 +85,68 @@ let entailEvent ev1 ev2 : bool =
 ;;
 
 
-let rec derivitive (pi :pure) (es:es) (f:head) : effect =
+let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
   match f with 
   | Tau  t ->
     (match es with 
-      Bot -> [(FALSE, Bot)]
-    | Emp -> [(FALSE, Bot)]
-    | Event ev -> [(pi, Event ev)]
-    | Ttimes (Emp, tIn) -> [(PureAnd (pi, Eq(t , tIn)), Emp)]
+      Bot -> (Bot, TRUE)
+    | Emp -> (Bot, TRUE)
+    | Event ev -> (Event ev, TRUE)
+    | Ttimes (Emp, tIn) -> (Emp,  Eq(t , tIn))
     | Ttimes (es1, tIn) -> 
       let t_new = getAfreeVar () in 
-      let p_new = PureAnd (pi, Eq(Plus (t,Var t_new) , tIn)) in 
-      [(p_new, Ttimes (es1, Var t_new))]
+      (Ttimes (es1, Var t_new), Eq(Plus (t,Var t_new) , tIn))
 
     | Cons (es1 , es2) ->  
-      let eff1 = derivitive pi es1 f in 
-      let eff1' = appendEff_ES eff1 es2 in 
-      let eff2 = derivitive pi es2 f in    
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let es1' = Cons (es1_der, es2) in 
+      let (es2_der, side2) = derivitive pi es2 f in    
       if nullable pi es1 
-        then List.append eff1' eff2  
-        else eff1'
+        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
+        else (es1', side1)
 
     | ESOr (es1, es2) -> 
-      let eff1 = derivitive pi es1 f in 
-      let eff2 = derivitive pi es2 f in
-      List.append eff1 eff2  
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let (es2_der, side2) = derivitive pi es2 f in
+      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
 
     | Kleene es1 -> 
-      let eff1 = derivitive pi es1 f in 
-      appendEff_ES  eff1 es
+      let (es1_der, side1) = derivitive pi es1 f in 
+      (Cons (es1_der, es), side1)
     )
   | Ev (ev, t) -> 
     (match es with 
-      Bot -> [(FALSE, Bot)]
-    | Emp -> [(FALSE, Bot)]
-    | Event ev1 -> if entailEvent ev ev1 then [(pi, Emp)] else [(FALSE, Bot)]
+      Bot -> (Bot, TRUE)
+    | Emp -> (Bot, TRUE)
+    | Event ev1 -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
     | Ttimes (es1, tIn) -> 
-      let eff1 = derivitive pi es1 f in 
+      let (es1_der, side1) = derivitive pi es1 f in 
       let t_new = getAfreeVar () in 
-      let p_new = PureAnd (pi, Eq(Plus (t,Var t_new) , tIn)) in 
-      List.map (fun (pii, ess) -> (p_new, Ttimes (ess, Var t_new)) ) eff1 
+      let p_new = PureAnd (side1, Eq(Plus (t,Var t_new) , tIn)) in 
+      (Ttimes (es1_der, Var t_new), p_new)
 
     | Cons (es1 , es2) ->  
-      let eff1 = derivitive pi es1 f in 
-      let eff1' = appendEff_ES eff1 es2 in 
-      let eff2 = derivitive pi es2 f in    
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let es1' = Cons (es1_der, es2) in 
+      let (es2_der, side2) = derivitive pi es2 f in    
       if nullable pi es1 
-        then List.append eff1' eff2  
-        else eff1'
+        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
+        else (es1', side1)
 
     | ESOr (es1, es2) -> 
-      let eff1 = derivitive pi es1 f in 
-      let eff2 = derivitive pi es2 f in
-      List.append eff1 eff2  
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let (es2_der, side2) = derivitive pi es2 f in
+      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
 
     | Kleene es1 -> 
-      let eff1 = derivitive pi es1 f in 
-      appendEff_ES  eff1 es
+      let (es1_der, side1) = derivitive pi es1 f in 
+      (Cons (es1_der, es), side1)
     )
 
 
   
 ;;
 
-let derivitiveEff (eff:effect) (f:head) : effect = 
-  List.flatten (List.map (fun (pi, es) -> derivitive pi es f) eff);; 
 
 (*
 
@@ -470,7 +467,7 @@ let reoccur normalFormL normalFormR delta : bool = false ;;
 
 
 
-let rec containment (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool) = 
+let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
   let showEntail  = (*showEntailmentEff effL effR ^ " ->>>> " ^*) showEntailmentEff normalFormL normalFormR in
@@ -482,25 +479,32 @@ let rec containment (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tre
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
       let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
         let (subtreeIn, reIn) = 
-          if askZ3 (PureAnd (pL, pR)) == false then (Node (showEntail ^ " [PURE ER] ", []), false)
-          else (
+          
+
             let fstSet = fst pL esL in
+            if List.length (fstSet) == 0 then 
+              if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ " [NO FST]", [] ), true)
+              else (Node (showEntail ^ " [PURE ER] ", []), false)
+            else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
-            let derL = derivitiveEff normalFormL f in 
-            let derR = derivitiveEff normalFormR f in 
-            let (subtree, result) = containment  derL derR ((normalFormL, normalFormR) :: delta) in 
+            let (derL, sideL) = derivitive pL esL f in 
+            let (derR, sideR) = derivitive pR esR f in 
+            let side' = PureAnd(side, PureAnd(sideL, sideR)) in 
+            let (subtree, result) = containment side' [(pL, derL)] [(pR, derR)] ((normalFormL, normalFormR) :: delta) in 
             (List.append accT [subtree], accR && result) 
             ) ([], true) fstSet in 
             (Node (showEntail ^ showRule UNFOLD, subtrees ), re)
 
-          )in 
+          in 
         (subtreeIn::accInT, reIn || accInR)  
       ) ([], false) normalFormR in 
-      (Node (showEntail ^ " [SPLITRHS] ", subtree) :: accT, re && accR)
+      (List.append subtree accT, re && accR)
 
     ) ([], true) normalFormL in 
-
-    (Node (showEntail ^ " [SPLITLHS] ", finalTress), finalRe)
+    if List.length (finalTress) == 1 then 
+      (List.hd finalTress, finalRe)
+    else 
+      (Node (showEntail ^ " [SPLITLHS] ", finalTress), finalRe)
 
 
   
@@ -556,7 +560,7 @@ let reNameEffect (eff:effect) str: effect =
 ;;
 
 let printReportHelper lhs rhs : (binary_tree * bool) = 
-  containment (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") [] 
+  containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") [] 
   ;;
 
 
