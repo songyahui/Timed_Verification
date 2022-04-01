@@ -71,6 +71,7 @@ let rec showES (es:es):string =
   | ESOr (es1, es2) -> "("^(showES es1) ^ " + " ^ (showES es2)^")"
   | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
   | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
+  | Par (es1, es2) -> "("^(showES es1) ^ " || " ^ (showES es2)^")"
   ;;
 
 (*To pretty print pure formulea*)
@@ -286,6 +287,7 @@ let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es =
   | ESOr (es1, es2) ->  ESOr (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | Ttimes (esIn, t) -> Ttimes (substituteESWithAgr esIn realArg formalArg, substituteTermWithAgr t realArg formalArg)
   | Kleene esIn -> Kleene (substituteESWithAgr esIn realArg formalArg)
+  | Par (es1, es2) ->  Par (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   ;;
 
 
@@ -491,6 +493,10 @@ let rec aCompareES es1 es2 =
   | (Cons (es1L, es1R), Cons (es2L, es2R)) -> 
     if (aCompareES es1L es2L) == false then false
     else (aCompareES es1R es2R)
+  | (Par (es1L, es1R), Par (es2L, es2R)) -> 
+    if (aCompareES es1L es2L) == false then false
+    else (aCompareES es1R es2R)
+
   | (ESOr (es1L, es1R), ESOr (es2L, es2R)) -> 
       if ((aCompareES es1L es2L) && (aCompareES es1R es2R)) then true 
       else ((aCompareES es1L es2R) && (aCompareES es1R es2L))

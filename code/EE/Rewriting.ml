@@ -68,6 +68,12 @@ let rec normalES (es:es) (pi:pure) : es =
     Bot -> es
   | Emp -> es
   | Event _ -> es
+  | Par (Emp, es2) -> normalES es2 pi
+  | Par (es1, Emp) -> normalES es1 pi
+  | Par (Bot, es2) -> Bot
+  | Par (es1, Bot) -> Bot
+  | Par (es1, es2) -> Par (normalES es1 pi, normalES es2 pi)
+
   | Cons (Cons (esIn1, esIn2), es2)-> normalES (Cons (esIn1, Cons (esIn2, es2))) pi 
   | Cons (es1, es2) -> 
       let normalES1 = normalES es1 pi  in
@@ -162,6 +168,7 @@ let rec nullable (pi :pure) (es:es) : bool=
   | ESOr (es1 , es2) -> (nullable pi es1) || (nullable pi es2)
   | Ttimes (es1, t) ->  askZ3 (PureAnd(pi, Eq(t, Number 0))) 
   | Kleene es1 -> true
+  | Par (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
 ;;
 
 let nullableEff (eff:effect) : bool = 
@@ -184,7 +191,9 @@ let rec fst (pi :pure) (es:es): head list =
     | _ -> fst pi es1')
   | Cons (es1 , es2) ->  if nullable pi es1 then append (fst pi es1) (fst pi es2) else fst pi es1
   | ESOr (es1, es2) -> append (fst pi es1) (fst pi es2)
+  | Par (es1, es2) -> append (fst pi es1) (fst pi es2)
   | Kleene es1 -> fst pi es1
+
 ;;
 
 let fstEff (eff:effect) : head list = List.flatten (List.map (fun (pi, es) -> fst pi es) eff);; 
@@ -230,6 +239,8 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
     | Kleene es1 -> 
       let (es1_der, side1) = derivitive pi es1 f in 
       (Cons (es1_der, es), side1)
+    | Par (es1, es2) -> raise (Foo "I have not thought this through...")
+      
     )
   | Ev (ev, t) -> 
     (match es with 
@@ -262,6 +273,16 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
     | Kleene es1 -> 
       let (es1_der, side1) = derivitive pi es1 f in 
       (Cons (es1_der, es), side1)
+    | Par (es1, es2) ->
+      let helper esIn = 
+        let (der, side) = derivitive pi esIn f in 
+        match normalES der pi with 
+        | Bot -> derivitive pi esIn (Tau t)
+        | _ -> (der, side)
+      in 
+      let (es1', side1) = helper es1 in 
+      let (es2', side2) = helper es2 in 
+      (Par (es1', es2'), PureAnd(side1, side2))
     )
 
   | Instant ev -> 
@@ -290,6 +311,16 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
     | Kleene es1 -> 
       let (es1_der, side1) = derivitive pi es1 f in 
       (Cons (es1_der, es), side1)
+    | Par (es1, es2) ->
+      let helper esIn = 
+        let (der, side) = derivitive pi esIn f in 
+        match normalES der pi with 
+        | Bot -> (esIn, Ast.TRUE)
+        | _ -> (der, side)
+      in 
+      let (es1', side1) = helper es1 in 
+      let (es2', side2) = helper es2 in 
+      (Par (es1', es2'), PureAnd(side1, side2))
     )
 
 
@@ -406,6 +437,7 @@ let rec reNameEs es str =
 | ESOr (es1, es2) -> ESOr (reNameEs es1 str, reNameEs es2 str)
 | Ttimes (es1, t) -> Ttimes (reNameEs es1 str, reNameTerms t str) 
 | Kleene es1 -> Kleene (reNameEs es1 str )
+| Par (es1, es2) -> Par (reNameEs es1 str, reNameEs es2 str)
 | _ -> es 
 ;;
 

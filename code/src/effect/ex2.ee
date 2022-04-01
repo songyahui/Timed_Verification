@@ -1,0 +1,6 @@
+t>3 /\ (emp # t).A |- t>3 /\ (A # t);
+
+t>3 /\ ((A.B)#t).Done |- t>0 /\ ((_^*)#t).Done ;
+
+
+(t>=3/\(t1<3/\t<5)) /\ (Cup . ((Sugar#t) . ((Coffee#t1) . Done))) |- t<8 /\ (((_^*)#t) . Done) ;

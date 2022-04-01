@@ -1,32 +1,58 @@
 ====================================
 [Result] Succeed
-[Verification Time: 5.761 ms]
+[Verification Time: 1.807 ms]
  
 
-* lt>3/\((emp#lt) . A) |- rt>3/\(A#rt)  ***> true [UNFOLD] 
-* └─ lt>3/\A |- rt>3/\(A#t0)  ***> (lt+t0=rt/\(t0>=0/\lt=lt)) [UNFOLD] 
-*     └─ lt>3/\emp |- rt>3/\(emp#t0)  ***> (lt+t0=rt/\(t0>=0/\(rt>3/\lt=lt))) [NO FST]
+* lt>5/\(A#lt) |- rt>5/\(A#rt)  ***> true [UNFOLD] 
+* └─ lt>5/\emp |- rt>5/\emp  ***> (rt=lt/\lt=lt) [NO FST]
 
 ====================================
 [Result] Succeed
-[Verification Time: 12.979 ms]
+[Verification Time: 1.245 ms]
  
 
-* lt>3/\(((A . B)#lt) . Done) |- rt>0/\(((_^*)#rt) . Done)  ***> true [UNFOLD] 
-* └─ lt>3/\((B#lt) . Done) |- rt>0/\(((_^*)#rt) . Done)  ***> (rt>0/\lt>3) [UNFOLD] 
-*     └─ lt>3/\Done |- rt>0/\(((_^*)#t0) . Done)  ***> (rt>0/\(lt+t0=rt/\(t0>=0/\lt>3))) [UNFOLD] 
-*         └─ lt>3/\emp |- rt>0/\((((_^*)#t0) . Done) + emp)  ***> (lt+t0=rt/\(t0>=0/\(rt>0/\lt>3))) [NO FST]
+* lt>5/\((A#lt)^*) |- rt>5/\((A#rt)^*)  ***> true [UNFOLD] 
+* └─ lt>5/\((A#lt)^*) |- rt>5/\((A#rt)^*)  ***> (rt=lt/\lt=lt) [REOCCUR] 
 
 ====================================
 [Result] Succeed
-[Verification Time: 36.6 ms]
+[Verification Time: 2.359 ms]
  
 
-* (lt<5/\(lt>=3/\lt1<3))/\(Cup . ((Sugar#lt) . ((Coffee#lt1) . Done))) |- rt<8/\(((_^*)#rt) . Done)  ***> true [UNFOLD] 
-* └─ (lt>=3/\(lt1<3/\lt<5))/\((Sugar#lt) . ((Coffee#lt1) . Done)) |- rt<8/\(((_^*)#rt) . Done)  ***> rt<8 [UNFOLD] 
-*     └─ (lt1<3/\(lt<5/\lt>=3))/\((Coffee#lt1) . Done) |- rt<8/\(((_^*)#t0) . Done)  ***> (lt+t0=rt/\(t0>=0/\rt<8)) [UNFOLD] 
-*         ├─ (lt<5/\(lt>=3/\lt1<3))/\Done |- rt<8/\(((_^*)#t1) . Done)  ***> (lt+t0=rt/\(t0>=0/\(lt1+t1=t0/\(t1>=0/\rt<8)))) [UNFOLD] 
-*         │   └─ (lt>=3/\(lt1<3/\lt<5))/\emp |- rt<8/\((((_^*)#t1) . Done) + emp)  ***> (lt+t0=rt/\(t0>=0/\(lt1+t1=t0/\(t1>=0/\(rt<8/\lt=lt))))) [NO FST]
-*         └─ (lt<5/\(lt>=3/\lt1<3))/\emp |- rt<8/\((((_^*)#t0) . Done) + emp)  ***> (lt+t0=rt/\(t0>=0/\(lt1<3/\(lt<5/\(lt>=3/\(rt<8/\lt=lt)))))) [NO FST]
+* lt1<10/\(B#lt1) |- rt1<30/\(B#rt1)  ***> true [UNFOLD] 
+* └─ lt1<10/\emp |- rt1<30/\emp  ***> (rt1=lt1/\lt1=lt1) [NO FST]
+
+====================================
+[Result] Succeed
+[Verification Time: 10.881 ms]
+ 
+
+* (lt>5/\lt1<10)/\((A#lt) . (B#lt1)) |- (rt1<30/\rt>5)/\((A#rt) . (B#rt1))  ***> true [UNFOLD] 
+* └─ (lt1<10/\lt>5)/\(B#lt1) |- (rt>5/\rt1<30)/\(B#rt1)  ***> (rt=lt/\lt=lt) [UNFOLD] 
+*     └─ (lt>5/\lt1<10)/\emp |- (rt1<30/\rt>5)/\emp  ***> (rt=lt/\(rt1=lt1/\lt=lt)) [NO FST]
+
+====================================
+[Result] Succeed
+[Verification Time: 17.52 ms]
+ 
+
+* (lt>5/\lt1<10)/\((A#lt) + ((A#lt) . (B#lt1))) |- (rt1<30/\rt>5)/\((A#rt) + ((A#rt) . (B#rt1)))  ***> true [UNFOLD] 
+* ├─ (lt1<10/\lt>5)/\(emp + (B#lt1)) |- (rt>5/\rt1<30)/\(emp + (B#rt1))  ***> (rt=lt/\lt=lt) [UNFOLD] 
+* │   └─ (lt>5/\lt1<10)/\emp |- (rt1<30/\rt>5)/\emp  ***> (rt=lt/\(rt1=lt1/\lt=lt)) [NO FST]
+* └─ (lt1<10/\lt>5)/\(emp + (B#lt1)) |- (rt>5/\rt1<30)/\(emp + (B#rt1))  ***> (rt=lt/\lt=lt) [UNFOLD] 
+*     └─ (lt>5/\lt1<10)/\emp |- (rt1<30/\rt>5)/\emp  ***> (rt=lt/\(rt1=lt1/\lt=lt)) [NO FST]
+
+====================================
+[Result] Succeed
+[Verification Time: 17.386 ms]
+ 
+
+* lt>5/\(((A#lt)^*) . A) |- rt>5/\(((A#rt)^*) . (A + B))  ***> true [UNFOLD] 
+* ├─ lt>5/\((((A#lt)^*) . A) + emp) |- rt>5/\((((A#rt)^*) . (A + B)) + emp)  ***> (rt=lt/\lt=lt) [UNFOLD] 
+* │   ├─ lt>5/\((((A#lt)^*) . A) + emp) |- rt>5/\((((A#rt)^*) . (A + B)) + emp)  ***> (rt=lt/\lt=lt) [REOCCUR] 
+* │   └─ lt>5/\(((emp#lt) . (((A#lt)^*) . A)) + emp) |- rt>5/\(((emp#rt) . (((A#rt)^*) . (A + B))) + emp)  ***> (rt=lt/\(lt>5/\(rt>5/\lt=lt))) [UNFOLD] 
+* │       └─ lt>5/\(((A#lt)^*) . A) |- rt>5/\(((A#rt)^*) . (A + B))  ***> (lt>5/\(rt>5/\(lt=rt/\rt=lt))) [REOCCUR] 
+* └─ lt>5/\(((emp#lt) . (((A#lt)^*) . A)) + emp) |- rt>5/\(((emp#rt) . (((A#rt)^*) . (A + B))) + emp)  ***> (rt>5/\lt>5) [UNFOLD] 
+*     └─ lt>5/\(((A#lt)^*) . A) |- rt>5/\(((A#rt)^*) . (A + B))  ***> (rt>5/\(lt=rt/\lt>5)) [REOCCUR] 
 
 

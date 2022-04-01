@@ -143,6 +143,8 @@ es:
 | NEGATION str = EVENT {Event (Absent str)}
 | LPAR r = es RPAR { r }
 | a = es CHOICE b = es { ESOr(a, b) }
+| a = es LILOR b = es { Par(a, b) }
+
 | LPAR r = es SHARP t = term RPAR { Ttimes(r, t )}
 | UNDERLINE {Event (Any)}
 | a = es CONCAT b = es { Cons(a, b) } 

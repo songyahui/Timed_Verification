@@ -262,7 +262,7 @@ using Implicit Clocks and an Extended Antimirov Algorithm}
 Real-time systems are systems where the correctness does not 
 only depend on their correct functioning but also on meeting 
 realtime constraints.
-Different from existing timed-automata based techniques, 
+Different from existing Timed Automata based techniques, 
 we propose a novel solution that integrates a 
 modular Hoare-style forward verifier with a new term rewriting 
 system (TRS) on \emph{Timed Effects} (\timedEffects).
@@ -279,7 +279,7 @@ that extends
 values and arithmetic constraints.
 Thirdly,  the forward verifier infers temporal behaviors of given 
 \timedL\ programs, expressed in \timedEffects. 
-Lastly, we present a purely algebraic TRS, i.e., the extended Antimirov algorithm, to 
+Lastly, we present a purely algebraic TRS, i.e., an extended Antimirov algorithm, to 
 efficiently prove language inclusions between 
  \timedEffects. 
 To demonstrate the feasibility of our proposals, 
@@ -321,29 +321,16 @@ Reactive System Design}
 \section{Introduction}
 \label{Introduction}
 
-several compositional ,  
-are introduced to capture quantitative timing constraints.
-The idea is to 
-
-
-In this work, we study temporal verification of 
-compositional real-time systems,
-
-
-
-Existing automatic verification techniques massively rely on 
-the timed automata which requires manually cast of clock variables with 
-carefully calculated clock constraints. 
 
 Specification and verification of real-time systems are important 
 research topics which have practical implications. During the last 
-(more than) two decades, a popular approach for specifying real-time systems is 
+more than two decades, a popular approach for specifying real-time systems is 
 based on Timed Automata \cite{DBLP:journals/tcs/AlurD94}. 
 Timed Automata are powerful 
 in designing real-time models with explicit clock variables. Real-time 
 constraints are captured by explicitly setting/reseting clock variables. 
 A number of automatic verification support for Timed Automata have proven 
-to be successful, such as UPPAAL \cite{DBLP:journals/sttt/LarsenPY97}.
+to be successful \cite{DBLP:journals/sttt/LarsenPY97,yovine1997kronos,wang2005verifying}.
 
 
 Models based on Timed Automata often adapt a simple structure, e.g. a 
@@ -437,6 +424,20 @@ axiomatic algorithm of the algebra of regular sets.} but solving the
 language inclusions between more expressive \timedEffects.  
 
 \begin{comment}
+  several compositional ,  
+are introduced to capture quantitative timing constraints.
+The idea is to 
+
+
+In this work, we study temporal verification of 
+compositional real-time systems,
+
+
+
+Existing automatic verification techniques massively rely on 
+the timed automata which requires manually cast of clock variables with 
+carefully calculated clock constraints. 
+
 A TRS is a refutation method that normalizes expressions in such a way 
 that checking their inclusion corresponds to an iterated process of 
 checking the inclusion of their \emph{partial derivatives} 
@@ -544,35 +545,8 @@ The precondition of {\ttfamily{main}} requires no arithmetic constraints on its 
 %We omit the implementation of \code{cook} here, while provide the specifications of it. 
 Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is presented in the following sub-section. \emph{(See a demo from \cite{CODE2})}
 
-\begin{figure}[ht]
-      \vspace{-2mm}
-\begin{lstlisting}[columns=fullflexible]
-hiphop module main (out Prep, in Tick, out Ready, out Go, out Cook)
-/*@ requires true : emp @*/
-/*@ ensures  0<=t/\t<3 : {}.({Cook})#t.{}^* @*/
-{
-	fork{ // The effects of the first thread is true : Ready?.{Go}
-		await Ready; emit Go; 
-	}par{ // The effects of the second thread is 0<t<3 : {Prep, Cook}#t.{Ready}
-		emit Prep;
-		async Ready { run cook (3, Tick, Cook); }}}
-// The final effects for main is  0<=t/\t<3 : ({Prep}.{Cook})#t.{Ready}.{Go} 
-      
-hiphop module cook (var d, in Tick, out Cook)
-/*@ requires d>2  : {}^*.{Prep} @*/
-/*@ ensures  0<=t/\t<d : ({}.{Cook})#t @*/
-{	abort count(d, Tick) { yield; emit Cook; }}
-\end{lstlisting}  
-      \vspace{-1mm}
-      \caption{Mixed Synchronous and Asynchronous Concurrency with Function Calls.}\label{fig:overview_eg2}
-            \vspace{-1mm}
-\end{figure}
 
-%We demonstrate  
 
-%%, and a function call from module \code{main} to \code{cook}.
-
-      \vspace{-2mm}
 \subsection{Forward Verification}
 As shown in \figref{fig:forward_example}, we demonstrate the forward verification process of the module  {\ttfamily{main}}. The program effects states  are captured in the form of \code{\langle \textcolor{huntergreen}{\effect} \rangle}. To facilitate the illustration, we label the verification steps by (1), ..., (9), and mark the deployed inference rules (cf. \secref{Forward_Rules}) in \textcolor{mGray}{[gray]}.
 
@@ -792,11 +766,12 @@ Termination is guaranteed because the set of derivatives to be considered is fin
 \subsection{The Target Language}
 \label{subsec:Targetlanguage}
 
-To formulate the target language, we generalise the design of  Hiphop.js into a core language \code{\timedL}, 
-%Based on the design of , but not too specific to Hiphop.js, we summarise a core language to be our target language, 
-which provides the infrastructure for mixing synchronous and asynchronous concurrency models. 
-We here formally define the syntax of \code{\timedL}, as shown in \figref{fig:Hiphop_Syntax} The statements marked as \textcolor{purple} {purple} come from the  Esterel v5 \cite{berry1999constructive,berry2esterel} endorsed by current academic compilers; while the statements marked as \textcolor{blue} {blue} provide the asynchrony coming from the usage of JavaScript promises. 
-In this work, we are mainly interested in signal status and control propagation, which are not related to data, therefore the data variables and data-handling primitives are abstracted away. 
+To formulate the target language, we generalize the design of the real-time systems
+ into a core language \code{\timedL}, 
+ which provides the infrastructure for mutable variables and timed behavioral patterns, 
+ such as \emph{delay}, \emph{timeout}, \emph{deadline}. 
+We here formally define the syntax of \code{\timedL}, as shown in \figref{fig:code_language} 
+
 
 %as our target language because it Given that Hiphop.js is an integration of Esterel and JavaScript, 
 
@@ -845,7 +820,7 @@ Each \code{module} has a name \code{nm}, a list of well-typed arguments \code{ \
  }  \\
  &   & & \code{
 % |\ e_1}\ op\ \code{ e_2 \ 
-| \ \textbf{event} [\anyevent{A}]\
+| \ \textbf{event} [ev]\
   %|\ \textbf{assert}\ \effect \ 
   | \ \textbf{timeout} \ e \ d \  
   | \ \textbf{deadline} \ e \ d \  
@@ -859,7 +834,7 @@ Each \code{module} has a name \code{nm}, a list of well-typed arguments \code{ \
   \qquad\quad
 \code{    x, mn  ::\in \textbf{var}}  
 \qquad\quad
- \code{(Events)  \anyevent{A} ::\in \Sigma 
+ \code{(Events)  ev ::\in \Sigma 
 \qquad\quad
 \m{(Time\ Bounds)}\ \code{d} \code{\in \mathbb{Z^+}}    
 }   
@@ -902,9 +877,7 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
    
    \code{ \bott
    \  | \ \empt 
-    \ | \ \anyevent{A} 
-    \ | \ \anynotevent{A}
-    \ | \ \_  
+    \ | \ ev 
     %   \ | \ \anyevent{a}
    \  | \ \es_1 {\seq} \es_2
     \ | \ \es_1 {\vee} \es_2
@@ -914,7 +887,15 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
  %  \  | \  \esn{\es}{t}    
    \  | \  \esn{\es}{\star}    
   % \  | \ \esn{\es}{\omega} 
-    }
+}
+
+\\
+\m{(Events)} & ev  & \ ::= \ & 
+\code{
+    \anyevent{A} (c)
+    \ | \ \anynotevent{A} (c)
+    \ | \ \_  
+}
            
 
 
@@ -956,9 +937,9 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
    }
  
     \\~\\
-    \multicolumn{4}{l}{
-      \code{(Events)  \anyevent{A} ::\in \Sigma}   
-   \qquad
+    \multicolumn{4}{c}{
+     % \code{(Events)  \anyevent{A} ::\in \Sigma}   
+   %\qquad
     \code{c ::\in \mathbb{R}^{+}} 
      \qquad 
            \code{x  ::\in \textbf{var} } 

@@ -25,6 +25,7 @@ type es = Bot
         | Cons   of es * es
         | ESOr   of es * es
         | Ttimes of es * terms
+        | Par    of es * es 
         | Kleene of es
 
 
