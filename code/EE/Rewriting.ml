@@ -44,115 +44,6 @@ let getAfreeVar () :string  =
     x 
 ;;
 
-
-let rec nullable (pi :pure) (es:es) : bool=
-  match es with
-    Bot -> false 
-  | Emp -> true
-  | Event _ -> false 
-  | Cons (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
-  | ESOr (es1 , es2) -> (nullable pi es1) || (nullable pi es2)
-  | Ttimes (es1, t) ->  false
-  | Kleene es1 -> true
-;;
-
-let nullableEff (eff:effect) : bool = 
-  List.fold_left (fun acc (pi, es) -> acc || (nullable pi es)) false eff;;
-
-(*assert (nullable (Eq (Var "t", Number 0)) (Ttimes (Emp, Var "t")) == true);;
-assert (nullable (Eq (Var "t", Number 1)) (Ttimes (Emp, Var "t")) == false);;
-*)
-
-let rec fst (pi :pure) (es:es): head list = 
-  match es with
-    Bot -> []
-  | Emp -> []
-  | Event ev ->  let t = getAfreeVar () in [Ev(ev, Var t)]
-  | Ttimes (Emp, t) -> [Tau t]
-  | Ttimes (es1, t) ->  fst pi es1
-  | Cons (es1 , es2) ->  if nullable pi es1 then append (fst pi es1) (fst pi es2) else fst pi es1
-  | ESOr (es1, es2) -> append (fst pi es1) (fst pi es2)
-  | Kleene es1 -> fst pi es1
-;;
-
-let fstEff (eff:effect) : head list = List.flatten (List.map (fun (pi, es) -> fst pi es) eff);; 
-
-let appendEff_ES eff es: effect = List.map (fun (pi, es1) -> (pi, Cons (es1, es))) eff;;  
-
-let entailEvent ev1 ev2 : bool =
-  match (ev1, ev2) with 
-  | (_, Any) -> true 
-  | (Present str1, Present str2) -> String.compare str1 str2 == 0 
-  | (Present str1, Absent str2) -> String.compare str1 str2 != 0 
-  | (Absent str1, Absent str2) ->  String.compare str1 str2 == 0
-  | _ -> false 
-;;
-
-
-let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
-  match f with 
-  | Tau  t ->
-    (match es with 
-      Bot -> (Bot, TRUE)
-    | Emp -> (Bot, TRUE)
-    | Event ev -> (Event ev, TRUE)
-    | Ttimes (Emp, tIn) -> (Emp,  Eq(t , tIn))
-    | Ttimes (es1, tIn) -> 
-      let t_new = getAfreeVar () in 
-      (Ttimes (es1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), Gt (Var t_new, Number 0)))
-
-    | Cons (es1 , es2) ->  
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let es1' = Cons (es1_der, es2) in 
-      let (es2_der, side2) = derivitive pi es2 f in    
-      if nullable pi es1 
-        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
-        else (es1', side1)
-
-    | ESOr (es1, es2) -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let (es2_der, side2) = derivitive pi es2 f in
-      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
-
-    | Kleene es1 -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      (Cons (es1_der, es), side1)
-    )
-  | Ev (ev, t) -> 
-    (match es with 
-      Bot -> (Bot, TRUE)
-    | Emp -> (Bot, TRUE)
-    | Event ev1 -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
-    | Ttimes (es1, tIn) -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let t_new = getAfreeVar () in 
-      let p_new = PureAnd (side1, PureAnd(Eq(Plus (t,Var t_new) , tIn), Gt (Var t_new, Number 0))) in 
-      (Ttimes (es1_der, Var t_new), p_new)
-
-    | Cons (es1 , es2) ->  
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let es1' = Cons (es1_der, es2) in 
-      let (es2_der, side2) = derivitive pi es2 f in    
-      if nullable pi es1 
-        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
-        else (es1', side1)
-
-    | ESOr (es1, es2) -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let (es2_der, side2) = derivitive pi es2 f in
-      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
-
-    | Kleene es1 -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      (Cons (es1_der, es), side1)
-    )
-
-
-  
-;;
-
-
-
 let rec compareEff eff1 eff2 =
   match (eff1, eff2) with
   | ([(FALSE, _ )], [(FALSE, _)]) -> true 
@@ -231,15 +122,7 @@ let rec normalES (es:es) (pi:pure) :es =
   | Ttimes (es1, terms) -> 
       let t = normalTerms terms in 
       let normalInside = normalES es1 pi  in 
-      (match normalInside with
-        
-      | _ -> 
-        let allPi = getAllPi pi [] in 
-        if (existPi (Eq (terms, Number 0)) allPi) then Emp else 
-          match t with
-            Number num -> concertive normalInside num 
-          | _ -> Ttimes (normalInside, t))
-        (*else if (existPi (Eq (terms, n)) allPi)) then Emp else Ttimes (normalInside, t))*)
+      Ttimes (normalInside, t) 
   | Kleene es1 -> 
       let normalInside = normalES es1 pi  in 
       (match normalInside with
@@ -251,6 +134,121 @@ let rec normalES (es:es) (pi:pure) :es =
 ;;
 
 
+let rec nullable (pi :pure) (es:es) : bool=
+  match es with
+    Bot -> false 
+  | Emp -> true
+  | Event _ -> false 
+  | Cons (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
+  | ESOr (es1 , es2) -> (nullable pi es1) || (nullable pi es2)
+  | Ttimes (es1, t) ->  false
+  | Kleene es1 -> true
+;;
+
+let nullableEff (eff:effect) : bool = 
+  List.fold_left (fun acc (pi, es) -> acc || (nullable pi es)) false eff;;
+
+(*assert (nullable (Eq (Var "t", Number 0)) (Ttimes (Emp, Var "t")) == true);;
+assert (nullable (Eq (Var "t", Number 1)) (Ttimes (Emp, Var "t")) == false);;
+*)
+
+let rec fst (pi :pure) (es:es): head list = 
+  match es with
+    Bot -> []
+  | Emp -> []
+  | Event ev ->  let t = getAfreeVar () in [Ev(ev, Var t)]
+  | Ttimes (es1, t) -> 
+    let es1' =normalES es1 pi in  
+    (match  es1' with 
+    | Emp -> [Tau t]
+    | _ -> fst pi es1')
+  | Cons (es1 , es2) ->  if nullable pi es1 then append (fst pi es1) (fst pi es2) else fst pi es1
+  | ESOr (es1, es2) -> append (fst pi es1) (fst pi es2)
+  | Kleene es1 -> fst pi es1
+;;
+
+let fstEff (eff:effect) : head list = List.flatten (List.map (fun (pi, es) -> fst pi es) eff);; 
+
+let appendEff_ES eff es: effect = List.map (fun (pi, es1) -> (pi, Cons (es1, es))) eff;;  
+
+let entailEvent ev1 ev2 : bool =
+  match (ev1, ev2) with 
+  | (_, Any) -> true 
+  | (Present str1, Present str2) -> String.compare str1 str2 == 0 
+  | (Present str1, Absent str2) -> String.compare str1 str2 != 0 
+  | (Absent str1, Absent str2) ->  String.compare str1 str2 == 0
+  | _ -> false 
+;;
+
+
+let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
+  match f with 
+  | Tau  t ->
+    (match es with 
+      Bot -> (Bot, TRUE)
+    | Emp -> (Bot, TRUE)
+    | Event (Any) -> (Emp, TRUE)
+    | Event ev -> (Event ev, TRUE)
+    | Ttimes (Emp, tIn) -> (Emp,  Eq(t , tIn))
+    | Ttimes (es1, tIn) -> 
+      let t_new = getAfreeVar () in 
+      (Ttimes (es1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), Gt (Var t_new, Number 0)))
+
+    | Cons (es1 , es2) ->  
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let es1' = Cons (es1_der, es2) in 
+      let (es2_der, side2) = derivitive pi es2 f in    
+      if nullable pi es1 
+        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
+        else (es1', side1)
+
+    | ESOr (es1, es2) -> 
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let (es2_der, side2) = derivitive pi es2 f in
+      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
+
+    | Kleene es1 -> 
+      let (es1_der, side1) = derivitive pi es1 f in 
+      (Cons (es1_der, es), side1)
+    )
+  | Ev (ev, t) -> 
+    (match es with 
+      Bot -> (Bot, TRUE)
+    | Emp -> (Bot, TRUE)
+    | Event ev1 -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
+    | Ttimes (es1, tIn) -> 
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let t_new = getAfreeVar () in 
+      let p_new = PureAnd (side1, PureAnd(Eq(Plus (t,Var t_new) , tIn), Gt (Var t_new, Number 0))) in 
+      (Ttimes (es1_der, Var t_new), p_new)
+
+    | Cons (es1 , es2) ->  
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let es1' = Cons (es1_der, es2) in 
+      let (es2_der, side2) = derivitive pi es2 f in    
+      if nullable pi es1 
+        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
+        else (es1', side1)
+
+    | ESOr (es1, es2) -> 
+      let (es1_der, side1) = derivitive pi es1 f in 
+      let (es2_der, side2) = derivitive pi es2 f in
+      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
+
+    | Kleene es1 -> 
+      let (es1_der, side1) = derivitive pi es1 f in 
+      (Cons (es1_der, es), side1)
+    )
+
+
+  
+;;
+
+
+
+
+
+
 
 let rec normalEffect (eff:effect) :effect =
   let noPureOr:effect  = deletePureOrInEff eff in 
@@ -259,7 +257,7 @@ let rec normalEffect (eff:effect) :effect =
   | (_,  Bot) -> false 
   | (Ast.FALSE,  _) -> false  
   | _ -> true 
-  ) (List.map (fun (p, es) -> (p, normalES es p)) noPureOr) in 
+  ) (List.map (fun (p, es) -> (normalPure p, normalES es p)) noPureOr) in 
   if List.length final == 0 then [(FALSE, Bot)]
   else final 
   ;;

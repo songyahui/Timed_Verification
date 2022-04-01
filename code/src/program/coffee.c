@@ -1,8 +1,17 @@
 #include "primitives.c"
 
+void oneSugar() 
+    /*
+    require TRUE/\(_^*).emp
+    ensure TRUE/\emp
+    */
+{
+    1
+}
+
 void addSugar (int n) 
     /*
-    require TRUE/\(_^*).Cup
+    require TRUE/\(_^*).emp
     ensure  (t>=n)/\ (Sugar#t)
     */
 {

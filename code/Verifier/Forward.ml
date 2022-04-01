@@ -18,64 +18,6 @@ let verifier_getAfreeVar () :string  =
 ;;
 
 
-let rec printType (ty:_type) :string =
-  match ty with
-    INT -> "int "
-  | FLOAT -> "float "
-  | BOOL  -> "bool "
-  | VOID  -> "void ";;
-
-
-let rec printParam (params: param):string = 
-  match params with 
-    [] -> ""
-  | [(t, v)] -> printType t ^ v
-  | (t, v)::xs ->  printType t ^ v ^ "," ^ printParam xs ;;
-
-
-let rec print_real_Param (params: expression list):string = 
-  let rec printarg v = (match v with
-    Unit  -> "unit"
-  | Integer num -> string_of_int num
-  | Bool b -> string_of_bool b 
-  | Float f -> string_of_float f
-  | Variable v -> v 
-  | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
-  | BinOp (e1, e2, str) -> printarg e1 ^ str ^ printarg e2 
-  | _ -> "undefined"
-  ) in 
-  match params with 
-    [] -> ""
-  | [v] ->  printarg v
-    
-  | v::xs ->  
-    let pre = printarg v in 
-    pre ^ "," ^ print_real_Param xs ;;
-
-
-let rec printExpr (expr: expression):string = 
-  match expr with 
-    Unit  -> "unit"
-  | Return  -> "return"
-  | Integer num -> string_of_int num
-  | Bool b -> string_of_bool b 
-  | Float f -> string_of_float f
-  | String s -> "\"" ^ s^"\""
-  | Variable v -> v 
-  | LocalDel (t, v, e)->  printType t ^ v ^ " = " ^ printExpr e
-  | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
-  | Assign (v, e) -> v ^ " = " ^ printExpr e
-  | Seq (e1, e2) -> printExpr e1 ^ ";" ^ printExpr e2
-  | EventRaise (ev) -> ev
-  | Deadline (e, n) -> "deadline (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
-  | Timeout (e, n) -> "timeout (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
-
-  | Delay n -> "delay " ^  string_of_int n ^"\n"
-  | IfElse (e1, e2, e3) -> "if " ^ printExpr e1 ^ " then " ^ printExpr e2 ^ " else " ^ printExpr e3 
-  | Cond (e1, e2, str) -> printExpr e1 ^ str ^ printExpr e2 
-  | BinOp (e1, e2, str) -> printExpr e1 ^ str ^ printExpr e2 
-  | Assertion eff -> "Assert: " ^ showEffect eff 
-  ;;
 
 
 let rec printSpec (s:spec ) :string = 
@@ -121,11 +63,11 @@ let rec substitutePureWithAgr (pi:pure) (realArg:expression) (formalArg: var):pu
   match pi with 
     TRUE -> pi 
   | FALSE ->pi
-  | Gt (term, n) ->  Gt (substituteTermWithAgr term realArg formalArg, n)
-  | Lt (term, n) ->  Lt (substituteTermWithAgr term realArg formalArg, n)
-  | GtEq (term, n) ->  GtEq (substituteTermWithAgr term realArg formalArg, n)
-  | LtEq (term, n) ->  LtEq (substituteTermWithAgr term realArg formalArg, n)
-  | Eq (term, n) ->  Eq (substituteTermWithAgr term realArg formalArg, n)
+  | Gt (term, n) ->  Gt (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | Lt (term, n) ->  Lt (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | GtEq (term, n) ->  GtEq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | LtEq (term, n) ->  LtEq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | Eq (term, n) ->  Eq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
   | PureOr (p1, p2) -> PureOr (substitutePureWithAgr p1 realArg formalArg, substitutePureWithAgr p2 realArg formalArg)
   | PureAnd (p1, p2) -> PureAnd (substitutePureWithAgr p1 realArg formalArg, substitutePureWithAgr p2 realArg formalArg)
   | Neg p -> Neg (substitutePureWithAgr p realArg formalArg)
@@ -143,14 +85,16 @@ let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_ty
                                 match x with 
                                 Unit -> false 
                               | _-> true ) realArgs in 
+                              
 
   let formalArgs = List.map (fun (a, b) -> b) formal in 
   let pairs = List.combine realArgs' formalArgs in 
-  let rec subArgOnebyOne (eff:effect) (pairs:(expression * var ) list): effect = 
+
+  let rec subArgOnebyOne (effIn:effect) (pairs:(expression * var ) list): effect = 
     (match pairs with 
-      [] -> eff 
+      [] -> effIn 
     | (realArg, formalArg):: xs  -> 
-      let subThisPair = substituteEffWithAgr eff realArg formalArg in
+      let subThisPair = substituteEffWithAgr effIn realArg formalArg in
       subArgOnebyOne subThisPair xs 
     )
   in subArgOnebyOne eff pairs;;
@@ -158,8 +102,8 @@ let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_ty
 
 
 let checkPrecondition (state:effect) (pre:effect)  = 
-  let reverseState =  (reverseEff state) in
-  let reversePre =  (reverseEff pre) in 
+  let reverseState =  ( state) in
+  let reversePre =  ( pre) in 
   (*check containment*)
   let (result_tree, result) =  Rewriting.printReportHelper reverseState reversePre in 
   let tree = Node (showEntailmentEff reverseState reversePre, [result_tree]) in
@@ -204,29 +148,30 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
 
   | Assign (v, e) -> verifier caller e precondition current prog 
   | Timeout (e, n) -> 
-    let eff = verifier caller e precondition [(TRUE, Emp)] prog in 
+    let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
-    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, Number n)), es)) eff in 
+    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, Number n)), Ttimes(es, Var x))) eff in 
     concatanateEffEff current addABound
 
   | Deadline (e, n) -> 
-    let eff = verifier caller e precondition [(TRUE, Emp)] prog in 
+    let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
-    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, LtEq(Var x, Number n)), es)) eff in 
+    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, LtEq(Var x, Number n)), Ttimes(es, Var x))) eff in 
     concatanateEffEff current addABound
 
   | Delay n -> 
     let x = verifier_getAfreeVar () in 
 
-    List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, Number n)), Cons (es, Ttimes (Emp, Number n)))) current
+    List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, Number n)), Cons (es, Ttimes (Emp, Var x)))) current
 
-  (*  
   | LocalDel (t, v , e) ->   verifier caller e precondition current prog      
   | Assertion eff ->   
     let his_cur =  (concatEffEff precondition current) in 
     let (result, tree) = checkPrecondition (his_cur) eff in 
     if result == true then current 
     else raise (Foo ("Assertion " ^ showEffect eff ^" does not hold!"))
+
+  
             
   | Call (name, exprList) -> 
     (match searMeth prog name with 
@@ -241,11 +186,17 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
           
             
             let subPre = substituteEffWithAgrs pre exprList list_parm in 
-            let subPost = substituteEffWithAgrs post exprList list_parm in 
-            (*
-            let subPre = substituteEffWithPure pre exprList list_parm in 
-            let subPost = substituteEffWithPure post exprList list_parm in 
-*)
+            let subPost = substituteEffWithAgrs post exprList list_parm in
+            
+            print_string ("======\n");
+            print_string (List.fold_left (fun acc a -> acc ^ printExpr a) "" exprList);
+            print_string ("\n");
+            print_string (List.fold_left (fun acc (_, a) -> acc ^  a) "" list_parm);
+
+            print_string ("\n" ^ showEffect pre^ "\n" ^ showEffect subPre^ "\n\n") ;
+            print_string (showEffect post^ "\n" ^ showEffect subPost^ "\n") ;
+
+
             let his_cur =  (concatEffEff precondition current) in 
 
             let (result, tree) = checkPrecondition (his_cur) subPre in 
@@ -263,7 +214,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
       
       )
     )
-    *)
+    
   | _ -> current
     ;;
 

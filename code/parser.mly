@@ -70,7 +70,7 @@ expres_help :
 | t = type_ name = VAR EQ e = expres_help {LocalDel (t, name, e)}
 | name = VAR LPAR vlist = real_param RPAR {Call (name, vlist)}
 | v = VAR EQ e = expres_help{Assign (v, e)}
-| EVENTKEY LPAR ev = STRING {EventRaise (ev)}
+| EVENTKEY LPAR ev = STRING RPAR {EventRaise (ev)}
 | TimeoutKEY LPAR e = expres_help COMMA t = INTE  RPAR  {Timeout(e, t)}
 | DeadlineKEY LPAR e = expres_help COMMA t = INTE  RPAR {Deadline(e, t)}
 | DelayKEY t = INTE {Delay t}

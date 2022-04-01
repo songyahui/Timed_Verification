@@ -44,6 +44,117 @@ let get_0 (a,_) = a ;;
 let get_1 (_, a,_) = a ;;
 
 
+(*To pretty print terms*)
+let rec showTerms (t:terms):string = 
+  match t with
+    Var name -> name
+  | Number n -> string_of_int n
+  | Plus (t1, t2) -> (showTerms t1) ^ ("+") ^ (showTerms t2)
+  | Minus (t1, t2) -> (showTerms t1) ^ ("-") ^ (showTerms t2)
+
+  ;;
+
+let string_of_event ev : string = 
+  match ev with 
+  | Present str -> str 
+  | Absent str -> "!" ^ str
+  | Any -> "_"
+  ;;
+
+(*To pretty print event sequences*)
+let rec showES (es:es):string = 
+  match es with
+    Bot -> "_|_"
+  | Emp -> "emp"
+  | Event (ev) -> string_of_event ev  
+  | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
+  | ESOr (es1, es2) -> "("^(showES es1) ^ " + " ^ (showES es2)^")"
+  | Ttimes (es, t) -> "("^(showES es) ^ "^" ^ (showTerms t)^")"
+  | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
+  ;;
+
+(*To pretty print pure formulea*)
+let rec showPure (p:pure):string = 
+  match p with
+    TRUE -> "true"
+  | FALSE -> "false"
+  | Gt (t1, t2) -> (showTerms t1) ^ ">" ^ (showTerms t2)
+  | Lt (t1, t2) -> (showTerms t1) ^ "<" ^ (showTerms t2)
+  | GtEq (t1, t2) -> (showTerms t1) ^ ">=" ^ (showTerms t2)
+  | LtEq (t1, t2) -> (showTerms t1) ^ "<=" ^ (showTerms t2)
+  | Eq (t1, t2) -> (showTerms t1) ^ "=" ^ (showTerms t2)
+  | PureOr (p1, p2) -> "("^showPure p1 ^ "\\/" ^ showPure p2^")"
+  | PureAnd (p1, p2) -> "("^showPure p1 ^ "/\\" ^ showPure p2^")"
+  | Neg p -> "(!" ^ "(" ^ showPure p^"))"
+  ;; 
+
+(*To pretty print effects*)
+let rec showEffect (e:effect) :string = 
+  match e with 
+  | [] -> ""
+  | [(p, es)] -> showPure p ^ "&" ^ showES es 
+  | (p, es):: rest -> showPure p ^ "&" ^ showES es  ^ " \\/ "  ^ showEffect rest 
+  ;;
+
+let rec printType (ty:_type) :string =
+  match ty with
+    INT -> "int "
+  | FLOAT -> "float "
+  | BOOL  -> "bool "
+  | VOID  -> "void ";;
+
+
+let rec printParam (params: param):string = 
+  match params with 
+    [] -> ""
+  | [(t, v)] -> printType t ^ v
+  | (t, v)::xs ->  printType t ^ v ^ "," ^ printParam xs ;;
+
+
+let rec print_real_Param (params: expression list):string = 
+  let rec printarg v = (match v with
+    Unit  -> "unit"
+  | Integer num -> string_of_int num
+  | Bool b -> string_of_bool b 
+  | Float f -> string_of_float f
+  | Variable v -> v 
+  | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
+  | BinOp (e1, e2, str) -> printarg e1 ^ str ^ printarg e2 
+  | _ -> "undefined"
+  ) in 
+  match params with 
+    [] -> ""
+  | [v] ->  printarg v
+    
+  | v::xs ->  
+    let pre = printarg v in 
+    pre ^ "," ^ print_real_Param xs ;;
+
+
+let rec printExpr (expr: expression):string = 
+  match expr with 
+    Unit  -> "unit"
+  | Return  -> "return"
+  | Integer num -> string_of_int num
+  | Bool b -> string_of_bool b 
+  | Float f -> string_of_float f
+  | String s -> "\"" ^ s^"\""
+  | Variable v -> v 
+  | LocalDel (t, v, e)->  printType t ^ v ^ " = " ^ printExpr e
+  | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
+  | Assign (v, e) -> v ^ " = " ^ printExpr e
+  | Seq (e1, e2) -> printExpr e1 ^ ";" ^ printExpr e2
+  | EventRaise (ev) -> ev
+  | Deadline (e, n) -> "deadline (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
+  | Timeout (e, n) -> "timeout (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
+
+  | Delay n -> "delay " ^  string_of_int n ^"\n"
+  | IfElse (e1, e2, e3) -> "if " ^ printExpr e1 ^ " then " ^ printExpr e2 ^ " else " ^ printExpr e3 
+  | Cond (e1, e2, str) -> printExpr e1 ^ str ^ printExpr e2 
+  | BinOp (e1, e2, str) -> printExpr e1 ^ str ^ printExpr e2 
+  | Assertion eff -> "Assert: " ^ showEffect eff 
+  ;;
+
 let rec showLTL (ltl:ltl):string =
   match ltl with 
     Lable str -> str
@@ -139,39 +250,14 @@ type hypotheses = (es * es) list
 
 
 
-(*To pretty print terms*)
-let rec showTerms (t:terms):string = 
-  match t with
-    Var name -> name
-  | Number n -> string_of_int n
-  | Plus (t1, t2) -> (showTerms t1) ^ ("+") ^ (showTerms t2)
-  | Minus (t1, t2) -> (showTerms t1) ^ ("-") ^ (showTerms t2)
 
-  ;;
-
-let string_of_event ev : string = 
-  match ev with 
-  | Present str -> str 
-  | Absent str -> "!" ^ str
-  | Any -> "_"
-  ;;
-
-(*To pretty print event sequences*)
-let rec showES (es:es):string = 
-  match es with
-    Bot -> "_|_"
-  | Emp -> "emp"
-  | Event (ev) -> string_of_event ev  
-  | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
-  | ESOr (es1, es2) -> "("^(showES es1) ^ " + " ^ (showES es2)^")"
-  | Ttimes (es, t) -> "("^(showES es) ^ "^" ^ (showTerms t)^")"
-  | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
-  ;;
 
 
 let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):terms = 
+
   match t with 
     Var str -> if String.compare formalArg str == 0 then 
+      
     (
       match realArg with 
         Integer n -> Number n
@@ -182,7 +268,10 @@ let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):te
       | BinOp (Variable v, Integer n, "-") -> Minus (Var v, Number n)
       | _ -> raise (Foo "substituteTermWithAgr exception")
     )
-    else Var str 
+    else 
+      (
+      
+      Var str )
   | Number n -> Number n
   | Plus (term, n) -> Plus (substituteTermWithAgr term realArg formalArg, n)
   | Minus (term, n) -> Minus (substituteTermWithAgr term realArg formalArg, n)
@@ -202,28 +291,6 @@ let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es =
 
 
 
-(*To pretty print pure formulea*)
-let rec showPure (p:pure):string = 
-  match p with
-    TRUE -> "true"
-  | FALSE -> "false"
-  | Gt (t1, t2) -> (showTerms t1) ^ ">" ^ (showTerms t2)
-  | Lt (t1, t2) -> (showTerms t1) ^ "<" ^ (showTerms t2)
-  | GtEq (t1, t2) -> (showTerms t1) ^ ">=" ^ (showTerms t2)
-  | LtEq (t1, t2) -> (showTerms t1) ^ "<=" ^ (showTerms t2)
-  | Eq (t1, t2) -> (showTerms t1) ^ "=" ^ (showTerms t2)
-  | PureOr (p1, p2) -> "("^showPure p1 ^ "\\/" ^ showPure p2^")"
-  | PureAnd (p1, p2) -> "("^showPure p1 ^ "/\\" ^ showPure p2^")"
-  | Neg p -> "(!" ^ "(" ^ showPure p^"))"
-  ;; 
-
-(*To pretty print effects*)
-let rec showEffect (e:effect) :string = 
-  match e with 
-  | [] -> ""
-  | [(p, es)] -> showPure p ^ "&" ^ showES es 
-  | (p, es):: rest -> showPure p ^ "&" ^ showES es  ^ " \\/ "  ^ showEffect rest 
-  ;;
 
 (*To pretty print effects entialments*)
 
@@ -259,6 +326,7 @@ let rec showContext (d:context):string =
   ;;
   *)
 
+(*
 let rec reverseEs (es:es) : es = 
   match es with 
     Bot -> Bot
@@ -273,6 +341,7 @@ let rec reverseEs (es:es) : es =
 let rec reverseEff (eff:effect) : effect = List.map (fun (p,es) ->  (p, reverseEs es) ) eff 
 ;;
 
+*)
 let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):terms = 
   match t with 
     Var str -> if String.compare formalArg str == 0 then 
@@ -301,8 +370,22 @@ let rec splitDisj (p:pure) (es:es):effect =
   | _ -> [(p, es)] 
   ;;
 
-let rec normalPureToDisj (p:pure):pure = 
+let rec splitConj (p:pure) :(pure list) =
   match p with 
+    PureAnd (p1, p2) -> List.append (splitConj p1 )  (splitConj p2  ) 
+  | _ -> [(p)] 
+  ;;
+
+let rec normalPureToDisj (p:pure):pure = 
+  let listOfCONJ = splitConj p in 
+  let filterList = List.filter (fun p ->
+  match p with 
+  | TRUE -> false 
+  | _ -> true 
+    ) listOfCONJ in
+  if List.length filterList == 0 then TRUE 
+  else List.fold_left (fun acc a -> PureAnd(acc, a)) (List.hd filterList) (List.tl filterList) 
+  (*match p with 
     PureAnd (p1, PureOr(pIn1, pIn2)) ->  
       let dealP1 = normalPureToDisj p1 in
       let temp1 = normalPureToDisj (PureAnd(dealP1, pIn1)) in 
@@ -315,6 +398,7 @@ let rec normalPureToDisj (p:pure):pure =
       PureOr (temp1 , temp2 )
   | Neg pi -> Neg (normalPureToDisj pi)
   | _ -> p
+  *)
   ;;
 
 let rec deletePureOrInEff (eff:effect):effect = List.flatten (List.map (fun (pi, es) -> 
