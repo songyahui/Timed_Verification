@@ -12,7 +12,7 @@ void oneSugar()
 void addSugar (int n) 
     /*
     require TRUE/\(_^*).emp
-    ensure  (t>=n)/\ (Sugar#t)
+    ensure  (t>=n)/\ (Sugar #t)
     */
 {
 
@@ -28,7 +28,7 @@ void addSugar (int n)
 void makeCoffee (int n)
     /*
     require TRUE/\emp
-    ensure (t<5/\t>=n/\t1<3)/\Cup.(Sugar#t).(Coffee#t1).Done
+    ensure (t<=5/\t>=n/\t1<=3)/\Cup.(Sugar#t).(Coffee#t1).Done
     */
 {
     event("Cup");

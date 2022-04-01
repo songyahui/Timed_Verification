@@ -69,7 +69,7 @@ let rec showES (es:es):string =
   | Event (ev) -> string_of_event ev  
   | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
   | ESOr (es1, es2) -> "("^(showES es1) ^ " + " ^ (showES es2)^")"
-  | Ttimes (es, t) -> "("^(showES es) ^ "^" ^ (showTerms t)^")"
+  | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
   | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
   ;;
 
@@ -92,8 +92,8 @@ let rec showPure (p:pure):string =
 let rec showEffect (e:effect) :string = 
   match e with 
   | [] -> ""
-  | [(p, es)] -> showPure p ^ "&" ^ showES es 
-  | (p, es):: rest -> showPure p ^ "&" ^ showES es  ^ " \\/ "  ^ showEffect rest 
+  | [(p, es)] -> showPure p ^ "/\\" ^ showES es 
+  | (p, es):: rest -> showPure p ^ "/\\" ^ showES es  ^ " \\/ "  ^ showEffect rest 
   ;;
 
 let rec printType (ty:_type) :string =
@@ -200,9 +200,9 @@ let to_buffer ?(line_prefix = "") ~get_name ~get_children buf x =
   and print_child indent is_last x =
     let line =
       if is_last then
-        "└── "
+        "└─ "
       else
-        "├── "
+        "├─ "
     in
     bprintf buf "%s%s" indent line;
     let extra_indent =

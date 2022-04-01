@@ -14,7 +14,8 @@ type var = string
 type includ = string 
 
 type head = 
-        Ev    of (event * terms) 
+      | Instant of event
+      | Ev    of (event * terms) 
       | Tau   of terms 
 
 (*E vent sequence *)

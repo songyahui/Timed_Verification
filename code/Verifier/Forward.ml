@@ -12,7 +12,7 @@ let verifier_counter: int ref = ref 0;;
 
 let verifier_getAfreeVar () :string  =
 
-  let x = "t"^string_of_int (!counter) in 
+  let x = "f"^string_of_int (!counter) in 
   let _ = verifier_counter := !verifier_counter + 1 in 
   x 
 ;;
@@ -156,7 +156,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
   | Deadline (e, n) -> 
     let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
-    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, LtEq(Var x, Number n)), Ttimes(es, Var x))) eff in 
+    let addABound = List.map (fun (pi, es) -> (PureAnd(Gt(Var x, Number n) , PureAnd(pi, LtEq(Var x, Number n))), Ttimes(es, Var x))) eff in 
     concatanateEffEff current addABound
 
   | Delay n -> 
@@ -188,14 +188,14 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
             let subPre = substituteEffWithAgrs pre exprList list_parm in 
             let subPost = substituteEffWithAgrs post exprList list_parm in
             
-            print_string ("======\n");
+            (*print_string ("======\n");
             print_string (List.fold_left (fun acc a -> acc ^ printExpr a) "" exprList);
             print_string ("\n");
             print_string (List.fold_left (fun acc (_, a) -> acc ^  a) "" list_parm);
 
             print_string ("\n" ^ showEffect pre^ "\n" ^ showEffect subPre^ "\n\n") ;
             print_string (showEffect post^ "\n" ^ showEffect subPost^ "\n") ;
-
+*)
 
             let his_cur =  (concatEffEff precondition current) in 
 
@@ -235,12 +235,12 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
     let acc =  (verifier mn expression (pre) [(TRUE, Emp)] prog) in 
     
-    let accumulated = "[Real Effect: " ^(showEffect ( normalEffect acc)) ^ "]\n" in 
+    let accumulated = "[Real Effect: " ^(showEffect (normalEffect acc)) ^ "]\n" in 
     (*print_string((showEntailmentEff acc post) ^ "\n") ;*)
     
     (*let varList = (*append*) (getAllVarFromEff acc) (*(getAllVarFromEff post)*) in  
     *)
-    let (result_tree, result) =  Rewriting.printReportHelper acc post in 
+    let (result_tree, result) =  Rewriting.printReportHelper  (normalEffect acc) post in 
     let result = "[Result: "^ (if result then "Succeed" else "Fail") ^"]\n" in 
     let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
     let printTree = printTree ~line_prefix:"* " ~get_name ~get_children result_tree in

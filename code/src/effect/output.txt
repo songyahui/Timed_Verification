@@ -1,71 +1,22 @@
 ====================================
 [Result] Succeed
-[Verification Time: 0.712 ms]
+[Verification Time: 6.206 ms]
  
 
-* lt>5&(A^lt) |- rt>5&(A^rt) [UNFOLD] 
-* └── lt>5&(emp^t1) |- rt>5&(emp^t2) [UNFOLD] 
-*     └── lt>5&emp |- rt>5&emp [NO FST]
+* lt>3/\(((A . B)#lt) . Done) |- rt>0/\(((_^*)#rt) . Done)  ***> true [UNFOLD] 
+* └─ lt>3/\((B#lt) . Done) |- rt>0/\(((_^*)#rt) . Done)  ***> (rt>0/\lt>3) [UNFOLD] 
+*     └─ lt>3/\Done |- rt>0/\(((_^*)#t0) . Done)  ***> (rt>0/\(lt+t0=rt/\(t0>=0/\lt>3))) [UNFOLD] 
+*         └─ lt>3/\emp |- rt>0/\((((_^*)#t0) . Done) + emp)  ***> (lt+t0=rt/\(t0>=0/\(rt>0/\lt>3))) [NO FST]
 
 ====================================
 [Result] Succeed
-[Verification Time: 0.604 ms]
+[Verification Time: 18.464 ms]
  
 
-* lt>5&((A^lt)^*) |- rt>5&((A^rt)^*) [UNFOLD] 
-* └── lt>5&((emp^t1) . ((A^lt)^*)) |- rt>5&((emp^t2) . ((A^rt)^*)) [UNFOLD] 
-*     └── lt>5&((A^lt)^*) |- rt>5&((A^rt)^*) [REOCCUR] 
-
-====================================
-[Result] Succeed
-[Verification Time: 0.618 ms]
- 
-
-* lt1<10&(B^lt1) |- rt1<30&(B^rt1) [UNFOLD] 
-* └── lt1<10&(emp^t1) |- rt1<30&(emp^t2) [UNFOLD] 
-*     └── lt1<10&emp |- rt1<30&emp [NO FST]
-
-====================================
-[Result] Succeed
-[Verification Time: 0.792 ms]
- 
-
-* (lt>5/\lt1<10)&((A^lt) . (B^lt1)) |- (rt>5/\rt1<30)&((A^rt) . (B^rt1)) [UNFOLD] 
-* └── (lt>5/\lt1<10)&((emp^t1) . (B^lt1)) |- (rt>5/\rt1<30)&((emp^t3) . (B^rt1)) [UNFOLD] 
-*     └── (lt>5/\lt1<10)&(B^lt1) |- (rt>5/\rt1<30)&(B^rt1) [UNFOLD] 
-*         └── (lt>5/\lt1<10)&(emp^t8) |- (rt>5/\rt1<30)&(emp^t9) [UNFOLD] 
-*             └── (lt>5/\lt1<10)&emp |- (rt>5/\rt1<30)&emp [NO FST]
-
-====================================
-[Result] Succeed
-[Verification Time: 3.033 ms]
- 
-
-* (lt>5/\lt1<10)&((A^lt) + ((A^lt) . (B^lt1))) |- (rt>5/\rt1<30)&((A^rt) + ((A^rt) . (B^rt1))) [UNFOLD] 
-* ├── (lt>5/\lt1<10)&((emp^t2) + ((emp^t3) . (B^lt1))) |- (rt>5/\rt1<30)&((emp^t5) + ((emp^t6) . (B^rt1))) [UNFOLD] 
-* │   ├── (lt>5/\lt1<10)&(emp + (B^lt1)) |- (rt>5/\rt1<30)&(emp + (B^rt1)) [UNFOLD] 
-* │   │   └── (lt>5/\lt1<10)&(emp^t11) |- (rt>5/\rt1<30)&(emp^t12) [UNFOLD] 
-* │   │       └── (lt>5/\lt1<10)&emp |- (rt>5/\rt1<30)&emp [NO FST]
-* │   └── (lt>5/\lt1<10)&(emp + (B^lt1)) |- (rt>5/\rt1<30)&(emp + (B^rt1)) [UNFOLD] 
-* │       └── (lt>5/\lt1<10)&(emp^t16) |- (rt>5/\rt1<30)&(emp^t17) [UNFOLD] 
-* │           └── (lt>5/\lt1<10)&emp |- (rt>5/\rt1<30)&emp [NO FST]
-* └── (lt>5/\lt1<10)&((emp^t18) + ((emp^t19) . (B^lt1))) |- (rt>5/\rt1<30)&((emp^t21) + ((emp^t22) . (B^rt1))) [UNFOLD] 
-*     ├── (lt>5/\lt1<10)&(emp + (B^lt1)) |- (rt>5/\rt1<30)&(emp + (B^rt1)) [UNFOLD] 
-*     │   └── (lt>5/\lt1<10)&(emp^t27) |- (rt>5/\rt1<30)&(emp^t28) [UNFOLD] 
-*     │       └── (lt>5/\lt1<10)&emp |- (rt>5/\rt1<30)&emp [NO FST]
-*     └── (lt>5/\lt1<10)&(emp + (B^lt1)) |- (rt>5/\rt1<30)&(emp + (B^rt1)) [UNFOLD] 
-*         └── (lt>5/\lt1<10)&(emp^t32) |- (rt>5/\rt1<30)&(emp^t33) [UNFOLD] 
-*             └── (lt>5/\lt1<10)&emp |- (rt>5/\rt1<30)&emp [NO FST]
-
-====================================
-[Result] Succeed
-[Verification Time: 1.656 ms]
- 
-
-* lt>5&(((A^lt)^*) . A) |- rt>5&(((A^rt)^*) . (A + B)) [UNFOLD] 
-* ├── lt>5&(((emp^t2) . (((A^lt)^*) . A)) + emp) |- rt>5&(((emp^t3) . (((A^rt)^*) . (A + B))) + emp) [UNFOLD] 
-* │   └── lt>5&(((A^lt)^*) . A) |- rt>5&(((A^rt)^*) . (A + B)) [REOCCUR] 
-* └── lt>5&(((emp^t6) . (((A^lt)^*) . A)) + emp) |- rt>5&(((emp^t7) . (((A^rt)^*) . (A + B))) + emp) [UNFOLD] 
-*     └── lt>5&(((A^lt)^*) . A) |- rt>5&(((A^rt)^*) . (A + B)) [REOCCUR] 
+* (lt<5/\(lt>=3/\lt1<3))/\(Cup . ((Sugar#lt) . ((Coffee#lt1) . Done))) |- rt<8/\(((_^*)#rt) . Done)  ***> true [UNFOLD] 
+* └─ (lt>=3/\(lt1<3/\lt<5))/\((Sugar#lt) . ((Coffee#lt1) . Done)) |- rt<8/\(((_^*)#rt) . Done)  ***> rt<8 [UNFOLD] 
+*     └─ (lt1<3/\(lt<5/\lt>=3))/\((Coffee#lt1) . Done) |- rt<8/\(((_^*)#t0) . Done)  ***> (lt+t0=rt/\(t0>=0/\rt<8)) [UNFOLD] 
+*         └─ (lt<5/\(lt>=3/\lt1<3))/\Done |- rt<8/\(((_^*)#t1) . Done)  ***> (lt+t0=rt/\(t0>=0/\(lt1+t1=t0/\(t1>=0/\rt<8)))) [UNFOLD] 
+*             └─ (lt>=3/\(lt1<3/\lt<5))/\emp |- rt<8/\((((_^*)#t1) . Done) + emp)  ***> (lt+t0=rt/\(t0>=0/\(lt1+t1=t0/\(t1>=0/\(rt<8/\lt=lt))))) [NO FST]
 
 
