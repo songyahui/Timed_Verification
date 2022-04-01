@@ -1,6 +1,15 @@
 ====================================
 [Result] Succeed
-[Verification Time: 6.206 ms]
+[Verification Time: 5.761 ms]
+ 
+
+* lt>3/\((emp#lt) . A) |- rt>3/\(A#rt)  ***> true [UNFOLD] 
+* └─ lt>3/\A |- rt>3/\(A#t0)  ***> (lt+t0=rt/\(t0>=0/\lt=lt)) [UNFOLD] 
+*     └─ lt>3/\emp |- rt>3/\(emp#t0)  ***> (lt+t0=rt/\(t0>=0/\(rt>3/\lt=lt))) [NO FST]
+
+====================================
+[Result] Succeed
+[Verification Time: 12.979 ms]
  
 
 * lt>3/\(((A . B)#lt) . Done) |- rt>0/\(((_^*)#rt) . Done)  ***> true [UNFOLD] 
@@ -10,13 +19,14 @@
 
 ====================================
 [Result] Succeed
-[Verification Time: 18.464 ms]
+[Verification Time: 36.6 ms]
  
 
 * (lt<5/\(lt>=3/\lt1<3))/\(Cup . ((Sugar#lt) . ((Coffee#lt1) . Done))) |- rt<8/\(((_^*)#rt) . Done)  ***> true [UNFOLD] 
 * └─ (lt>=3/\(lt1<3/\lt<5))/\((Sugar#lt) . ((Coffee#lt1) . Done)) |- rt<8/\(((_^*)#rt) . Done)  ***> rt<8 [UNFOLD] 
 *     └─ (lt1<3/\(lt<5/\lt>=3))/\((Coffee#lt1) . Done) |- rt<8/\(((_^*)#t0) . Done)  ***> (lt+t0=rt/\(t0>=0/\rt<8)) [UNFOLD] 
-*         └─ (lt<5/\(lt>=3/\lt1<3))/\Done |- rt<8/\(((_^*)#t1) . Done)  ***> (lt+t0=rt/\(t0>=0/\(lt1+t1=t0/\(t1>=0/\rt<8)))) [UNFOLD] 
-*             └─ (lt>=3/\(lt1<3/\lt<5))/\emp |- rt<8/\((((_^*)#t1) . Done) + emp)  ***> (lt+t0=rt/\(t0>=0/\(lt1+t1=t0/\(t1>=0/\(rt<8/\lt=lt))))) [NO FST]
+*         ├─ (lt<5/\(lt>=3/\lt1<3))/\Done |- rt<8/\(((_^*)#t1) . Done)  ***> (lt+t0=rt/\(t0>=0/\(lt1+t1=t0/\(t1>=0/\rt<8)))) [UNFOLD] 
+*         │   └─ (lt>=3/\(lt1<3/\lt<5))/\emp |- rt<8/\((((_^*)#t1) . Done) + emp)  ***> (lt+t0=rt/\(t0>=0/\(lt1+t1=t0/\(t1>=0/\(rt<8/\lt=lt))))) [NO FST]
+*         └─ (lt<5/\(lt>=3/\lt1<3))/\emp |- rt<8/\((((_^*)#t0) . Done) + emp)  ***> (lt+t0=rt/\(t0>=0/\(lt1<3/\(lt<5/\(lt>=3/\(rt<8/\lt=lt)))))) [NO FST]
 
 

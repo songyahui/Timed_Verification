@@ -124,7 +124,7 @@
 \newcommand\figref[1]{Fig. \textcolor{black}{\ref{#1}}.}
 \newcommand\tabref[1]{Table \textcolor{black}{\ref{#1}}.}
 \newcommand\secref[1]{Sec. \textcolor{black}{\ref{#1}}}
-\newcommand{\timedL}{\code{\lambda^{t}}}
+\newcommand{\timedL}{\code{C^{t}}}
 
 \newcommand\theoref[1]{Theorem~\textcolor{blue}{\ref{#1}}}
 \newcommand\lemmaref[1]{Lemma~\textcolor{blue}{\ref{#1}}}
@@ -222,10 +222,8 @@ xleftmargin=1.5em,
 %%
 %% The "title" command has an optional parameter,
 %% allowing the author to define a "short title" to be used in page headers.
-\title{Automated Timed Temporal Verification
-% for a Mixed Sync-Async Concurrency Paradigm
-}
-
+\title{Automated Verification for Real-Time Systems 
+using Implicit Clocks and an Extended Antimirov Algorithm}
 
 %% Automated Temporal Verification for Mixed Sync-Async Reactive Paradigm
 
@@ -261,37 +259,36 @@ xleftmargin=1.5em,
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract} 
-In this work, we study temporal verification of 
-compositional real-time systems, modeled 
-using mutable variables and timed processes.  
-Instead of explicitly manipulating clock variables, 
-several compositional timed behavioral patterns, 
-such as \emph{delay}, \emph{timeout}, \emph{deadline},  
-are introduced to capture quantitative timing constraints.
-The idea is to dynamically create clocks  
-and solve constraints on the clocks. 
-
-We propose a novel solution for timed verification via a 
-compositional Hoare-style forward verifier and a 
-term rewriting system (TRS) on \emph{Timed Effects} (\timedEffects).  
+Real-time systems are systems where the correctness does not 
+only depend on their correct functioning but also on meeting 
+realtime constraints.
+Different from existing timed-automata based techniques, 
+we propose a novel solution that integrates a 
+modular Hoare-style forward verifier with a new term rewriting 
+system (TRS) on \emph{Timed Effects} (\timedEffects).
+The main purpose is to dynamically create clocks  
+and efficiently solve constraints on the clocks, 
 We formally define 
-a core language \timedL, generalizing the timed processes.
+a core language \timedL, generalizing the real-time systems, modeled 
+using mutable variables and timed behavioral patterns, 
+such as \emph{delay}, \emph{timeout}, \emph{deadline}. 
 Secondly, to capture real-time specifications, 
 we introduce \timedEffects, a new effects logic, 
 that extends 
-\emph{Kleene Algebra} with dependent
+\emph{Regular Expressions} with dependent
 values and arithmetic constraints.
 Thirdly,  the forward verifier infers temporal behaviors of given 
 \timedL\ programs, expressed in \timedEffects. 
-Lastly, we present a purely algebraic TRS, to 
+Lastly, we present a purely algebraic TRS, i.e., the extended Antimirov algorithm, to 
 efficiently prove language inclusions between 
  \timedEffects. 
 To demonstrate the feasibility of our proposals, 
 we prototype the verification system; prove its 
 correctness; report on case studies and the experimental results. 
-%we prototype the  verification system in OCaml; then prove soundness of both the effects inference process and the term rewriting process. % in Coq. 
 
  
+
+
 
 \end{abstract}
 
@@ -324,6 +321,20 @@ Reactive System Design}
 \section{Introduction}
 \label{Introduction}
 
+several compositional ,  
+are introduced to capture quantitative timing constraints.
+The idea is to 
+
+
+In this work, we study temporal verification of 
+compositional real-time systems,
+
+
+
+Existing automatic verification techniques massively rely on 
+the timed automata which requires manually cast of clock variables with 
+carefully calculated clock constraints. 
+
 Specification and verification of real-time systems are important 
 research topics which have practical implications. During the last 
 (more than) two decades, a popular approach for specifying real-time systems is 
@@ -347,6 +358,8 @@ Unlike timed process algebras, Timed Automata lack high-level
 compositional patterns for hierarchical design. As a result, users often 
 need to manually cast those terms into a set of clock variables with 
 carefully calculated clock constraints. The process is tedious and error-prone.
+
+
 
 We investigate an alternative approach for modeling and verifying 
 compositional real-time systems. In this work, 

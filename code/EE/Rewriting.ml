@@ -207,8 +207,8 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
     (match es with 
       Bot -> (Bot, TRUE)
     | Emp -> (Bot, TRUE)
-    | Event (Any) -> (Emp, TRUE)
-    | Event ev -> (Event ev, TRUE)
+    | Event (Any) -> (Bot, TRUE)
+    | Event ev -> (Bot, TRUE)
     | Ttimes (Emp, tIn) -> (Emp,  Eq(t , tIn))
     | Ttimes (es1, tIn) -> 
       let t_new = getAfreeVar () in 
