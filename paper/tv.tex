@@ -773,12 +773,34 @@ To formulate the target language, we generalize the design of the real-time syst
 We here formally define the syntax of \code{\timedL}, as shown in \figref{fig:code_language} 
 
 
-%as our target language because it Given that Hiphop.js is an integration of Esterel and JavaScript, 
+Here, we regard \code{k} and \code{x} are meta-variables.  \code{k^\tau} represents a constant of basic type \code{\tau}. \textbf{var} represents the countably infinite set of arbitrary distinct identifiers. 
+\anyevent{a} refers to a singleton event coming from the finite set of events \code{\Sigma}. 
+%Without loss of generality, any event can be further parametrized with constant values, e.g. \code{\anyevent{a}.0} and  \code{\anyevent{a}}.1 are distinct two events, leading to infinite alphabet.
+We assume that programs we use are well-typed conforming to basic types \code{\tau} (we take () as the \code{void} type).
+%Each events raising expression \code{\textbf{event}} is parametrized with an event, to trigger such a single event. 
+A program \code{\mathcal{P}} comprises a list of 
+%data type declarations \code{{datat^*}} and a list of 
+method declarations \code{{meth^*}}. 
+Here, we use the \code{*} superscript to denote a finite list (possibly empty) of items, for example, \code{{x^*}} refers to a list of variables, \code{x_1, ...,\ x_n}. 
+%Besides, \code{d} denotes the name of a user-defined data type, \code{f} denotes a field name. 
 
-Meta-variables are {\textbf{S}}, \code{x} and \code{nm} . Basic signal types include \code{IN} for input signals, \code{OUT} for output signals, \code{INOUT} for both and \code{int} for integer variables. {\textbf{var}} represents the countably infinite set of arbitrary distinct identifiers. We assume that programs are well-typed conforming to basic types \code{\tau}. 
 
-A program \code{\mathcal{P} } comprises a list of module definitions \code{ \overrightarrow{module}}. Here, we use the \code{ \overrightarrow{}} script to denote a finite vector (possibly empty) of items.
-Each \code{module} has a name \code{nm}, a list of well-typed arguments \code{ \overrightarrow{\tau\ x} } and $ \overrightarrow{\tau\ \textbf{S}}$, a statement-oriented body \code{{p}}, associated with a precondition \code{\effect_{pre}} and a postcondition \code{\effect_{post}}. (The syntax of effects specification \code{\effect} is given in \figref{fig:Syntax_of_Types_and_Effects})
+Each method \code{meth} has a name \code{mn}, an expression-oriented body \code{e}, also is associated with a precondition  \code{\effect_{pre}} and a postcondition \code{\effect_{post}} (the syntax of effects specification \code{\effect} is given in \figref{fig:Syntax_of_Types_and_Effects}).
+The language allows each iterative loop to be optimized to an equivalent tail-recursive method, where mutation on parameters is made visible to the caller. The technique of translating away iterative loops is standard
+%\citeref{insa2015automatic} 
+and is helpful
+in further minimising our core language. Expressions comprise unit (), 
+constants \code{k}, 
+variables \code{x}, 
+%one-level field access \code{v.f} (rather than \code{v.f1.f2...} for the sake of simplicity), 
+%data structure allocation \code{\textbf{new}\ d({v^*})},  
+local variable declaration \code{\tau\ x;\ e}, method calls \code{mn({x^*}) }, 
+variable assignments \code{x{:=}e}, 
+%field update \code{v.f:=e}, 
+expression sequences \code{e_1;e_2},
+conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2},
+event raises expression \code{ \textbf{event} [ev] }, 
+
 
 
 
@@ -793,8 +815,8 @@ Each \code{module} has a name \code{nm}, a list of well-typed arguments \code{ \
     \m{(Program)} &  \code{\mathcal{P} }&\code{  ::= }&
     \code{%{datat^*}  \  
    {meth^*}} 
-\qquad   \qquad
-    \m{(Basic\ Types)} \qquad  \code{\tau} \code{  ::= }
+\qquad   \qquad\quad 
+    \m{(Basic\ Types)} \qquad  \code{\tau} \code{\quad  ::= \quad }
      \code{int\ |\ bool\ |\ void}
     \\
     
@@ -820,11 +842,10 @@ Each \code{module} has a name \code{nm}, a list of well-typed arguments \code{ \
  }  \\
  &   & & \code{
 % |\ e_1}\ op\ \code{ e_2 \ 
-| \ \textbf{event} [ev]\
-  %|\ \textbf{assert}\ \effect \ 
-  | \ \textbf{timeout} \ e \ d \  
-  | \ \textbf{deadline} \ e \ d \  
-  | \ \textbf{delay}\ d 
+| \ \textbf{event} [ev]\ 
+  | \ \textbf{delay}\ [d] \ 
+  | \ e_1\ \textbf{timeout}\  [d] \  e_2 \ 
+  | \ \textbf{deadline}  \ [d] \ e \  
   }  \\
   ~\\
  
@@ -848,9 +869,86 @@ Each \code{module} has a name \code{nm}, a list of well-typed arguments \code{ \
 \end{figure}
 }
 
+A number of timed process constructs can be used to capture common 
+real-time system behavior patterns. Without loss of generality, we 
+assume d is an integer constant.  $\textbf{delay}\ [d]$ idles for exactly $d$ 
+time units. In process $e_1\ \textbf{timeout}\ [d] e_2$, the first observable event of 
+$e_1$ shall occur before d time units elapse (since the process starts). 
+Otherwise, $e_2$ takes over control after exactly $d$ time units elapse. 
+Process $\textbf{deadline}\ [d]\ e$ constrains $e$ to terminate before $d$ time units. 
+In this setting, clock variables are 
+made implicit and hence they cannot be compared with each other 
+directly, which potentially allows efficient clock manipulation and 
+hence system verification.
 
 
 %
+
+\subsection{Semantics}
+\label{subsec:Targetlanguage_Semantics}
+
+In order to define the operational semantics of a system model, 
+we define the notion of a configuration to capture the global 
+system state during system execution.
+
+\begin{definition}[System configuration]
+A system configuration is a pair $c = (V , e)$ where $V$ is a variable valuation function and $e$ is an expression.
+\end{definition}
+
+A transition of the system is of the form $c \xrightarrow[]{\text{x}} c^\prime$ where $c$ and $c^\prime$ are 
+the system configurations before and after the transition respectively. 
+We adopt the following naming convention for transition labels: 
+$t$ denotes a non-negative real number; $\tau$ denotes an invisible event;
+For instance, $c \xrightarrow[]{\text{t}} c^\prime$ denotes a transition of $t$ time units elapsing. 
+In the following, we present the firing rules which are associated with 
+the timed process constructs. 
+\begin{flalign*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   Wait                 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\code{\frac{
+  t {\leq} d 
+}{(V, \textbf{delay}\ [d]) \xrightarrow[]{\text{t}} (V, \textbf{delay}\ [d \text{-}t])}\ [de1]} 
+\qquad \qquad 
+\code{\frac{
+}{(V, \textbf{delay}\ [0]) \xrightarrow[]{\tau} (V, ())}\ [de2]} 
+\end{flalign*}
+
+\begin{flalign*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   timeout                 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\code{\frac{
+  (V,e_1) \xrightarrow[]{\text{e}} (V^\prime,e_1^\prime)
+}{(V, e_1\ \textbf{timeout} \  [d] \ e_2) \xrightarrow[]{\text{e}} (V^\prime,e^\prime)}\ [to1]} 
+\quad  
+\code{\frac{
+  (V,e) \xrightarrow[]{\tau} (V^\prime,e^\prime)  \quad (t {\leq} d)
+}{(V, e_1\ \textbf{timeout} \  [d] \ e_2) \xrightarrow[]{\text{t}} (V, \textbf{timeout}\ e^\prime \ [d \text{-}t])}\ [to2]} 
+\\
+\code{\frac{
+  (V,e_1) \xrightarrow[]{\text{t}} (V,e_1^\prime)  \quad (t {\leq} d) 
+}{(V, e_1\ \textbf{timeout} \ [d] \ e_2) \xrightarrow[]{\text{t}} (V,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [to3]} 
+\quad  
+\code{\frac{
+}{(V, e_1\ \textbf{timeout} \  [0] \ e_2) \xrightarrow[]{\tau} (V, e_2)}\ [to4]} 
+\end{flalign*}
+
+
+\begin{flalign*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   deadline                 %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\code{\frac{
+  (V,e) \xrightarrow[]{\text{x}} (V^\prime,e^\prime)
+}{(V, \textbf{deadline}\  [d] \ e ) \xrightarrow[]{\text{x}} (V^\prime, \textbf{deadline} \ [d] \ e^\prime)}\ [dl1]} 
+\quad  
+\code{\frac{
+  (V,e) \xrightarrow[]{\text{t}} (V,e^\prime)  \quad (t {\leq} d)
+}{(V, \textbf{deadline} \  [d]\ e ) \xrightarrow[]{\text{t}} (V, \textbf{deadline} \ [d \text{-}t] \ e^\prime )}\ [dl2]} 
+\end{flalign*}
+
+
 
 
 \subsection{The Specification Language}
@@ -1025,9 +1123,9 @@ qual to  0.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                          I                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : \anyevent{A} }  &\m{iff}\quad 
+&\code{d, \varphi \models  \pi : ev }  &\m{iff}\quad 
 & d {\geq} 0 \ and\ {\tt{SAT}(\pi)}  \ and \ 
-\varphi {=} \code{[\anyevent{A}]}
+\varphi {=} \code{[ev]}
   \\[0.2em]
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            CONCATE                            %%
