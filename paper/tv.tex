@@ -839,13 +839,15 @@ then it behaves as \code{e}, else it idles until \code{b} becomes true;
 %data structure allocation \code{\textbf{new}\ d({v^*})},  
 %local variable declaration \code{\tau\ x;\ e}, 
 method calls \code{mn({x^*})}; 
-variable assignments \code{x{:=}e}; 
+%variable assignments \code{x{:=}e}; 
 %field update \code{v.f:=e}, 
 expression sequences \code{e_1;e_2};
 parallel composition \code{e_1 || e_2}, where \code{e_1} and \code{e_2} 
 may communicate via multi-party event synchronization or shared variables; 
 conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}. 
-
+The expression \code{ \textbf{event} [\anyevent{A}(v)]\{(x:=v)^*\} } 
+raises an event \anyevent{A} parametrized with \code{v}, and takes a set of 
+assignment actions \code{(x:=v)^*}. 
 
 
 {
@@ -879,14 +881,14 @@ conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}.
   \m{(Expressions)} &  \code{e}&\code{  ::= }&
     \code{ v \ | \ 
     [b]\ e \ |\ mn({v^*}) \ }
-  \code{|\ x{:=}e\ |\ 
+  \code{| 
  % v.f:=e \ | 
  \ e_1;e_2\ | \ e_1 || e_2 \ 
-  |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 
+  |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
  }  \\
+&&& \code{ |\ \textbf{event} [\anyevent{A}(v)] \{(x{:=}v)^*\} }
+ \\
  &   & & \code{
-% |\ e_1}\ op\ \code{ e_2 \ 
-| \ \textbf{event} [ev]\ 
   | \ \textbf{delay} [d] \ 
   | \ e_1\ \textbf{timeout} [d] \  e_2 \ 
   | \ \textbf{deadline}  [d] \ e \  
@@ -903,7 +905,7 @@ conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}.
 \qquad \ \ 
 \code{x, mn  ::\in \textbf{var}}  
 \qquad\ \ 
- \code{(Events)  ev \in \Sigma 
+ \code{(Action\ labels)\ \anyevent{A}  \in \Sigma 
 \qquad\ \ 
 \m{(Time\ Bounds)}\ \code{d} \code{\in \mathbb{N}}    
 }   
@@ -917,8 +919,8 @@ conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}.
 \end{figure}
 }
 
-Apart for the event raising expression \code{ \textbf{event} [ev] }, 
-a number of timed process constructs can be used to capture common 
+
+Furthermore, a number of timed process constructs can be used to capture common 
 real-time system behavior patterns. Without loss of generality, we 
 assume d is a non-negative integer constant.  $\textbf{delay} [d]$ idles for exactly $d$ 
 time units. In process $e_1\ \textbf{timeout} [d]\ e_2$, the first observable event of 
@@ -1039,8 +1041,8 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 \\
 \m{(Events)} & ev  & \ ::= \ & 
 \code{
-    \anyevent{A} (c)
-    \ | \ \anynotevent{A} (c)
+  \anyevent{A}(c, \pi, (x:=v)^*)
+    \ | \ \anynotevent{A} 
     \ | \ \_  
 }
            
@@ -1087,7 +1089,7 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
     \multicolumn{4}{c}{
      % \code{(Events)  \anyevent{A} ::\in \Sigma}   
    %\qquad
-    \code{c ::\in \mathbb{R}^{+}} 
+    \code{c ::\in \mathbb{Z}^{+}} 
      \qquad 
            \code{x  ::\in \textbf{var} } 
            \qquad

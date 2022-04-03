@@ -53,46 +53,35 @@ type spec = PrePost of effect * effect
 type _type = INT | FLOAT | BOOL | VOID
 
 
+type value = Unit 
+| Integer of int 
+| Bool of bool
+| Float of float
+| String of string
+| Variable of var
 
-type expression = Unit 
-          | Return
-          | Integer of int
-          | Bool of bool
-          | Float of float
-          | String of string
-          | Variable of var
+type assign =  (var * value)  
+
+
+type expression = 
+          | Value of value
           | LocalDel of _type * var * expression 
           | Call of mn * expression list 
-          | Assign of var * expression
           | Seq of expression * expression
-          | EventRaise of string 
+          | EventRaise of (string * value option * assign list) 
           | Timeout of (expression * int)  
           | Deadline of (expression * int)
           | Delay of int
           | IfElse of expression * expression * expression
-          | Cond of expression * expression * string
-          | BinOp of expression * expression * string
+          | Cond of value * value * string
+          | BinOp of value * value * string
           | Assertion of effect
 
 type param  = (_type * var) list
 
 type meth = Meth of _type * mn * param * spec * expression
 
-type declare = Include of string | Method of meth
+type declare = Include of string | Method of meth | Global of assign
 
 type program = declare list
-
-
-type ltl = Lable of string 
-        | Next of ltl
-        | Until of ltl * ltl
-        | Global of ltl
-        | Future of ltl
-        | NotLTL of ltl
-        | Imply of ltl * ltl
-        | AndLTL of ltl * ltl
-        | OrLTL of ltl * ltl
-
-type ltl_verification = (es* ltl list )
-
 

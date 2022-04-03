@@ -44,15 +44,16 @@ let rec concatEffEff (eff1:effect) (eff2:effect) : effect =
 
       ;;
 
-let rec searMeth (prog: program) (name:string) : meth option= 
+let rec searchMeth (prog: program) (name:string) : meth option= 
   match prog with 
     [] -> None
   | x::xs -> 
     (match x with 
-      Include str -> searMeth xs name
+      Include str -> searchMeth xs name
     | Method (Meth (t, mn , list_parm, PrePost (pre, post), expression)) -> 
       if mn = name then Some (Meth (t, mn , list_parm, PrePost (pre, post), expression))
-      else searMeth xs name 
+      else searchMeth xs name 
+    | Global _ -> searchMeth xs name  
     )
     ;;
 
@@ -83,7 +84,7 @@ let rec substituteEffWithAgr (eff:effect) (realArg:expression) (formalArg: var):
 let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_type * var) list ) =
   let realArgs' = List.filter (fun x -> 
                                 match x with 
-                                Unit -> false 
+                              | Value (Unit) -> false 
                               | _-> true ) realArgs in 
                               
 
@@ -135,7 +136,7 @@ let concatanateEffEff eff1 eff2 : effect =
 
 let rec verifier (caller:string) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
-  | EventRaise (ev) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present ev )))) current
+  | EventRaise (ev, _, _) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present ev )))) current
   | Seq (e1, e2) -> 
     let eff1 = verifier caller e1 precondition current prog in 
     verifier caller e2 precondition eff1 prog
@@ -146,7 +147,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
     let state_C_ELSE  = addConstrain current condElse in 
     List.append (verifier caller e2 precondition state_C_IF prog) (verifier caller e3 precondition state_C_ELSE prog)
 
-  | Assign (v, e) -> verifier caller e precondition current prog 
+  (*| Assign (v, e) -> verifier caller e precondition current prog  *)
   | Timeout (e, n) -> 
     let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
@@ -174,7 +175,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
   
             
   | Call (name, exprList) -> 
-    (match searMeth prog name with 
+    (match searchMeth prog name with 
       None -> 
        if (String.compare name "printf" == 0) then current
        else raise (Foo ("Method: "^ name ^" not defined!"))
@@ -228,7 +229,8 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
   else 
   let startTimeStamp = Sys.time() in
   match dec with 
-    Include str -> ""
+  | Include str -> ""
+  | Global _ -> ""
   | Method (Meth (t, mn , list_parm, PrePost (pre, post), expression)) -> 
     let head = "[Verification for method: "^mn^"]\n"in 
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
@@ -262,6 +264,7 @@ let rec printProg (pram: declare list) :string =
     let str = (match x with 
               Include str -> str ^ "\n" 
             | Method me -> printMeth me 
+            | Global op -> string_of_assigns [op]
     )in
     str ^ printProg xs ;;
 

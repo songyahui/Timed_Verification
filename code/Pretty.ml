@@ -111,16 +111,21 @@ let rec printParam (params: param):string =
   | [(t, v)] -> printType t ^ v
   | (t, v)::xs ->  printType t ^ v ^ "," ^ printParam xs ;;
 
-
-let rec print_real_Param (params: expression list):string = 
-  let rec printarg v = (match v with
-    Unit  -> "unit"
+let string_of_value v : string = 
+  match v with 
+  | Unit  -> "unit"
   | Integer num -> string_of_int num
   | Bool b -> string_of_bool b 
   | Float f -> string_of_float f
   | Variable v -> v 
+  | String str -> str
+;;
+
+let rec print_real_Param (params: expression list):string = 
+  let rec printarg v = (match v with
+  | Value v -> string_of_value v 
   | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
-  | BinOp (e1, e2, str) -> printarg e1 ^ str ^ printarg e2 
+  | BinOp (e1, e2, str) -> string_of_value e1 ^ str ^ string_of_value e2 
   | _ -> "undefined"
   ) in 
   match params with 
@@ -131,43 +136,35 @@ let rec print_real_Param (params: expression list):string =
     let pre = printarg v in 
     pre ^ "," ^ print_real_Param xs ;;
 
+let rec string_of_assigns li : string =
+  match li with 
+  | [] -> ""
+  | (str, v):: rest -> str ^ " := " ^ string_of_value v ^ ";" ^ string_of_assigns rest 
+;;
+
 
 let rec printExpr (expr: expression):string = 
   match expr with 
-    Unit  -> "unit"
-  | Return  -> "return"
-  | Integer num -> string_of_int num
-  | Bool b -> string_of_bool b 
-  | Float f -> string_of_float f
-  | String s -> "\"" ^ s^"\""
-  | Variable v -> v 
+  | Value v -> string_of_value v 
   | LocalDel (t, v, e)->  printType t ^ v ^ " = " ^ printExpr e
   | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
-  | Assign (v, e) -> v ^ " = " ^ printExpr e
+  (*| Assign (v, e) -> v ^ " = " ^ printExpr e *)
   | Seq (e1, e2) -> printExpr e1 ^ ";" ^ printExpr e2
-  | EventRaise (ev) -> ev
+  | EventRaise (ev, param, ops) -> ev ^ (
+    match param with 
+    | None -> ""
+    | Some v -> "("^ string_of_value v ^")"
+  )^ string_of_assigns ops 
   | Deadline (e, n) -> "deadline (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
   | Timeout (e, n) -> "timeout (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
 
   | Delay n -> "delay " ^  string_of_int n ^"\n"
   | IfElse (e1, e2, e3) -> "if " ^ printExpr e1 ^ " then " ^ printExpr e2 ^ " else " ^ printExpr e3 
-  | Cond (e1, e2, str) -> printExpr e1 ^ str ^ printExpr e2 
-  | BinOp (e1, e2, str) -> printExpr e1 ^ str ^ printExpr e2 
+  | Cond (e1, e2, str) -> string_of_value e1 ^ str ^ string_of_value e2 
+  | BinOp (e1, e2, str) -> string_of_value e1 ^ str ^ string_of_value e2 
   | Assertion eff -> "Assert: " ^ showEffect eff 
   ;;
 
-let rec showLTL (ltl:ltl):string =
-  match ltl with 
-    Lable str -> str
-  | Next l -> "(" ^"X" ^showLTL l ^")"
-  | Until (l1, l2) -> "(" ^showLTL l1 ^ " U " ^showLTL l2 ^")"
-  | Global l -> "(" ^"[] " ^showLTL l ^")"
-  | Future l -> "(" ^"<> " ^showLTL l ^")"
-  | NotLTL l -> "(" ^"! " ^showLTL l ^")"
-  | Imply (l1, l2) -> "(" ^showLTL l1 ^ " -> " ^showLTL l2 ^")"
-  | AndLTL (l1, l2) -> "(" ^showLTL l1 ^ " && " ^showLTL l2 ^")"
-  | OrLTL (l1, l2) -> "(" ^showLTL l1 ^ " || " ^showLTL l2 ^")"
-  ;;
 
 let compareParm (p1:int option ) (p2:int option ) :bool = 
   match (p1, p2) with 
@@ -261,10 +258,14 @@ let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):te
       
     (
       match realArg with 
-        Integer n -> Number n
-      | Variable v -> Var v
-      | Bool true -> Number 1
-      | Bool false -> Number 0
+      | Value v -> (
+        match v with 
+        | Integer n -> Number n
+        | Variable v -> Var v
+        | Bool true -> Number 1
+        | Bool false -> Number 0
+        | _ -> raise (Foo "substituteTermWithAgr")
+      )
       | BinOp (Variable v, Integer n, "+") -> Plus (Var v, Number n)
       | BinOp (Variable v, Integer n, "-") -> Minus (Var v, Number n)
       | _ -> raise (Foo "substituteTermWithAgr exception")
@@ -349,10 +350,15 @@ let rec substituteTermWithAgr (t:terms) (realArg:expression) (formalArg: var):te
     Var str -> if String.compare formalArg str == 0 then 
     (
       match realArg with 
-        Integer n -> Number n
-      | Variable v -> Var v
-      | Bool true -> Number 1
-      | Bool false -> Number 0
+      | Value v -> (
+        match v with 
+        |Integer n -> Number n
+        | Variable v -> Var v
+        | Bool true -> Number 1
+        | Bool false -> Number 0
+        | _ -> raise (Foo "substituteTermWithAgr exception1")
+
+        )
       | BinOp (Variable v, Integer n, "+") -> Plus (Var v, Number n)
       | BinOp (Variable v, Integer n, "-") -> Minus (Var v, Number n)
       | _ -> raise (Foo "substituteTermWithAgr exception")

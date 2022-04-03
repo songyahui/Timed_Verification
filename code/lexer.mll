@@ -39,7 +39,7 @@ rule token = parse
 | "deadline" {DeadlineKEY}
 | "delay" {DelayKEY}
 | "assert" {ASSERTKEY}
-| "return" {RETURN}
+(*| "return" {RETURN}*)
 | "|-" {ENTIL}
 | "TRUE" { TRUE }
 | "FALSE" { FALSE }
@@ -67,8 +67,8 @@ rule token = parse
 | '"' { read_string (Buffer.create 17) lexbuf }
 | '(' { LPAR }
 | ')' { RPAR }
-(*| '[' { LBrackets }
-| ']' { RBrackets }*)
+| '[' { LBrackets }
+| ']' { RBrackets }
 | '{' { LBRACK  }
 | '}' { RBRACK }
 | ',' { COMMA }
@@ -86,13 +86,13 @@ rule token = parse
 | "==" {EQEQ}
 | ">=" {GTEQ}
 | "<=" {LTEQ}
-| "<>" {FUTURE}  
+(*| "<>" {FUTURE}  
 | "[]" {GLOBAL}
 | "->" {IMPLY}
 | '!' {LTLNOT}
 | 'X' {NEXT}
 | 'U' {UNTIL}
-| "&&" {LILAND}
+| "&&" {LILAND}*)
 | "||" {LILOR}
 | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
 | eof { EOF }
