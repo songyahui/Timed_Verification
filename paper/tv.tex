@@ -489,6 +489,38 @@ prove the correctness, report on case studies and experimental results.
 \section{Overview}\label{sec:Overview}
 %We now give a summary of our techniques using running examples. 
 
+
+\begin{figure}[ht]
+  \vspace{0mm}
+\begin{lstlisting}[columns=fullflexible]
+var x := -1; 
+var ct := 0;
+
+void process (int i)
+/* requires d1<d2,  emp 
+   ensures  true, (Update(i)#d1.emp#d2.([x=i]Critical(i).Exit(i) \/ emp))^* */
+{
+  [x=-1] active (i, 2, 3); 
+  deadline (event[Update(i)]{x := i}, d1);
+  delay (d2);
+  if (x=i) {
+    event[Critical(i)]{ct := ct +1};
+    event[Exit(i)]{ct := ct -1; x := -1};
+    process (i);
+  } else {
+    process (i);
+}
+
+void main () 
+/* requires true /\ emp 
+   ensures  true, (!Critical \/ (Critical(i) /\ i=x))^* */
+{ process(0) || process(1) || process(2); }
+\end{lstlisting}  
+  \vspace{0mm}
+  \caption{Dependent Values for Time Bounds).}\label{fig:overview_ficher}
+     \vspace{0mm}
+\end{figure}
+
 %\subsection{HipHop.js and Dependent Effects}
 \subsection{\timedEffects}
 As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specifications (enclosed in \textcolor{darklavender}{\ttfamily{{/*@ ... @*/}}}) for each program, which leads to a compositional verification strategy, where static checking and timed temporal verification can be done locally. %The set of signals to be present in one logical time instance are represented within one \code{\_}.
