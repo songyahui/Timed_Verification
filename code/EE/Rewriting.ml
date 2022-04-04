@@ -203,8 +203,8 @@ let appendEff_ES eff es: effect = List.map (fun (pi, es1) -> (pi, Cons (es1, es)
 let entailEvent ev1 ev2 : bool =
   match (ev1, ev2) with 
   | (_, Any) -> true 
-  | (Present str1, Present str2) -> String.compare str1 str2 == 0 
-  | (Present str1, Absent str2) -> String.compare str1 str2 != 0 
+  | (Present (_, str1, _, _), Present (_, str2, _, _)) -> String.compare str1 str2 == 0 
+  | (Present (_, str1, _, _), Absent str2) -> String.compare str1 str2 != 0 
   | (Absent str1, Absent str2) ->  String.compare str1 str2 == 0
   | _ -> false 
 ;;

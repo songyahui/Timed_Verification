@@ -8,18 +8,18 @@ type terms = Var of string
            | Minus of terms * terms 
 
 (* We use a string to represent an single event *)
-type event =  Present of string | Absent of string | Any 
-type mn = string
-type var = string 
-type includ = string 
+type event =  Present of (pure * string * value option * assign list) | Absent of string | Any 
+and mn = string
+and var = string 
+and includ = string 
 
-type head = 
+and head = 
       | Instant of event
       | Ev    of (event * terms) 
       | Tau   of terms 
 
 (*E vent sequence *)
-type es = Bot 
+and es = Bot 
         | Emp 
         | Event  of event 
         | Cons   of es * es
@@ -31,7 +31,7 @@ type es = Bot
 
 
 (*Arithimetic pure formulae*)
-type pure = TRUE
+and pure = TRUE
           | FALSE
           | Gt of terms * terms
           | Lt of terms * terms
@@ -43,27 +43,27 @@ type pure = TRUE
           | Neg of pure
 
 (*Effects*)
-type effect = (pure * es) list 
+and effect = (pure * es) list 
 
 
-type entilment = EE of effect * effect
+and entilment = EE of effect * effect
 
-type spec = PrePost of effect * effect
+and spec = PrePost of effect * effect
 
-type _type = INT | FLOAT | BOOL | VOID
+and _type = INT | FLOAT | BOOL | VOID
 
 
-type value = Unit 
+and value = Unit 
 | Integer of int 
 | Bool of bool
 | Float of float
 | String of string
 | Variable of var
 
-type assign =  (var * value)  
+and assign =  (var * value)  
 
 
-type expression = 
+and expression = 
           | Value of value
           | LocalDel of _type * var * expression 
           | Call of mn * expression list 
@@ -77,11 +77,11 @@ type expression =
           | BinOp of value * value * string
           | Assertion of effect
 
-type param  = (_type * var) list
+and param  = (_type * var) list
 
-type meth = Meth of _type * mn * param * spec * expression
+and meth = Meth of _type * mn * param * spec * expression
 
-type declare = Include of string | Method of meth | Global of assign
+and declare = Include of string | Method of meth | Global of assign
 
-type program = declare list
+and program = declare list
 

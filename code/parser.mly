@@ -70,6 +70,11 @@ assign_list:
 | a = assign {[a]}
 | a= assign SIMI rest=assign_list {a :: rest}
 
+maybe_assign_list:
+| {[]}
+|LBRACK op=assign_list RBRACK {op}
+
+
 expres_help : 
 | v= value {Value v }
 | t = type_ name = VAR EQ e = expres_help {LocalDel (t, name, e)}
@@ -136,15 +141,15 @@ pure:
 | a = pure DISJ b = pure {PureOr (a, b)}
 
 
-(*
-parm:
-| {None}
-| LPAR i=INTE RPAR {Some i}
-*)
+
+gaude:
+| {TRUE}
+| LBrackets p=pure RBrackets {p}
+
 
 es:
 | EMPTY { Emp }
-| str = EVENT (*p=parm*) { Event (Present str) }
+| g=gaude str = EVENT p=parm  ops= maybe_assign_list { Event (Present (g, str, p, ops)) }
 | NEGATION str = EVENT {Event (Absent str)}
 | LPAR r = es RPAR { r }
 | a = es CHOICE b = es { ESOr(a, b) }

@@ -67,3 +67,26 @@ forward_verifier (program -> timed effect)
 
 trs (t1, t2 : timed_effect) : bool 
 t1 |- t2 
+
+
+
+
+
+Fischer's mutual exclusion algorithm. 
+d1<d2
+
+Update(0){x:=0}#d1. emp#d2. ([x=0]Critical(0) .Exit(0){x:=-1} \/ [x!=0]emp)
+||
+Update(1){x:=1}#d1. emp#d2. ([x=1]Critical(1) .Exit(1){x:=-1} \/ [x!=1]emp)
+
+--->
+
+Update(0){x:=0}#d1. Update(1){x:=1}#d1. emp#(d2-d1). emp#d2. [x!=0]emp
+
+otherwise if d1 > d2 
+
+Update(0){x:=0}#d1. [x=0]Critical(0). Update(1){x:=1}#d1.  emp#d2. [x=1]Critical(1)
+
+
+
+

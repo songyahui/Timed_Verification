@@ -54,28 +54,26 @@ let rec showTerms (t:terms):string =
 
   ;;
 
-let string_of_event ev : string = 
-  match ev with 
-  | Present str -> str 
-  | Absent str -> "!" ^ str
-  | Any -> "_"
-  ;;
+let string_of_value v : string = 
+  match v with 
+  | Unit  -> "unit"
+  | Integer num -> string_of_int num
+  | Bool b -> string_of_bool b 
+  | Float f -> string_of_float f
+  | Variable v -> v 
+  | String str -> str
+;;
 
-(*To pretty print event sequences*)
-let rec showES (es:es):string = 
-  match es with
-    Bot -> "_|_"
-  | Emp -> "emp"
-  | Event (ev) -> string_of_event ev  
-  | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
-  | ESOr (es1, es2) -> "("^(showES es1) ^ " + " ^ (showES es2)^")"
-  | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
-  | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
-  | Par (es1, es2) -> "("^(showES es1) ^ " || " ^ (showES es2)^")"
-  ;;
+let rec string_of_assigns li : string =
+  match li with 
+  | [] -> ""
+  | (str, v):: rest -> str ^ " := " ^ string_of_value v ^ ";" ^ string_of_assigns rest 
+;;
+
+
 
 (*To pretty print pure formulea*)
-let rec showPure (p:pure):string = 
+let rec showPure (p:pure):string =   
   match p with
     TRUE -> "true"
   | FALSE -> "false"
@@ -88,6 +86,40 @@ let rec showPure (p:pure):string =
   | PureAnd (p1, p2) -> "("^showPure p1 ^ "/\\" ^ showPure p2^")"
   | Neg p -> "(!" ^ "(" ^ showPure p^"))"
   ;; 
+
+
+(*To pretty print event sequences*)
+let rec showES (es:es):string = 
+  let string_of_event ev : string = 
+    match ev with 
+    | Present (pi, str, param, ops) -> 
+      let print_pi = (match pi with
+      | TRUE -> ""
+      | p -> "[" ^ showPure p  ^ "]"
+      ) in 
+      let print_param = (
+        match param with 
+        | None -> ""
+        | Some v -> "(" ^ string_of_value v ^ ")"
+      )in 
+      let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
+      print_pi ^ str ^ print_param ^ print_ops
+    | Absent str -> "!" ^ str
+    | Any -> "_"
+  in 
+  match es with
+    Bot -> "_|_"
+  | Emp -> "emp"
+  | Event (ev) -> string_of_event ev  
+  | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
+  | ESOr (es1, es2) -> "("^(showES es1) ^ " + " ^ (showES es2)^")"
+  | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
+  | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
+  | Par (es1, es2) -> "("^(showES es1) ^ " || " ^ (showES es2)^")"
+  ;;
+
+
+
 
 (*To pretty print effects*)
 let rec showEffect (e:effect) :string = 
@@ -111,15 +143,6 @@ let rec printParam (params: param):string =
   | [(t, v)] -> printType t ^ v
   | (t, v)::xs ->  printType t ^ v ^ "," ^ printParam xs ;;
 
-let string_of_value v : string = 
-  match v with 
-  | Unit  -> "unit"
-  | Integer num -> string_of_int num
-  | Bool b -> string_of_bool b 
-  | Float f -> string_of_float f
-  | Variable v -> v 
-  | String str -> str
-;;
 
 let rec print_real_Param (params: expression list):string = 
   let rec printarg v = (match v with
@@ -136,11 +159,6 @@ let rec print_real_Param (params: expression list):string =
     let pre = printarg v in 
     pre ^ "," ^ print_real_Param xs ;;
 
-let rec string_of_assigns li : string =
-  match li with 
-  | [] -> ""
-  | (str, v):: rest -> str ^ " := " ^ string_of_value v ^ ";" ^ string_of_assigns rest 
-;;
 
 
 let rec printExpr (expr: expression):string = 
@@ -173,9 +191,9 @@ let compareParm (p1:int option ) (p2:int option ) :bool =
   | _ -> false 
   ;;
 
-let compareEvent (ev1:(string* int option)) (ev2:(string* int option)):bool =
-  let (str1, p1) = ev1 in
-  let (str2, p2) = ev2 in
+let compareEvent (ev1:(pure * string * int option * assign list)) (ev2:(pure * string * int option * assign list)):bool =
+  let (_, str1, p1, _) = ev1 in
+  let (_, str2, p2, _) = ev2 in
   String.compare str1 str2 == 0 && compareParm p1 p2
   ;;
 
@@ -474,7 +492,7 @@ let rec normalTerms (t:terms):terms  =
 
 let compareEvent ev1 ev2 : bool=
   match (ev1, ev2) with 
-  | (Present str1, Present str2) -> if String.compare str1 str2 = 0 then true else false 
+  | (Present (_, str1, _, _), Present (_, str2, _, _)) -> if String.compare str1 str2 = 0 then true else false 
   | (Absent str1, Absent str2) -> if String.compare str1 str2 = 0 then true else false 
   | (Any, Any) -> true 
   | _ -> false 

@@ -136,7 +136,7 @@ let concatanateEffEff eff1 eff2 : effect =
 
 let rec verifier (caller:string) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
-  | EventRaise (ev, _, _) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present ev )))) current
+  | EventRaise (ev, p, ops) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present (TRUE, ev, p, ops) )))) current
   | Seq (e1, e2) -> 
     let eff1 = verifier caller e1 precondition current prog in 
     verifier caller e2 precondition eff1 prog

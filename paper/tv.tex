@@ -500,12 +500,12 @@ void process (int i)
 /* requires d1<d2,  emp 
    ensures  true, (Update(i)#d1.emp#d2.([x=i]Critical(i).Exit(i) \/ emp))^* */
 {
-  [x=-1] active (i, 2, 3); 
+  [x=-1] 
   deadline (event[Update(i)]{x := i}, d1);
   delay (d2);
   if (x=i) {
     event[Critical(i)]{ct := ct +1};
-    event[Exit(i)]{ct := ct -1; x := -1};
+    event[Exit(i)]{ct := ct-1; x := -1};
     process (i);
   } else {
     process (i);
@@ -514,12 +514,14 @@ void process (int i)
 void main () 
 /* requires true /\ emp 
    ensures  true, (!Critical \/ (Critical(i) /\ i=x))^* */
+// ensures  true, (ct <= 1)^*
 { process(0) || process(1) || process(2); }
 \end{lstlisting}  
   \vspace{0mm}
-  \caption{Dependent Values for Time Bounds).}\label{fig:overview_ficher}
+  \caption{Fischer's mutual exclusion algorithm.}\label{fig:overview_ficher}
      \vspace{0mm}
 \end{figure}
+
 
 %\subsection{HipHop.js and Dependent Effects}
 \subsection{\timedEffects}
