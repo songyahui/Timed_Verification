@@ -15,6 +15,7 @@
 \acmArticle{1}
 \acmYear{2018}
 \acmMonth{1}
+
 \acmDOI{} % \acmDOI{10.1145/nnnnnnn.nnnnnnn}
 \startPage{1}
 
@@ -113,7 +114,9 @@
 \newcommand{\bott}{\textcolor{black}{\ensuremath{\bot}}}
 \newcommand{\CONTAIN}{\sqsubseteq}
 \newcommand{\underscore}{\textcolor{vividauburn}{\code{\_}}}
-\newcommand{\m}{\mathit}  
+\newcommand{\m}{\mathit} 
+\newcommand{\lappend}{\mathrel{\texttt{++}}}
+
 \newcommand{\toolName}{Tvide}
 \def\defeq{\ensuremath{\,\triangleq}}
 \definecolor{regalia}{rgb}{0.32, 0.18, 0.5}
@@ -417,7 +420,7 @@ no less than 1 time unit.
 The specifications of  \codem{addSugar(n)} indicates that the 
 input  \code{n} is non-negative; the method 
 generates a finite trace where \anyevent{Sugar} takes a no less 
-than \code{d} milliseconds delay to finish. 
+than \code{d} time units delay to finish. 
 Although these examples are simple, they show the benefits of deploying 
 value-dependent 
 time bounds, which is beyond the capability of Timed Automata. Intuitively, if traditional Timed Automata define an 
@@ -569,7 +572,7 @@ void main ()
 
 %\subsection{HipHop.js and Dependent Effects}
 \subsection{\timedEffects}
-As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specifications (enclosed in \textcolor{darklavender}{\ttfamily{{/*@ ... @*/}}}) for each program, which leads to a compositional verification strategy, where static checking and timed temporal verification can be done locally. %The set of signals to be present in one logical time instance are represented within one \code{\_}.
+As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specifications (enclosed in \textcolor{darklavender}{\ttfamily{{/*@ ... @*/}}}) for each program, which leads to a compositional verification strategy, where static checking and timed temporal verification can be done locally. %The set of signals to be present in one logical event are represented within one \code{\_}.
 
 \begin{figure}[ht]
       \vspace{0mm}
@@ -609,9 +612,9 @@ The {\ttfamily{authenticate}} module checks the validity of the identity at each
 
 After emitting the signal \anyevent{Connecting}, it emits  \anyevent{Connected} if the connection succeeds before the  preemptive deadline; otherwise, no signal is emitted. 
 The precondition \code{d{>}3 : \{
-\}^\star \cdot\{\m{Login}\} } requires that the input variable \code{d} is greater than 3, and before entering into this module, the signal \anyevent{Login} should be emitted at the last time instance, indicating that a login request has been sent. 
-The postcondition contains two parts and connected using the disjunction mark \code{{\vee}}: when \code{3{<}t{<}d}, the effects contains two time instances, \code{\{\m{Connecting}\}} and \code{\{\m{Connected}\}}, while the first  time instance finishes at time \code{t}, %(assuming to reset the clock when executing the module), 
-which is no later than \code{\m{d}} milliseconds; otherwise, the effects contains one time instance \code{\{Connecting\}} which finishes at time \code{d}. \emph{(See a demo from \cite{CODE1})}
+\}^\star \cdot\{\m{Login}\} } requires that the input variable \code{d} is greater than 3, and before entering into this module, the signal \anyevent{Login} should be emitted at the last event, indicating that a login request has been sent. 
+The postcondition contains two parts and connected using the disjunction mark \code{{\vee}}: when \code{3{<}t{<}d}, the effects contains two time instances, \code{\{\m{Connecting}\}} and \code{\{\m{Connected}\}}, while the first  event finishes at time \code{t}, %(assuming to reset the clock when executing the module), 
+which is no later than \code{\m{d}} time units; otherwise, the effects contains one event \code{\{Connecting\}} which finishes at time \code{d}. \emph{(See a demo from \cite{CODE1})}
 
 
 
@@ -619,7 +622,7 @@ As for another example, shown in \figref{fig:overview_eg2}, the module {\ttfamil
 spawns two threads running in  parallel.
 The first thread firstly waits for the signal \anyevent{Ready}, then emits  \anyevent{Go}. 
 The second thread firstly emits  \anyevent{Prep}, then calls the function {\ttfamily{cook}} asynchronously. 
-The precondition of {\ttfamily{main}} requires no arithmetic constraints on its input values (expressed as \code{\m{true}}), neither any pre-traces  (expressed as \code{\m{emp}} or \code{\epsilon}, indicating an empty trace). The postcondition ensures a trace, where the second time instance contains at least one signal \code{\anyevent{Cook}} and finishes within 3 milliseconds after the completion of the first time instance. Then we do not care about the rest of the trace (\code{\_} is similar to a wildcard). 
+The precondition of {\ttfamily{main}} requires no arithmetic constraints on its input values (expressed as \code{\m{true}}), neither any pre-traces  (expressed as \code{\m{emp}} or \code{\epsilon}, indicating an empty trace). The postcondition ensures a trace, where the second event contains at least one signal \code{\anyevent{Cook}} and finishes within 3 time units after the completion of the first event. Then we do not care about the rest of the trace (\code{\_} is similar to a wildcard). 
 %We omit the implementation of \code{cook} here, while provide the specifications of it. 
 Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is presented in the following sub-section. \emph{(See a demo from \cite{CODE2})}
 
@@ -705,11 +708,11 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
 
 The effects states (1) and (4) are initial effects entering into the \code{fork/par} statement. The effects state (2) is obtained by [FV-Await], which concatenates a blocking signal 
 %(with a question mark) 
-%followed by a new empty time instance
+%followed by a new empty event
  to the current effects. 
-%The effects state (3) is obtained by [FV-Emit], which simply adds  %concatenates an empty time instance to the current effects. %to be the new current state. 
-The effects states (3) and (5) are obtained by [FV-Emit], which simply adds the emitted  signal to the current time instance. The intermediate effects state of (7) is obtained by [FV-Call]. 
-Before each function call, it invokes the TRS to check whether the current effects state satisfies the precondition of the callee module. If it is not satisfied, the verification fails, otherwise it concatenates the callee's postcondition to the current effects state. The final effects state of (7) is obtained by [FV-Async], which adds a new time instance \code{\{Ready\}} to the current effects state, indicating that the asynchronous program has been resolved. 
+%The effects state (3) is obtained by [FV-Emit], which simply adds  %concatenates an empty event to the current effects. %to be the new current state. 
+The effects states (3) and (5) are obtained by [FV-Emit], which simply adds the emitted  signal to the current event. The intermediate effects state of (7) is obtained by [FV-Call]. 
+Before each function call, it invokes the TRS to check whether the current effects state satisfies the precondition of the callee module. If it is not satisfied, the verification fails, otherwise it concatenates the callee's postcondition to the current effects state. The final effects state of (7) is obtained by [FV-Async], which adds a new event \code{\{Ready\}} to the current effects state, indicating that the asynchronous program has been resolved. 
 In step (8), we parallel compose the effects from both of the branches, and normalize the final effects. 
 After these states transformations, step (9) checks the satisfiability of the inferred effects against the declared postcondition by invoking the TRS.
 
@@ -730,7 +733,7 @@ Given \code{\Sigma} is the whole set of the alphabet,
 \begin{definition}[REs Inequality]\label{RegularInclusion}  For REs \code{r} and \code{s}, \code{r \preceq s \Leftrightarrow \forall (\anyevent{A} \in \Sigma).\ D_{\anyevent{A}}(r) \preceq D_{\anyevent{A}}(s)}.
 \end{definition}
 
-Similarly, we defined the \defref{Inclusion} for unfolding the inclusions  between \timedEffects, where \code{D_{I\# t}(\effect)} is the partial derivative of \code{\effect} w.r.t the time instance \code{I} and time bound \code{t}. 
+Similarly, we defined the \defref{Inclusion} for unfolding the inclusions  between \timedEffects, where \code{D_{I\# t}(\effect)} is the partial derivative of \code{\effect} w.r.t the event \code{I} and time bound \code{t}. 
 
 \begin{definition}[\timedEffects Inclusion]\label{Inclusion}  %Let \code{\varrho} be the signal set. 
 For \timedEffects \code{\effect_1 } and \code{\effect_2}, 
@@ -756,14 +759,14 @@ demonstrate how the TRS handles arithmetic constraints and dependent values.
 As shown in \tabref{tab:rewriting_tree_send}, it automatically proves that the inferred effects of {\ttfamily{main}}
  satisfy the declared postcondition. 
 %property \code{\effect^\prime  {=} 0{\leq} t {<}3 : \_\cdot(\{Cook\}\# t)\cdot\_^\star}, 
-%where \code{\effect^\prime} simply indicates that the signal \anyevent{Cook} needs to happen at the second time instance, and takes no more than \code{3} milliseconds after the first time instance has completed; and \code{\_^\star} means we do not care the rest of the traces. 
+%where \code{\effect^\prime} simply indicates that the signal \anyevent{Cook} needs to happen at the second event, and takes no more than \code{3} time units after the first event has completed; and \code{\_^\star} means we do not care the rest of the traces. 
 We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{mGray}{[gray]}.
 
 {
 \begin{table*}[ht]
 \centering
       \vspace{0mm}
-\caption{\label{tab:rewriting_tree_send} The inclusion proving example. (For simplicity, we use 3 seconds to replace the 3 milliseconds.)}
+\caption{\label{tab:rewriting_tree_send} The inclusion proving example. }
       
 \vspace{-1mm}
 \begin{adjustbox}{width=1\textwidth}
@@ -819,7 +822,7 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 
 
 
-Note that time instance \code{\{Prep\}} entails \code{\_} because the former contains more constraints. We formally define the subsumption for time instances in \defref{Subsumption}.
+Note that event \code{\{Prep\}} entails \code{\_} because the former contains more constraints. We formally define the subsumption for time instances in \defref{Subsumption}.
 Intuitively, we use \code{[DISPROVE]} wherever the left-hand side (LHS) is \emph{nullable}\footnote{If the event sequence is possibly empty, i.e. contains \code{\empt}, we call it nullable, formally defined in \defref{Nullable}.} while the right-hand side (RHS) is not. 
 \code{[DISPROVE]} is the heuristic refutation step to disprove the inclusion early, improving the verification efficiency.
 
@@ -829,7 +832,7 @@ In step \code{\textcircled{2}}, we design a new rule \code{[SPLIT]} to accommoda
 extends the previous constraint \code{t_L {<} 3} with constraints  \code{t_L^1 {+} t_L^2 {=} t_L}. Then \code{t_L^1} and \code{t_L^2} mark the real-time constraints for time instances  \code{\{Prep\}} and \code{\{Cook\}} respectively. 
 Then in step \code{\textcircled{3}}, we eliminate \code{\{Prep\}} from the LHS and \code{\_} from the RHS, as the instances entailment  \code{\{Prep\} \subseteq \_} holds.  
 In step \code{\textcircled{4}}, in order to conduct a further unfolding, we unify time variables \code{t_L^2} and \code{t_R} by adding the constraint \code{t_L^2 {=} t_R}. 
-In step \code{\textcircled{5}}, from the RHS, since \code{\_^\star {=} emp \vee \_ \cdot \_^\star}, eliminating one time instance \code{\{Ready\}} from it will lead to \code{\bot \vee \_^\star}, which can be normalised into \code{\_^\star} in step \code{\textcircled{6}}.
+In step \code{\textcircled{5}}, from the RHS, since \code{\_^\star {=} emp \vee \_ \cdot \_^\star}, eliminating one event \code{\{Ready\}} from it will lead to \code{\bot \vee \_^\star}, which can be normalised into \code{\_^\star} in step \code{\textcircled{6}}.
 At the end of the rewriting, we manage to prove that \code{(t_L {<}3 {\wedge} t_L^1 {+} t_L^2 {=}t_L {\wedge}t_L^2 {=} t_R)  \Rightarrow  t_R {<} 3} \footnote{The proof obligations generated by the verifier are discharged using constraint solver Z3 \cite{de2008z3}.}; therefore, the proof succeed.
 
 %(\code{\{Go\} \Rightarrow \_})
@@ -1007,7 +1010,7 @@ $t$, denoting a non-negative real integer;
 $\tau$, denoting an invisible event;
 $\anyevent{A} \in \Sigma $ is an observable 
 event; and $\sigma \in \Sigma\cup \{\tau\}$. 
-For instance, $c \xrightarrow[]{\text{t}} c^\prime$ denotes a transition of \codem{t} time units elapsing. 
+For event, $c \xrightarrow[]{\text{t}} c^\prime$ denotes a transition of \codem{t} time units elapsing. 
 In the following, we present the firing rules which are associated with 
 the timed process constructs. 
 
@@ -1090,13 +1093,13 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
   $
   \begin{array}{rrcl}
  
-    \m{(Timed\ Effects)} &  \effect &\code{\  ::=\ }&
+    \m{(Timed\ Effects)} &  \effect &\code{  ::= }&
     \code{
           (\pure{\pi}, \es)
    \ | \ \effect_1 \vee \effect_2
 }
     \\
- \m{(Timed \ Sequence)}  & \ \code{\es}   &\code{\ ::=\ }&
+ \m{(Timed \ Sequence)}  & \ \code{\es}   &\code{ ::=}&
    
    \code{ \bott
    \  | \ \empt 
@@ -1113,7 +1116,7 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 }
 
 \\
-\m{(Events)} & ev  & \ ::= \ & 
+\m{(Events)} & ev  &  ::=  & 
 \code{
   \anyevent{A}(v, \pi, \alpha^*)
     \ | \ \anynotevent{A} 
@@ -1123,24 +1126,23 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 
 \\
     
-    \m{(Pure)}  & \code{\code{\pure{\pi}}}&\code{\  ::=\ }&
+    \m{(Pure)}  & \code{\code{\pure{\pi}}}&\code{  ::= }&
 \pure{ \pure{True}}
    \ | \  \pure{False}
    \ | \ \pure{A(}{t_1, t_2}\pure{)}
-  \   | \  \pure{\pure{\pi_1}} \wedge \code{\pure{\pi}}_2
-   \  | \ \pure{\pure{\pi_1}} \vee \code{\pure{\pi}}_2
-   \  | \ \neg\code{\pure{\pi}}
+  \  |   \pure{\pure{\pi_1}} {\wedge} \code{\pure{\pi}}_2
+   \ |  \pure{\pure{\pi_1}} {\vee} \code{\pure{\pi}}_2
+   \ |  \neg\code{\pure{\pi}}
+  \  |   \pure{\pure{\pi_1}} {\Rightarrow} \pure{\pure{\pi_2}}
+   \ |  \forall x. \code{\pure{\pi}}
+   \ |  \exists x. \code{\pure{\pi}}
 
     
     \\
     
-    & &&\code{
-       | \  \pure{\pure{\pi_1}} \Rightarrow \pure{\pure{\pi_2}}
-   \  | \ \forall x. \code{\pure{\pi}}
-   \  | \ \exists x. \code{\pure{\pi}}
-   }\\
+
     
-    \m{(Real\text{-}Time\ Term)}  & \code{t} &\code{\  ::=\ }&
+    \m{(Real\text{-}Time\ Term)}  & \code{t} &\code{  ::= }&
     \code{ c
     \ | \  x
     \ | \  t_1{+}t_2
@@ -1152,13 +1154,13 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
     \multicolumn{4}{c}{
      % \code{(Events)  \anyevent{A} ::\in \Sigma}   
    %\qquad
-    \code{c ::\in \mathbb{Z}^{+}} 
-     \qquad 
+    \code{c ::\in \mathbb{Z}} 
+     \qquad \qquad 
            \code{x  ::\in \textbf{var} } 
-           \qquad
+           \qquad\qquad 
 
      \m{(Real\ Time\ Bound)}\ \code{\#}
-     \qquad
+     \qquad \qquad 
         \m{(Kleene\ Star) \ \star}    
         
 }\\     
@@ -1179,22 +1181,27 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 
 
 
-The  syntax of the \timedEffects is formally defined in \figref{fig:Syntax_of_Types_and_Effects} Effects is  a conditioned time  instance sequence \code{\pure{\pi} : \es} or a disjunction of two effects $\effect_1 \vee \effect_2$.
+The  syntax of the \timedEffects is formally defined in 
+\figref{fig:Syntax_of_Types_and_Effects} Effects is 
+ a conditioned time  event sequence \code{\pure{\pi},  \es} or a disjunction of two effects $\effect_1 \vee \effect_2$.
 Timed sequences comprise \textit{nil} ($\bott$);
  an empty trace $\empt$;
-a single time instance represented by \code{I};
-a waiting for a single signal \code{\textbf{S}?};
+a single event \code{ev};
   %where \anyevent{a} is an element from a finite set of events, donated by \code{\Sigma};
 %parametrized event \code{ \anyevent{a}.\iota} where \code{\iota} is a list pattern expressing a possibly infinite list (for example, \code{\anyevent{a}.[1,2,3,4]},  \code{\anyevent{a}.[1 .. 4]} and \code{\anyevent{a}.[1, 2.. 4]} all refer to the finite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot \anyevent{a}.4},
 %while \code{\anyevent{a}.[1 ..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot}..., and \code{\anyevent{a}.[1, 3..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.3 \cdot \anyevent{a}.5\cdot}...);
  sequences concatenation \code{\es_1\cdot \es_2};
 disjunction  \code{\es_1\vee \es_2};
-synchronous parallelism   \code{\es_1 || \es_2}.
-%negation \code{\neg \es};
- %
-
- We introduce a new operator \code{\#}, and the effects \code{\es \# t } represents that a trace takes real-time \code{t} to complete, where \code{t} is a \emph{term}. 
+parallel composition of two processes is written as \code{\es_1 || \es_2}, where \code{es_1} and \code{es_2} 
+may communicate via multi-party event synchronization or shared variables. 
+We introduce a new operator \code{\#}, and the effects \code{\es \# t } represents that a trace takes real-time \code{t} to complete, where \code{t} is a \emph{term}. 
 A time sequence can be constructed by \code{\star}, representing zero or more times repetition of a trace.
+
+\code{\anyevent{A}(v, \pi, \alpha^*)} stands for an event labeled 
+as \anyevent{A} with parameter \code{v}, guard \code{\pi} and assignment operations \code{\alpha^*}. 
+To make the specification more expressive, events can also be 
+\code{\anynotevent{A}}, representing  events which are not 
+labeled using \anyevent{A}; and a wildcard \code{\_}, which matches to all the events.
 
 
 
@@ -1213,8 +1220,89 @@ qual to  0.
 \label{subsec:Specification_Semantics}
 
 
+To define the model, 
+\code{var} is the set of program variables, 
+\code{val} is the set of primitive values, 
+\code{\es} is the set of event sequences (or event multi-trees, per se), indicating the sequencing constraints on temporal behaviour.
+Let \code{d, s, \varphi \models \effect} denote the model relation, i.e., 
+the effects \code{\effect} take exactly \code{d} time units to complete; 
+the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
+temporal effects \code{\effect}, with \code{d}, \code{s}, \code{\varphi} 
+from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}}, 
+\code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{[ev]} \ .
+
+As shown in \figref{fig:Sementic}, we define the semantics of our effects. 
+We use $\lappend$ to represent the append operation of two event sequences. 
+We use $[]$ to represent the empty sequence, \code{[ev]} to represent 
+the sequence only contains a singleton event. 
+
+\begin{figure}[]
+  \vspace{-1mm}
+  \renewcommand{\arraystretch}{1.1}
+\small\begin{align*}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%     Disjunction        %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&\code{d, s, \varphi \models \effect_1 \vee \effect_2}  
+&\m{iff}\quad & \code{d, s, \varphi \models \effect_1 } \ 
+or\ \code{d, s, \varphi \models \effect_2 }  \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%         Empty          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&\code{d, s,  \varphi \models \pure{\pi}  , \empt}  
+&\m{iff}\quad & \code{d{=}0}\ and  \ \code{\llbracket \pure{\pi} \rrbracket_s {=}  
+\pure{True} } \ and\  \code{ \varphi {=} [] }\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%         Event          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&\code{d, s, \varphi \models \pure{\pi}  , ev }  
+&\m{iff}\quad & \code{d{=}0}\ and  \ \code{\llbracket \pure{\pi} \rrbracket_s {=}  
+\pure{True} }\ and \ \varphi {=} [ev]  \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%   s  Concatenate        %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&\code{d, s, \varphi \models \pure{\pi}, (\es_1\cdot\es_2)}  
+&\m{iff}\quad & \exists \code{\varphi_1,\varphi_2}. \  
+\code{ \varphi_1 {\lappend} \varphi_2 {=} \varphi}\ and\ 
+\exists \code{d_1,d_2}. \  
+\code{ d_1 {+} d_2 {=} d} \ 
+  and \ \code{d_1, s, \varphi_1 {\models} \pure{\pi}  , \es_1 }
+\ and \ \code{d_2, s, \varphi_2 {\models} \pure{\pi}  , \es_2 }\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    disjunction         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&\code{d, s, \varphi \models \pure{\pi}  , (\es_1\vee\es_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , \es_1 } 
+\ or\ \code{d, s, \varphi \models \pure{\pi}  , \es_2 } \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    t times         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&
+\code{d, s, \varphi \models \pure{\pi}  ,\es\# t}  &\m{iff}\quad &
+ \code{\llbracket \pure{\pi}  , t {=} 0 \rrbracket_{s} {=}  
+ \pure{True} }, \ \code{d, s, \varphi \models \pure{\pi}  , \empt}\ or  \\
+& & &  \code{\llbracket \pure{\pi}  , t {>} 0 \rrbracket_{s} {=}  
+\pure{True} }, 
+\  \exists \code{\varphi_1,\varphi_2}. \  \code{ \varphi_1 \lappend  \varphi_2 {=} \varphi}
+\  and \ \code{d, s, \varphi_1 \models \pure{\pi}  , \es } \\
+& & & \quad and \ \code{d, s, \varphi_2  \models (\pure{\pi}  , t {>} 0) \wedge  \es^{t\text{-}1} } \\
+&\code{d, s, \varphi \models \pure{\pi}, \es^\star}  &\m{iff}\quad & there\ exist\ \code{\varphi_1,\varphi_2}
+\   and \  \code{ \varphi_1 {+}{+} \varphi_2 {=} \varphi} 
+ \  and \ \code{d, s, \varphi_1 \models \pure{\pi} , \es } 
+ \   and \ \code{d, s, \varphi_2 \models \pure{\pi} , \es^\star }\\
+& \code{d, s, \varphi \models false}  &\m{iff}\quad &
+ \code{\llbracket \pure{\pi}  \rrbracket_{s} {=} \pure{False} } \ or \ \code{\varphi {=} \bott}
+\end{align*}
+  \vspace{-2mm}
+\caption{Semantics of \timedEffects .}
+\label{fig:Sementic}
+\vspace{-2mm}
+\end{figure}
 
 
+
+
+\begin{comment}
 
 \begin{figure}[ht]
     \vspace{-1mm}
@@ -1247,7 +1335,7 @@ qual to  0.
 &\code{d, \varphi \models  \pi : (\es_1{\cdot}\es_2)}  
 &\m{iff}\quad 
 & {\tt{SAT}(\pi)}  \ and \ \exists \code{\varphi_1, \varphi_2, d_1, d_2}\ and\ \code{
-\varphi {=} \varphi_1 {+}{+} \varphi_2, d {=} d_1 {+} d_2 \ and 
+\varphi {=} \varphi_1 \lappend \varphi_2, d {=} d_1 {+} d_2 \ and 
 }\\
 & & &
 \code{d_1, \varphi_1 \models  \pi : \es_1}  \ and \ 
@@ -1292,23 +1380,27 @@ d, \varphi \models \pi :  (\es \cdot \esn{\es}{\star} )
 \end{figure}
 
 
+
 To define the semantic model, 
-we use \code{\varphi} (\emph{a trace of sets of signals})  to represent the computation execution (or time-instance multi-trees, per se), indicating the sequential constraint of the temporal behaviour; and we use \code{d} to record the computation duration of given effects. 
+we use \code{\varphi} (\emph{a trace of events}) to represent 
+the computation execution (or events multi-trees, per se), indicating 
+the sequential constraint of the temporal behaviour; and we use \code{d} 
+to record the computation duration of given effects. 
 Let \code{d, \varphi \models \effect} denote the model relation, i.e., 
-the effects \code{\effect} take exactly \code{d} milliseconds to complete; and 
+the effects \code{\effect} take exactly \code{d} time units to complete; and 
 the linear temporal sequence \code{\varphi} satisfies the sequential time  instances defined from \code{\effect}, with \code{d}, \code{\varphi} from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{Z^+}} and \code{\varphi}   {\defeq}\ \code{list\ of\ I} (a sequence of time instances).
 
 
 As shown in \figref{fig:Sementic}, we define the semantics of \timedEffects. 
 We use 
 $[]$ to represent the empty sequence;
-${+}{+}$ to represent the append operation of two traces;
-\code{[I]} to represent the sequence only contains one time instance.
+$\lappend$ to represent the append operation of two traces;
+\code{[I]} to represent the sequence only contains one event.
 \code{{\tt{SAT}(\pi)} } indicates the pure \code{\pi} is satisfiable, which is discharged by the constraint solver Z3 \cite{de2008z3}.  
 
-%The signals shown in one time instance  represent the \emph{minimal} set of signals which are required/guaranteed to be there. An empty set \code{\_} represents any set of signals
+%The signals shown in one event  represent the \emph{minimal} set of signals which are required/guaranteed to be there. An empty set \code{\_} represents any set of signals
 
-
+\end{comment}
 
 
 
@@ -1347,7 +1439,7 @@ T {\defeq} t, \qquad
 \Delta {\defeq} \m{Present} \ | \ \m{Absent}  \ | \  \m{Undef}
 \end{flalign*}
 
-Let \code{\Pi} represents the pure constraints for all the terms; \code{H} represents the trace of \emph{history}; \code{C} represents the \emph{current} time instance or a waiting signal; 
+Let \code{\Pi} represents the pure constraints for all the terms; \code{H} represents the trace of \emph{history}; \code{C} represents the \emph{current} event or a waiting signal; 
 \code{T} is a term binding \code{C}; 
 \env\ be the environment containing all the local and output signals; 
 \code{\Delta} marks the signal status. 
@@ -1409,7 +1501,7 @@ An inclusion with a disjunctive antecedent succeeds if both disjunctions entail 
 
 Now, the inclusions are disjunction-free formulas. 
 Next we provide the definitions and implementations of auxiliary functions \emph{Nullable}(\code{\delta}), \emph{First}(\code{fst}) and \emph{Derivative}(\code{D}) respectively.
-Intuitively, the Nullable function \code{\delta(\es)} returns a boolean value indicating whether \code{\es} contains the empty trace; the First function \code{fst_{\pure{\pi}}( \es)} computes a set of possible initial time instances of \code{\pure{\pi} : \es}; and the Derivative function \code{D_{I\# t}^{\pure{\pi}}(\es)} computes a next-state effects after eliminating one time instance \code{I} w.r.t. the execution time \code{t} from the current effects \code{\pure{\pi} : \es}. 
+Intuitively, the Nullable function \code{\delta(\es)} returns a boolean value indicating whether \code{\es} contains the empty trace; the First function \code{fst_{\pure{\pi}}( \es)} computes a set of possible initial time instances of \code{\pure{\pi} : \es}; and the Derivative function \code{D_{I\# t}^{\pure{\pi}}(\es)} computes a next-state effects after eliminating one event \code{I} w.r.t. the execution time \code{t} from the current effects \code{\pure{\pi} : \es}. 
 
 
 
@@ -1545,7 +1637,7 @@ Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we d
 }]\label{Derivative}
 The partial derivative \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\es)} 
 of effects \code{\pi : \es} 
-w.r.t. a time instance \code{(I, \pi^\prime, t^\prime)} computes the  effects for the left quotient \code{(I, \pi^\prime, t^\prime)^{\text{-}1}\llbracket \pi : \es \rrbracket}. \footnote{For understanding of the derivative rule for \code{es\# t} (cf. \tabref{tab:rewriting_tree_send}  step \textcircled{3}), it is essentially splitting \code{\es} with a head and a tail, bound with fresh terms \code{t_1} and \code{t_2} respectively. Meanwhile it unifies \code{t_1} with \code{t^\prime} and  adds the constraint \code{t_1 {+} t_2 {=} t}.}
+w.r.t. a event \code{(I, \pi^\prime, t^\prime)} computes the  effects for the left quotient \code{(I, \pi^\prime, t^\prime)^{\text{-}1}\llbracket \pi : \es \rrbracket}. \footnote{For understanding of the derivative rule for \code{es\# t} (cf. \tabref{tab:rewriting_tree_send}  step \textcircled{3}), it is essentially splitting \code{\es} with a head and a tail, bound with fresh terms \code{t_1} and \code{t_2} respectively. Meanwhile it unifies \code{t_1} with \code{t^\prime} and  adds the constraint \code{t_1 {+} t_2 {=} t}.}
 %\footnote{As the reader may notice, our First and Derivative function does not handle the timed sequences constructed by \code{||}, as the synchronous parallel is reduced during the normalization phase.}
 \begin{gather*}
 \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\bott) {=}}  
@@ -1902,7 +1994,7 @@ A term rewriting system is efficient because \emph{it only constructs automata a
 %
 %\begin{table}[ht]
 %        \vspace{-2mm}
-%\caption{\label{tab:Experimental} The experiments are based on 16 real world C programs, we record the lines of code (LOC), the number of testing temporal properties ($\#$Prop.), and the (dis-) proving times (in milliseconds) using PAT and our T.r.s respectively. }
+%\caption{\label{tab:Experimental} The experiments are based on 16 real world C programs, we record the lines of code (LOC), the number of testing temporal properties ($\#$Prop.), and the (dis-) proving times (in time units) using PAT and our T.r.s respectively. }
 %\centering
 %\footnotesize
 %\renewcommand{\arraystretch}{1.1}
@@ -1977,7 +2069,7 @@ As shown in \tabref{tab:reoccur}, the LHS formula is a disjunction of two effect
 %Using the disjunction rule \code{\effect_1 \vee \effect_2 \CONTAIN \effect \iff
 %\effect_1 \CONTAIN \effect \ and \  \effect_2 \CONTAIN \effect}, we split the proposition
 %in . 
-In step \code{\textcircled{2}} of the first sub-tree, in order to eliminate the first instance \code{\{B\}}, \code{\{A\}^\star \# t_R} has to be reduced to be \code{\epsilon}, therefore the time constraints have nothing to do in this branch. 
+In step \code{\textcircled{2}} of the first sub-tree, in order to eliminate the first event \code{\{B\}}, \code{\{A\}^\star \# t_R} has to be reduced to be \code{\epsilon}, therefore the time constraints have nothing to do in this branch. 
 % is 
 %eliminated by \code{\epsilon}, 
 Then in steps \code{\code{\textcircled{4}}}, we
@@ -2169,7 +2261,7 @@ As the examples show, our proposed effects logic and the abstract semantics for 
 
 
 %Formally, given a KA is \code{(A,+,\cdot, \star,  0, 1)}, a SKA over a finite set \code{A_B} is \code{(A,+, \cdot, \times, \star,  0, 1,  A_B)}, \code{A_B {\subseteq} A}. 
-%Our \code{\bot} corresponds to the \code{0}; our \code{\empt} corresponds to the \code{1}; our \emph{time instance} containing simultaneous signals can be expressed via \code{\times}; 
+%Our \code{\bot} corresponds to the \code{0}; our \code{\empt} corresponds to the \code{1}; our \emph{event} containing simultaneous signals can be expressed via \code{\times}; 
 
 Compositional specification for real-time systems based on timed process algebras has been extensively studied. Examples include the CCS\code{\text{+}}Time \cite{yi1991ccs} and Timed CSP \cite{dong2008timed}.  
 The differences are: 
@@ -2379,7 +2471,7 @@ For each inference rules, if inclusions in their premises are valid, and their s
 \input{rules/rule4}
 
 
-- To prove soundness of the rule \codeme{[UNFOLD]}, we consider an arbitrary model, \codeme{d_1,  \varphi_1} and \codeme{d_2,  \varphi_2}  such that:  \codeme{d_1,  \varphi_1 \models {\pi_1 : \es_1}} and \codeme{d_2,  \varphi_2 \models  {\pi_2 : \es_2}}. For an arbitrary time instance \codeme{(I, \pi, t)}, let \codeme{d_1^\prime, {\varphi_1}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket  \pi_1: \es_1 \rrbracket}; and 
+- To prove soundness of the rule \codeme{[UNFOLD]}, we consider an arbitrary model, \codeme{d_1,  \varphi_1} and \codeme{d_2,  \varphi_2}  such that:  \codeme{d_1,  \varphi_1 \models {\pi_1 : \es_1}} and \codeme{d_2,  \varphi_2 \models  {\pi_2 : \es_2}}. For an arbitrary event \codeme{(I, \pi, t)}, let \codeme{d_1^\prime, {\varphi_1}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket  \pi_1: \es_1 \rrbracket}; and 
 \codeme{d_2^\prime, {\varphi_2}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket \pi_2 : \es_2 \rrbracket}. 
 
 Case 1), \codeme{\codeme{(I, \pi, t)} \notin F}, \codeme{d_1^\prime, {\varphi_1}^\prime \models \bott}, thus automatically \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)};
