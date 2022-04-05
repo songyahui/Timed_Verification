@@ -365,9 +365,9 @@ will be triggered no later than one time unit"}\footnote{Without loss of general
 we use integer values to represent time units in this 
 paper, while it can bes extended to real numbers and other 
 time measurement units.}, is expressed in \timedEffects\ as: 
-\begin{align*}
-&\code{\effect \defeq \  0 {\leq} t {<}1, ({\_^\star} \cdot \anyevent{Done} ) \# t}.
-\end{align*}  
+\code{\effect \defeq \  0 {\leq} t {<}1, ({\_^\star} \cdot \anyevent{Done} ) \# t}.
+%\begin{align*}
+%&\end{align*}  
 %The timed effects incorporates different kinds of existing temporal logics, such as linear-time temporal logic (LTL)
 %and .
 %which replaces temporal operators by time-constrained versions from 
@@ -384,11 +384,11 @@ using keywords \code{\emph{require}} and \code{\emph{ensure}} respectively.
 
 \newcommand{\codem}[1]{{\code{\emph{#1}}}}
 
-\begin{wrapfigure}{L}{0.4\columnwidth}
+\begin{wrapfigure}{L}{0.39\columnwidth}
   \vspace{-2mm}
 \begin{lstlisting}
 void addSugar (int n) 
-/*require n>=0 , _^*
+/*require n>=0, _^*
   ensure  t>=n, Sugar#t */
 { if (n == 0) { 
     event ["Sugar"];} 
@@ -407,8 +407,11 @@ The function
 the portion of the sugar we need to add. When \codem{n} decreases to \codem{0}, 
 it simply raises an event \anyevent{Sugar} to mark the end of the process. 
 Otherwise, it adds one portion of the sugar then recursively calls \code{\emph{addSugar}} with parameter \codem{n-1}. 
-Statement \codem{timeout(e, d)} sets a timer which executes code \codem{e} once the timer expires at time \codem{d}. 
-Therefore, the time spent on adding one portion of the sugar is no less than 1 time unit. 
+The use of statement \codem{timeout(e, d)} is standard, 
+which sets a timer which executes code \codem{e} once the timer 
+expires at time \codem{d}. 
+Therefore, the time spent on adding one portion of the sugar is 
+no less than 1 time unit. 
 
 
 The specifications of  \codem{addSugar(n)} indicates that the 
@@ -856,10 +859,10 @@ set of events \code{\Sigma}.
 %Without loss of generality, any event can be further parametrized with 
 %constant values, e.g. \code{\anyevent{a}.0} and  \code{\anyevent{a}}.1 are distinct two events. 
 %leading to infinite alphabet.
-We assume that programs we use are well-typed conforming to basic types \code{\tau} (we take () as the \code{void} type).
+%We assume that programs we use are well-typed conforming to basic types \code{\tau} (we take () as the \code{void} type).
 %Each events raising expression \code{\textbf{event}} is parametrized with an event, to trigger such a single event. 
 A program \code{\mathcal{P}} comprises a list of 
-global values initializations \code{(x:=v)^*} and 
+global values initializations \code{\alpha^*} and 
 a list of 
 method declarations \code{{meth^*}}. 
 Here, we use the \code{*} superscript to denote a finite list (possibly empty) of items, for example, \code{{x^*}} refers to a list of variables, \code{x_1, ...,\ x_n}. 
@@ -880,17 +883,25 @@ a guarded process is written as \code{[b]e} where if b is true,
 then it behaves as \code{e}, else it idles until \code{b} becomes true; 
 %one-level field access \code{v.f} (rather than \code{v.f1.f2...} for the sake of simplicity), 
 %data structure allocation \code{\textbf{new}\ d({v^*})},  
-%local variable declaration \code{\tau\ x;\ e}, 
+%local variable declaration \code{\alpha; e}, 
 method calls \code{mn({x^*})}; 
-%variable assignments \code{x{:=}e}; 
+variable assignments \code{\alpha}; 
 %field update \code{v.f:=e}, 
 expression sequences \code{e_1;e_2};
 parallel composition \code{e_1 || e_2}, where \code{e_1} and \code{e_2} 
-may communicate via multi-party event synchronization or shared variables; 
-conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}. 
-The expression \code{ \textbf{event} [\anyevent{A}(v)]\{(x:=v)^*\} } 
-raises an event \anyevent{A} parametrized with \code{v}, and takes a set of 
-assignment actions \code{(x:=v)^*}. 
+may communicate via multi-party event synchronization or shared variables. 
+%conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}. 
+The expression \code{ \textbf{event} [\anyevent{A}(v)] } 
+raises an event \anyevent{A} parametrized with \code{v}. 
+%and takes a set of 
+%assignment actions \code{(x:=v)^*}. 
+Furthermore, a number of timed process constructs can be used to capture common 
+real-time system behavior patterns. Without loss of generality, we 
+assume d is a non-negative integer constant.  $\textbf{delay} [d]$ idles for exactly $d$ 
+time units. In process $e_1\ \textbf{timeout} [d]\ e_2$, the first observable event of 
+$e_1$ shall occur before d time units elapse (since the process starts). 
+Otherwise, $e_2$ takes over control after exactly $d$ time units elapse. 
+Process $\textbf{deadline} [d]\ e$ constrains $e$ to terminate before $d$ time units. 
 
 
 {
@@ -926,12 +937,13 @@ assignment actions \code{(x:=v)^*}.
   \\
   \m{(Expressions)} &  \code{e}&\code{  ::= }&
     \code{ v \ | \ 
+    \alpha  \ | \ 
     [b]\ e \ |\ mn({v^*}) \ }
   \code{| 
  % v.f:=e \ | 
  \ e_1;e_2\ | \ e_1 || e_2 \ 
  % |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
- |\ \textbf{event} [\anyevent{A}(v, \alpha^*)] 
+ |\ \textbf{event} [\anyevent{A}(v)] 
  }  \\
 
  &   & & \code{
@@ -959,21 +971,16 @@ assignment actions \code{(x:=v)^*}.
     \hline
   \end{array}  
   $
- \caption{A Core First-Order Timed Imperative Language, \timedL.} 
+ \caption{A core first-order imperative language with timed constructs, \timedL.} 
  \label{fig:code_language}
   
 \end{figure}
 }
 
 
-Furthermore, a number of timed process constructs can be used to capture common 
-real-time system behavior patterns. Without loss of generality, we 
-assume d is a non-negative integer constant.  $\textbf{delay} [d]$ idles for exactly $d$ 
-time units. In process $e_1\ \textbf{timeout} [d]\ e_2$, the first observable event of 
-$e_1$ shall occur before d time units elapse (since the process starts). 
-Otherwise, $e_2$ takes over control after exactly $d$ time units elapse. 
-Process $\textbf{deadline} [d]\ e$ constrains $e$ to terminate before $d$ time units. 
-In this setting, clock variables are 
+
+We remark additional process constructs (e.g. if-then-else, while, etc.) 
+can be defined using the above. In this setting, clock variables are 
 made implicit and hence they cannot be compared with each other 
 directly, which potentially allows efficient clock manipulation and 
 hence system verification.
@@ -992,58 +999,79 @@ system state during system execution.
 A system configuration is a pair $c = (V , e)$ where $V$ is a variable valuation function and $e$ is an expression.
 \end{definition}
 
-A transition of the system is of the form $c \xrightarrow[]{\text{x}} c^\prime$ where $c$ and $c^\prime$ are 
+A transition of the system is of the form $c \xrightarrow[]{l} c^\prime$ where $c$ and $c^\prime$ are 
 the system configurations before and after the transition respectively. 
-We adopt the following naming convention for transition labels: 
-$t$ denotes a non-negative real number; $\tau$ denotes an invisible event;
-For instance, $c \xrightarrow[]{\text{t}} c^\prime$ denotes a transition of $t$ time units elapsing. 
+Transition labels \code{l} consist: 
+%We adopt the following naming convention for transition labels: 
+$t$, denoting a non-negative real integer; 
+$\tau$, denoting an invisible event;
+$\anyevent{A} \in \Sigma $ is an observable 
+event; and $\sigma \in \Sigma\cup \{\tau\}$. 
+For instance, $c \xrightarrow[]{\text{t}} c^\prime$ denotes a transition of \codem{t} time units elapsing. 
 In the following, we present the firing rules which are associated with 
 the timed process constructs. 
+
+
+
 \begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   Wait                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
   t {\leq} d 
-}{(V, \textbf{delay}\ [d]) \xrightarrow[]{\text{t}} (V, \textbf{delay}\ [d \text{-}t])}\ [de1]} 
+}{(V, \textbf{delay}[d]) \xrightarrow[]{\text{t}} (V, \textbf{delay} [d \text{-}t])}\ [de_1]} 
 \qquad \qquad 
 \code{\frac{
-}{(V, \textbf{delay}\ [0]) \xrightarrow[]{\tau} (V, ())}\ [de2]} 
+}{(V, \textbf{delay} [0]) \xrightarrow[]{\tau} (V, ())}\ [de_2]} 
 \end{flalign*}
 
+The above captures behaviors of process \code{\textbf{delay}[d]}. 
+Rule \code{de_1} states that the process may idle for 
+any amount of time as long as it is less than or equal to \codem{d} time units; 
+Rule \code{de_2} states that the process terminates immediately after 
+\codem{d} becomes \codem{0}.
 \begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   timeout                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
-  (V,e_1) \xrightarrow[]{\text{e}} (V^\prime,e_1^\prime)
-}{(V, e_1\ \textbf{timeout} \  [d] \ e_2) \xrightarrow[]{\text{e}} (V^\prime,e^\prime)}\ [to1]} 
+  (V,e_1) \xrightarrow[]{\anyevent{A}} (V^\prime,e_1^\prime)
+}{(V, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\anyevent{A}} (V^\prime,e^\prime)}\ [to_1]} 
 \quad  
 \code{\frac{
-  (V,e) \xrightarrow[]{\tau} (V^\prime,e^\prime)  \quad (t {\leq} d)
-}{(V, e_1\ \textbf{timeout} \  [d] \ e_2) \xrightarrow[]{\text{t}} (V, \textbf{timeout}\ e^\prime \ [d \text{-}t])}\ [to2]} 
+  (V,e_1) \xrightarrow[]{\tau} (V^\prime,e_1^\prime)  
+}{(V, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (V^\prime, e_1^\prime\ \textbf{timeout}[d]\ e_2 )}\ [to_2]} 
 \\
 \code{\frac{
   (V,e_1) \xrightarrow[]{\text{t}} (V,e_1^\prime)  \quad (t {\leq} d) 
-}{(V, e_1\ \textbf{timeout} \ [d] \ e_2) \xrightarrow[]{\text{t}} (V,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [to3]} 
+}{(V, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (V,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [to_3]} 
 \quad  
 \code{\frac{
-}{(V, e_1\ \textbf{timeout} \  [0] \ e_2) \xrightarrow[]{\tau} (V, e_2)}\ [to4]} 
+}{(V, e_1\ \textbf{timeout}   [0] \ e_2) \xrightarrow[]{\tau} (V, e_2)}\ [to_4]} 
 \end{flalign*}
-
-
+If an observable event \anyevent{A} can be engaged by \code{e_1}, 
+then \code{e_1\ \textbf{timeout}[d]\ e_2} becomes \code{e_1^\prime} (rule \code{[to_1]}). 
+An invisible transition does 
+not solve the choice (rule \code{[to_2]}). 
+If \code{e_1} may idle for less than or equal 
+to \codem{d} time units, so is the composition (rule \code{[to_3]}). 
+When \codem{d} becomes \codem{0}, 
+\code{e_2} takes over control by a silent transition (rule \code{[to_4]}).
 \begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   deadline                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
-  (V,e) \xrightarrow[]{\text{x}} (V^\prime,e^\prime)
-}{(V, \textbf{deadline}\  [d] \ e ) \xrightarrow[]{\text{x}} (V^\prime, \textbf{deadline} \ [d] \ e^\prime)}\ [dl1]} 
-\quad  
+  (V,e) \xrightarrow[]{\anyevent{A}} (V^\prime,e^\prime)
+}{(V, \textbf{deadline} [d] \ e ) \xrightarrow[]{\anyevent{A}} (V^\prime, \textbf{deadline}  [d] \ e^\prime)}\ [dl_1]} 
+\  
 \code{\frac{
   (V,e) \xrightarrow[]{\text{t}} (V,e^\prime)  \quad (t {\leq} d)
-}{(V, \textbf{deadline} \  [d]\ e ) \xrightarrow[]{\text{t}} (V, \textbf{deadline} \ [d \text{-}t] \ e^\prime )}\ [dl2]} 
+}{(V, \textbf{deadline}  [d]\ e ) \xrightarrow[]{\text{t}} (V, \textbf{deadline}  [d \text{-}t] \ e^\prime )}\ [dl_2]} 
 \end{flalign*}
+
+Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as 
+\code{e} except that it must terminate before \codem{d} time units.
 
 
 
