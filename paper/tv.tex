@@ -67,7 +67,7 @@
 \usepackage{adjustbox}
 \usepackage{ebproof}
 \usepackage{cancel}
-\newcommand{\env}{\code{\mathcal{E}}}
+\newcommand{\env}{\code{\mathcal{S}}}
 
 \newcommand{\timedEffects}{\emph{TimEffs}}
 \usepackage{xcolor}
@@ -1238,7 +1238,7 @@ the sequence only contains a singleton event.
 
 \begin{figure}[]
   \vspace{-1mm}
-  \renewcommand{\arraystretch}{1.1}
+  \renewcommand{\arraystretch}{1.2}
 \small\begin{align*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%     Disjunction        %%
@@ -1259,37 +1259,53 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 &\m{iff}\quad & \code{d{=}0}\ and  \ \code{\llbracket \pure{\pi} \rrbracket_s {=}  
 \pure{True} }\ and \ \varphi {=} [ev]  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%   s  Concatenate        %%
+%%     Concatenate        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &\code{d, s, \varphi \models \pure{\pi}, (\es_1\cdot\es_2)}  
 &\m{iff}\quad & \exists \code{\varphi_1,\varphi_2}. \  
 \code{ \varphi_1 {\lappend} \varphi_2 {=} \varphi}\ and\ 
 \exists \code{d_1,d_2}. \  
-\code{ d_1 {+} d_2 {=} d} \ 
-  and \ \code{d_1, s, \varphi_1 {\models} \pure{\pi}  , \es_1 }
+\code{ d_1 {+} d_2 {=} d} \\
+&&& \qquad  s.t. \ \code{d_1, s, \varphi_1 {\models} \pure{\pi}  , \es_1 }
 \ and \ \code{d_2, s, \varphi_2 {\models} \pure{\pi}  , \es_2 }\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    disjunction         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}  , (\es_1\vee\es_2)}  
+&\code{d, s, \varphi \models \pure{\pi}  , (\es_1{\vee}\es_2)}  
 &\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , \es_1 } 
 \ or\ \code{d, s, \varphi \models \pure{\pi}  , \es_2 } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    parallel         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&\code{d, s, \varphi \models \pure{\pi} , (ev_1{\cdot}\es_1)||(ev_2{\cdot}\es_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , ev_1{\cdot} (\es_1||(ev_2{\cdot}\es_2)) } 
+\ or\ \code{d, s, \varphi \models \pure{\pi}  , ev_2{\cdot}((ev_1{\cdot}\es_1)||es_2)  } \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    parallel  2        %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&\code{d, s, \varphi \models \pure{\pi} , (ev\#t_1) || (\epsilon \# t_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models \pure{(\pi{\wedge}t_1 {\geq}t_2)}, (ev\#t_1) } 
+\ or\ \code{d, s, \varphi \models \pure{(\pi{\wedge}t_1 {<}t_2)}  , (ev\#t_1){\cdot}(\epsilon \# (t_2\text{-}t_1))  } \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    t times         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&
-\code{d, s, \varphi \models \pure{\pi}  ,\es\# t}  &\m{iff}\quad &
+&\code{d, s, \varphi \models \pure{\pi}  ,\es\# t}  &\m{iff}\quad &
  \code{\llbracket \pure{\pi}  , t {=} 0 \rrbracket_{s} {=}  
  \pure{True} }, \ \code{d, s, \varphi \models \pure{\pi}  , \empt}\ or  \\
-& & &  \code{\llbracket \pure{\pi}  , t {>} 0 \rrbracket_{s} {=}  
+& & &  \code{\llbracket \pure{\pi}, t {>} 0 \rrbracket_{s} {=}  
 \pure{True} }, 
-\  \exists \code{\varphi_1,\varphi_2}. \  \code{ \varphi_1 \lappend  \varphi_2 {=} \varphi}
-\  and \ \code{d, s, \varphi_1 \models \pure{\pi}  , \es } \\
-& & & \quad and \ \code{d, s, \varphi_2  \models (\pure{\pi}  , t {>} 0) \wedge  \es^{t\text{-}1} } \\
-&\code{d, s, \varphi \models \pure{\pi}, \es^\star}  &\m{iff}\quad & there\ exist\ \code{\varphi_1,\varphi_2}
-\   and \  \code{ \varphi_1 {+}{+} \varphi_2 {=} \varphi} 
- \  and \ \code{d, s, \varphi_1 \models \pure{\pi} , \es } 
- \   and \ \code{d, s, \varphi_2 \models \pure{\pi} , \es^\star }\\
+\  \exists \code{\es_1,\es_2}. \  \code{ es_1 {\cdot}  es_2 {=} es}\\
+&&& \qquad  s.t. \ \code{d, s, \varphi {\models} \pure{(\pi {\wedge}t_1{+} t_2{=}t)}  , 
+(es_1\#t_1) {\cdot} (es_2\#t_2) } \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    star         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+&\code{d, s, \varphi \models \pure{\pi}, \es^\star}  &\m{iff}\quad & 
+\code{d, s, \varphi \models \pure{\pi}  , \empt}\ or \ 
+\code{d, s, \varphi \models \pure{\pi}  , es {\cdot} \es^\star}\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%    FALSE         %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 & \code{d, s, \varphi \models false}  &\m{iff}\quad &
  \code{\llbracket \pure{\pi}  \rrbracket_{s} {=} \pure{False} } \ or \ \code{\varphi {=} \bott}
 \end{align*}
@@ -1429,20 +1445,17 @@ The input of the TRS is a pair of effects LHS and RHS, referring to the inclusio
 
 In this section, we give an axiomatic semantics model\footnote{Based on the operational semantics of Esterel and JavaScript's asynchrony formally defined in \cite{berry1992esterel} and  \cite{madsen2017model} respectively.} for the core language \code{\timedL}, by formalising a set of forward inductive rules. 
 These rules transfer program states and systematically accumulate the effects syntactically. 
-To define the model, we introduce an environment \env\ and describe a program state in a four-elements tuple \code{\langle \Pi, H, C, T \rangle}, with the following concrete domains:
+To define the model, we introduce a stack \env\ and describe a program state in a four-elements tuple \code{\langle \Pi, H, T \rangle}, with the following concrete domains:
 \begin{flalign*}
-\Pi {\defeq} t {\rightarrow} \pi, \qquad
-H  {\defeq} es, \qquad
-C {\defeq} \overrightarrow{\textbf{S} {\rightarrow} \Delta}\  | \ \textbf{S}?, \qquad
-T {\defeq} t, \qquad 
-\env {\defeq} \overrightarrow{\textbf{S}}, \qquad
-\Delta {\defeq} \m{Present} \ | \ \m{Absent}  \ | \  \m{Undef}
+\Pi {\defeq} t {\rightarrow} \pi, \qquad\qquad
+H  {\defeq} es, \qquad\qquad
+T {\defeq} t, \qquad\qquad
+\env {\defeq} \code{var {\rightarrow} val }
 \end{flalign*}
 
 Let \code{\Pi} represents the pure constraints for all the terms; \code{H} represents the trace of \emph{history}; \code{C} represents the \emph{current} event or a waiting signal; 
 \code{T} is a term binding \code{C}; 
 \env\ be the environment containing all the local and output signals; 
-\code{\Delta} marks the signal status. 
 
 
 
@@ -1917,36 +1930,6 @@ See %the technical report\cite{TR}.
 \end{proof}
 
 
-%\begin{lemma}
-%The set of axioms (A1)-(A11) and (A15)-(A22) are complete for timed effects.
-%\begin{proof} 
-%
-%\end{proof}
-%\end{lemma}
-
-
- \begin{theorem}[Completeness]\label{Completeness}
- The set of axioms (A1)-(A22) is complete for \timedEffects.
-
-%Given an inclusion \code{\effect_1 \CONTAIN \effect_2}, if \code{\effect_1 \CONTAIN \effect_2} is valid, then the TRS returns  \code{TRUE} by providing a proof.
-
-\end{theorem}
-
-\begin{proof} 
-One can observe that by succinct applications of (A17) to (A22), we have a normal form, 
-\begin{align}
-\pi_1 : (I\# t_1) \cdot \es_1\ ||\ \pi_2 :  (J\# t_2) \cdot\es_2 \rightarrow  (\pi_1 \wedge \pi_2 \wedge t_1{=}t_2) :  ((I  {\cup} J) \# t_1) \cdot (\es_1\ ||\ \es_2)
-\end{align}
-
-Then for any ground \timedEffects \code{\es}, the expression \code{\epsilon || \es} can be reduced to either \code{\epsilon} or \code{\es} by the applications of (A15) and (A16).  
-The expression \code{\es^\omega} can be reduced to either \code{\bot} or \code{\es^\omega} by the applications of (A12) to (A14).  
-
-Then, by the semantics defined in \figref{fig:Sementic}, effects constructed by Kleene star \code{\star} (possibly finite and possibly infinite) are supersets of effects constructed by \code{\omega} (definite infinite). 
-
-Then one can apply literally all the constructions of \cite{salomaa1966two} used in the completeness proof of \code{F_1} (A1) to (A11).
-
-
-\end{proof}
 
 
 
