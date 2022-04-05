@@ -11,13 +11,13 @@ void oneSugar()
 
 void addSugar (int n) 
     /*
-    require TRUE/\(_^*).emp
+    require TRUE/\(_^*)
     ensure  (t>=n)/\ (Sugar #t)
     */
 {
 
     if (n == 0) { 
-        event ("Sugar");
+        event ["Sugar"];
     }
     else {
         timeout (oneSugar() , 1);
@@ -31,10 +31,10 @@ void makeCoffee (int n)
     ensure (t<=5/\t>=n/\t1<=3)/\Cup.(Sugar#t).(Coffee#t1).Done
     */
 {
-    event("Cup");
+    event["Cup"];
     deadline (addSugar(n), 5);
-    deadline (event("Coffee"), 3);
-    event("Done");
+    deadline (event["Coffee"], 3);
+    event["Done"];
 }
 
 

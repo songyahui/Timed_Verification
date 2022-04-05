@@ -64,6 +64,7 @@ rule token = parse
 (*| 'w' { OMEGA }*)
 | '+' { CHOICE }
 | '.' { CONCAT }
+| ':' {COLON}
 | '"' { read_string (Buffer.create 17) lexbuf }
 | '(' { LPAR }
 | ')' { RPAR }

@@ -1,6 +1,6 @@
 ====================================
 [Result] Succeed
-[Verification Time: 1.807 ms]
+[Verification Time: 1.857 ms]
  
 
 * lt>5/\(A#lt) |- rt>5/\(A#rt)  ***> true [UNFOLD] 
@@ -8,7 +8,7 @@
 
 ====================================
 [Result] Succeed
-[Verification Time: 1.245 ms]
+[Verification Time: 1.173 ms]
  
 
 * lt>5/\((A#lt)^*) |- rt>5/\((A#rt)^*)  ***> true [UNFOLD] 
@@ -16,7 +16,7 @@
 
 ====================================
 [Result] Succeed
-[Verification Time: 2.359 ms]
+[Verification Time: 2.388 ms]
  
 
 * lt1<10/\(B#lt1) |- rt1<30/\(B#rt1)  ***> true [UNFOLD] 
@@ -24,7 +24,7 @@
 
 ====================================
 [Result] Succeed
-[Verification Time: 10.881 ms]
+[Verification Time: 11.446 ms]
  
 
 * (lt>5/\lt1<10)/\((A#lt) . (B#lt1)) |- (rt1<30/\rt>5)/\((A#rt) . (B#rt1))  ***> true [UNFOLD] 
@@ -33,7 +33,7 @@
 
 ====================================
 [Result] Succeed
-[Verification Time: 17.52 ms]
+[Verification Time: 18.789 ms]
  
 
 * (lt>5/\lt1<10)/\((A#lt) + ((A#lt) . (B#lt1))) |- (rt1<30/\rt>5)/\((A#rt) + ((A#rt) . (B#rt1)))  ***> true [UNFOLD] 
@@ -44,7 +44,7 @@
 
 ====================================
 [Result] Succeed
-[Verification Time: 17.386 ms]
+[Verification Time: 16.696 ms]
  
 
 * lt>5/\(((A#lt)^*) . A) |- rt>5/\(((A#rt)^*) . (A + B))  ***> true [UNFOLD] 

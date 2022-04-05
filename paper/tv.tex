@@ -862,11 +862,14 @@ assignment actions \code{(x:=v)^*}.
 
     \m{(Program)} &  \code{\mathcal{P} }&\code{  ::= }&
     \code{%{datat^*}  \  
-   ((x:=v)^*, {meth^*})} 
+   (\alpha^*, {meth^*})} 
 %\qquad   \qquad\quad 
  %   \m{(Basic\ Types)} \qquad  \code{b} \code{\quad  ::= \quad }
   %   \code{int\ |\ bool\ |\ void}
     \\
+    \m{(Assignment)} &  \code{\alpha }&\code{  ::= }&
+    \code{x:=v} 
+   \\
     
 %     \m{(Data\ Struct.)} &  \code{datat}&\code{  ::= }&
  %    \code{\textbf{struct}\ d\ \{ {(t\ f)^*} \}}  
@@ -886,10 +889,10 @@ assignment actions \code{(x:=v)^*}.
   \code{| 
  % v.f:=e \ | 
  \ e_1;e_2\ | \ e_1 || e_2 \ 
-  |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
+ % |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
+ |\ \textbf{event} [\anyevent{A}(v, \alpha^*)] 
  }  \\
-&&& \code{ |\ \textbf{event} [\anyevent{A}(v)] \{(x{:=}v)^*\} }
- \\
+
  &   & & \code{
   | \ \textbf{delay} [d] \ 
   | \ e_1\ \textbf{timeout} [d] \  e_2 \ 
@@ -1043,24 +1046,13 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 \\
 \m{(Events)} & ev  & \ ::= \ & 
 \code{
-  \anyevent{A}(c, \pi, (x:=v)^*)
+  \anyevent{A}(v, \pi, \alpha^*)
     \ | \ \anynotevent{A} 
     \ | \ \_  
 }
            
 
-
-
-%    \\
-%        \m{(Real\ Time)} &  \mathcal{O} &\code{::= }&
-%    
-%    \code{
-%   %n \ | \ 
-%   c \ | \ (c, {+}\infty) \ | \  [0, c) \ | \  \mathcal{O}_1 \wedge \mathcal{O}_2 \ | \  \mathcal{O}_1 \vee \mathcal{O}_2
-%    }
-
-
-    \\
+\\
     
     \m{(Pure)}  & \code{\code{\pure{\pi}}}&\code{\  ::=\ }&
 \pure{ \pure{True}}

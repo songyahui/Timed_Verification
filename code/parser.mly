@@ -10,7 +10,7 @@
 %token EMPTY ASSERTKEY EVENTKEY CHOICE LPAR RPAR CONCAT  POWER PLUS MINUS TRUE FALSE DISJ CONJ   ENTIL INTT BOOLT VOIDT  (* OMEGA *)
 %token LBRACK RBRACK COMMA SIMI  IF ELSE REQUIRE ENSURE LSPEC RSPEC  LBrackets  RBrackets 
 %token EOF GT LT EQ GTEQ LTEQ INCLUDE SHARP EQEQ UNDERLINE KLEENE NEGATION
-%token LILOR
+%token LILOR COLON
 %token TimeoutKEY DeadlineKEY DelayKEY
 
 %left CHOICE
@@ -59,7 +59,7 @@ value:
 | s = STRING {String s}
 
 assign:
-| s = VAR EQ v = value { (s, v)} 
+| s = VAR COLON EQ v = value { (s, v)} 
 
 parm:
 | {None}
@@ -79,14 +79,14 @@ expres_help :
 | v= value {Value v }
 | t = type_ name = VAR EQ e = expres_help {LocalDel (t, name, e)}
 | name = VAR LPAR vlist = real_param RPAR {Call (name, vlist)}
-| EVENTKEY LBrackets ev = STRING p=parm RBrackets LBRACK op=assign_list RBRACK {EventRaise (ev, p, op)}
+| EVENTKEY LBrackets ev = STRING p=parm RBrackets ops = maybe_assign_list {EventRaise (ev, p, ops)}
 | TimeoutKEY LPAR e = expres_help COMMA t = INTE  RPAR  {Timeout(e, t)}
 | DeadlineKEY LPAR e = expres_help COMMA t = INTE  RPAR {Deadline(e, t)}
 | DelayKEY t = INTE {Delay t}
 | ASSERTKEY LPAR eff = effect RPAR {Assertion eff}
 
 cond:
-| e1 = value  EQEQ e2 = value {Cond (e1, e2 ,"=")}
+| e1 = value  EQEQ e2 = value {Cond (e1, e2 ,"==")}
 | e1 = value  LTEQ e2 = value {Cond (e1, e2 ,"<=")}
 | e1 = value  GTEQ e2 = value {Cond (e1, e2 ,">=")}
 | e1 = value  GT e2 = value {Cond (e1, e2 ,">")}
@@ -100,6 +100,7 @@ expres:
 | e1 = value PLUS e2 = value {BinOp(e1, e2,"+" )}
 | e1 = value MINUS e2 = value {BinOp(e1, e2,"-" )}
 
+(*PrePost([(TRUE, Emp)], [(TRUE, Emp)])*)
 meth : t = type_   name = VAR   LPAR p = param RPAR s = spec LBRACK e = expres RBRACK {Method (Meth (t , name, p, s, e))}
 head : SHARP INCLUDE str= STRING {Include str} 
 
