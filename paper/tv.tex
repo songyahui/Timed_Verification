@@ -361,12 +361,12 @@ to
 provide real-time abstractions into traditional linear temporal logics. 
 %Resource usages, provided by a \emph{dynamic ticks}\cite{von2017real}, incorporating the time-triggered (physical time) and event-triggered (logical time) execution loops. 
 For example, one safety property, \textit{"The event \anyevent{Done} 
-will be triggered no later than one second"}\footnote{For 
-simplicity, we use integer values to represent seconds in this 
+will be triggered no later than one time unit"}\footnote{Without loss of generality, 
+we use integer values to represent time units in this 
 paper, while it can bes extended to real numbers and other 
 time measurement units.}, is expressed in \timedEffects\ as: 
 \begin{align*}
-&\code{\effect \defeq \  0 {\leq} t {<}1 : ({\_^\star} \cdot \anyevent{Done} ) \# t}.
+&\code{\effect \defeq \  0 {\leq} t {<}1, ({\_^\star} \cdot \anyevent{Done} ) \# t}.
 \end{align*}  
 %The timed effects incorporates different kinds of existing temporal logics, such as linear-time temporal logic (LTL)
 %and .
@@ -377,30 +377,68 @@ constraints for the \emph{logical-time} sequences \cite{von2017real};
 Kleene star \code{\star} denotes trace repetition.
 The above formula \code{\effect} corresponds to `\code{\Diamond_{[0, 1)}\ }\anyevent{Done}' 
 in metric temporal logic (MTL), reads \textit{"within one second, 
-\anyevent{Done} finally happens"}. Moreover, the time bounds can be dependent on the program inputs. For example, we express, the effects of \code{send(d)} as:
-\begin{align*}
-&\code{\effect^{send (d)} \defeq \  (0 {<} d {\leq}5 \wedge  0 {\leq} t {<} d) : ({\anyevent{Send} \# t)} \cdot \anyevent{Done}}.
-\end{align*}  
-The \code{send} method takes a parameter \code{d}, and \anyevent{Send}s 
-out a message at time \code{t}.  
-The above formula  \code{\effect^{send (d)}} indicates that the 
-input  \code{d} is positive and smaller or equal to \code{5}; the method 
-generates a finite trace, with the first event \anyevent{Send}, followed by 
-a second event \anyevent{Done}; and \anyevent{Send} takes a no more 
+\anyevent{Done} finally happens"}. Moreover, the time bounds 
+can be dependent on the program inputs. For example, as the program 
+shown in \autoref{fig:Value_dependent_intro}, we mark the precondition and postcondition
+using keywords \code{\emph{require}} and \code{\emph{ensure}} respectively. 
+
+\newcommand{\codem}[1]{{\code{\emph{#1}}}}
+
+\begin{wrapfigure}{L}{0.4\columnwidth}
+  \vspace{-2mm}
+\begin{lstlisting}
+void addSugar (int n) 
+/*require n>=0 , _^*
+  ensure  t>=n, Sugar#t */
+{ if (n == 0) { 
+    event ["Sugar"];} 
+  else {
+    timeout (oneSugar() , 1);
+    addSugar (n-1);}} 
+\end{lstlisting}
+\vspace{-1mm}
+\caption{Value-dependent specification.} 
+\label{fig:Value_dependent_intro}
+\vspace{-1mm}
+\end{wrapfigure}
+
+The function 
+\code{\emph{addSugar}} is intended to takes a parameter \codem{n}, representing 
+the portion of the sugar we need to add. When \codem{n} decreases to \codem{0}, 
+it simply raises an event \anyevent{Sugar} to mark the end of the process. 
+Otherwise, it adds one portion of the sugar then recursively calls \code{\emph{addSugar}} with parameter \codem{n-1}. 
+Statement \codem{timeout(e, d)} sets a timer which executes code \codem{e} once the timer expires at time \codem{d}. 
+Therefore, the time spent on adding one portion of the sugar is no less than 1 time unit. 
+
+
+The specifications of  \codem{addSugar(n)} indicates that the 
+input  \code{n} is non-negative; the method 
+generates a finite trace where \anyevent{Sugar} takes a no less 
 than \code{d} milliseconds delay to finish. 
 Although these examples are simple, they show the benefits of deploying 
 value-dependent 
-time bounds. Intuitively, if traditional timed automata define an 
+time bounds, which is beyond the capability of Timed Automata. Intuitively, if traditional Timed Automata define an 
 \emph{exact} transition system, \timedEffects\ define 
 a set (possibly infinite) of exact transition systems. 
-
-
-
  
    
-   %they already illustrate the gain of expressiveness from  existing temporal logics and traditional timed automata. 
 
-%properties beyond 
+
+\begin{comment}
+  we express, the effects of \code{send(d)} as:
+\begin{align*}
+&\code{\effect^{send (d)} \defeq \  (0 {<} d {\leq}5 \wedge  0 {\leq} t {<} d),  ({\anyevent{Send} \# t)} \cdot \anyevent{Done}}.
+\end{align*}  
+effects of \code{addSugar(n)} as:
+\code{(n{>}0  \wedge  t {\geq} n) : ({\anyevent{Sugar} \# t)}}
+
+\end{comment}
+
+
+
+   %they already illustrate the gain of expressiveness from  existing temporal logics and traditional Timed Automata. 
+
+%properties  
 
 
 
@@ -435,7 +473,7 @@ compositional real-time systems,
 
 
 Existing automatic verification techniques massively rely on 
-the timed automata which requires manually cast of clock variables with 
+the Timed Automata which requires manually cast of clock variables with 
 carefully calculated clock constraints. 
 
 A TRS is a refutation method that normalizes expressions in such a way 
@@ -521,6 +559,9 @@ void main ()
   \caption{Fischer's mutual exclusion algorithm.}\label{fig:overview_ficher}
      \vspace{0mm}
 \end{figure}
+
+
+
 
 
 %\subsection{HipHop.js and Dependent Effects}
@@ -1806,7 +1847,7 @@ CEC is an open-source compiler designed for research in both hardware and softwa
 
 
 %The core implementation is less than 3500 LOC, roughly, 1{+} LOC for the verifier, and 2{+} LOC for the TRS. We prove the soundness of the TRS. 
-%Next, we show case studies to demonstrate the feasibilities of our \timedEffects comparing to timed automata. 
+%Next, we show case studies to demonstrate the feasibilities of our \timedEffects comparing to Timed Automata. 
 
 %We summarize the underlying reasons which lead to the improvement: (1)When the transition states of the models are small, the average execution time spent by the T.r.s is even less than the automata construction time, which means it is not necessary to construct the automata when a TRS solves it faster; (2)When the total states become larger, on average, the TRS outperforms automata-based algorithms, due to the significantly reduced search branches provided by the normalization lemmas; and (3)For the invalid cases, the TRS disproves them earlier without constructing the whole automata.
 
@@ -1821,7 +1862,7 @@ We conduct experiments on a MacBook Pro with a 2.6 GHz Intel Core i7 processor. 
 
 %We claim that the extra expressiveness gained from our logic is the symbolic time-bounds. The timed effects represent not only one exact Timed Automata but also a set of Timed Automata. Together with our back-end inclusion solver, it enables a verification framework for a group of Automata. More specifically, instead of running the model checker many times for one non-deterministic time-bound at each time, we can define arithmetic constraints bounding the time variable. And to test that, we cover a number of test cases with function calls, and the callee's parameters would be used as the time bounds.
 
-Our implementation is the first that solves the  inclusion problem of symbolic timed automata, which is considered important because it overcomes the following main limitations in traditional timed model checking:  i) they cannot be used to specify and verify systems incompletely specified (i. e., whose timing constants are not known yet), and hence cannot be used in early design phases; ii) verifying a system for a set of timing constants usually requires to enumerate all of them one by one if they are supposed to be integer-valued; in addition, timed automata cannot be used to verify a system for a set of timing constants that are to be taken in a real-valued dense interval. 
+Our implementation is the first that solves the  inclusion problem of symbolic Timed Automata, which is considered important because it overcomes the following main limitations in traditional timed model checking:  i) they cannot be used to specify and verify systems incompletely specified (i. e., whose timing constants are not known yet), and hence cannot be used in early design phases; ii) verifying a system for a set of timing constants usually requires to enumerate all of them one by one if they are supposed to be integer-valued; in addition, Timed Automata cannot be used to verify a system for a set of timing constants that are to be taken in a real-valued dense interval. 
 
 
 
@@ -2203,7 +2244,7 @@ However, none of the previous works have considered adding real-time abstraction
 
 %
 %
-%compare to timed automata:
+%compare to Timed Automata:
 %modular and can plug in anywhere. 
 %absolute time and relative time. 
 %$
