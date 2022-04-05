@@ -1076,6 +1076,38 @@ When \codem{d} becomes \codem{0},
 Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as 
 \code{e} except that it must terminate before \codem{d} time units.
 
+\begin{flalign*}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%   deadline                 %%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \code{\frac{
+    V \not\models  b 
+  }{(V, [b] \ e ) \xrightarrow[]{t} (V, [b] \ e)}\ [gu_1]} 
+  \quad
+  \code{\frac{
+    V \models  b 
+  }{(V, [b] \ e ) \xrightarrow[]{\tau} (V, e)}\ [gu_2]} 
+  \quad
+  \code{\frac{
+  }{(V, \alpha ) \xrightarrow[]{\tau} (\alpha(V), ())}\ [assign]} 
+\end{flalign*}
+
+\begin{flalign*}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%   deadline                 %%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \code{\frac{
+    (V,e_1) \xrightarrow[]{\anyevent{A}} (V^\prime,e_1^\prime) 
+  }{(V, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (V^\prime, e_1^\prime || e_2)}\ [pa_1]} 
+  \quad  
+  \code{\frac{
+    (V,e_2) \xrightarrow[]{\anyevent{A}} (V^\prime,e_2^\prime) 
+  }{(V, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (V^\prime, e_1 || e_2^\prime)}\ [pa_2]} 
+\quad
+\code{\frac{
+  (V,e_1) \xrightarrow[]{\anyevent{A}/\tau} (V^\prime,e_1^\prime) 
+}{(V, e_1; e_2 ) \xrightarrow[]{\anyevent{A}/\tau} (V^\prime, e_1^\prime ; e_2)}\ [se]} 
+\end{flalign*}
 
 
 
