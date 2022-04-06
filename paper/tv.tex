@@ -56,7 +56,6 @@
 \usepackage{varwidth}
 \newcommand{\key}[1]{\textcolor{purple}{\code{#1}}}
 \newcommand{\jskey}[1]{\textcolor{blue}{\code{#1}}}
-\newcommand{\es}{\textcolor{black}{\ensuremath{{es}}}}
 \definecolor{palered-violet}{rgb}{0.86, 0.44, 0.58}
 \definecolor{bittersweet}{rgb}{1.0, 0.44, 0.37}
 \definecolor{brickred}{rgb}{0.8, 0.25, 0.33}
@@ -109,7 +108,6 @@
 \newcommand{\name}{integrated effects}
 \newcommand{\code}[1]{{\tt{\ensuremath{\m{#1}}}}}
 \newcommand{\codeme}[1]{{\tt{\ensuremath{#1}}}}
-\newcommand{\esn}[2]{\ensuremath{#1^{#2}}}
 \newcommand{\empt}{\textcolor{black}{\ensuremath{\epsilon}}}
 \newcommand{\bott}{\textcolor{black}{\ensuremath{\bot}}}
 \newcommand{\CONTAIN}{\sqsubseteq}
@@ -1123,27 +1121,20 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 \centering
   $
   \begin{array}{rrcl}
- 
-    \m{(Timed\ Effects)} &  \effect &\code{  ::= }&
-    \code{
-          (\pure{\pi}, \es)
-   \ | \ \effect_1 \vee \effect_2
-}
-    \\
- \m{(Timed \ Sequence)}  & \ \code{\es}   &\code{ ::=}&
+
+
+ \m{(Timed\ Effects)}  & \ \code{\effect}   &\code{ ::=}&
    
    \code{ \bott
    \  | \ \empt 
     \ | \ ev 
     %   \ | \ \anyevent{a}
-   \  | \ \es_1 {\seq} \es_2
-    \ | \ \es_1 {\vee} \es_2
-    \ | \ \es_1 {||} \es_2
-      %    \  | \ \es_1 \times \es_2
-      \ | \ \es \# t 
- %  \  | \  \esn{\es}{t}    
-   \  | \  \esn{\es}{\star}    
-  % \  | \ \esn{\es}{\omega} 
+   \  | \ \effect_1 {\seq} \effect_2
+    \ | \ \effect_1 {\vee} \effect_2
+    \ | \ \effect_1 {||} \effect_2
+      %    \  | \ \effect_1 \times \effect_2
+      \ | \ \effect \# t 
+   \  | \  \effect^\star
 }
 
 \\
@@ -1159,8 +1150,8 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
     
     \m{(Pure)}  & \code{\code{\pure{\pi}}}&\code{  ::= }&
 \pure{ \pure{True}}
-   \ | \  \pure{False}
-   \ | \ \pure{A(}{t_1, t_2}\pure{)}
+   \ |  \pure{False}
+   \ |  \pure{A(}{t_1, t_2}\pure{)}
   \  |   \pure{\pure{\pi_1}} {\wedge} \code{\pure{\pi}}_2
    \ |  \pure{\pure{\pi_1}} {\vee} \code{\pure{\pi}}_2
    \ |  \neg\code{\pure{\pi}}
@@ -1214,18 +1205,18 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 
 The  syntax of the \timedEffects is formally defined in 
 \figref{fig:Syntax_of_Types_and_Effects} Effects is 
- a conditioned time  event sequence \code{\pure{\pi},  \es} or a disjunction of two effects $\effect_1 \vee \effect_2$.
+ a conditioned time  event sequence \code{\pure{\pi},  \effect} or a disjunction of two effects $\effect_1 \vee \effect_2$.
 Timed sequences comprise \textit{nil} ($\bott$);
  an empty trace $\empt$;
 a single event \code{ev};
   %where \anyevent{a} is an element from a finite set of events, donated by \code{\Sigma};
 %parametrized event \code{ \anyevent{a}.\iota} where \code{\iota} is a list pattern expressing a possibly infinite list (for example, \code{\anyevent{a}.[1,2,3,4]},  \code{\anyevent{a}.[1 .. 4]} and \code{\anyevent{a}.[1, 2.. 4]} all refer to the finite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot \anyevent{a}.4},
 %while \code{\anyevent{a}.[1 ..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot}..., and \code{\anyevent{a}.[1, 3..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.3 \cdot \anyevent{a}.5\cdot}...);
- sequences concatenation \code{\es_1\cdot \es_2};
-disjunction  \code{\es_1\vee \es_2};
-parallel composition of two processes is written as \code{\es_1 || \es_2}, where \code{es_1} and \code{es_2} 
+ sequences concatenation \code{\effect_1\cdot \effect_2};
+disjunction  \code{\effect_1\vee \effect_2};
+parallel composition of two processes is written as \code{\effect_1 || \effect_2}, where \code{\effect_1} and \code{\effect_2} 
 may communicate via multi-party event synchronization or shared variables. 
-We introduce a new operator \code{\#}, and the effects \code{\es \# t } represents that a trace takes real-time \code{t} to complete, where \code{t} is a \emph{term}. 
+We introduce a new operator \code{\#}, and the effects \code{\effect \# t } represents that a trace takes real-time \code{t} to complete, where \code{t} is a \emph{term}. 
 A time sequence can be constructed by \code{\star}, representing zero or more times repetition of a trace.
 
 \code{\anyevent{A}(v, \pi, \alpha^*)} stands for an event labeled 
@@ -1254,7 +1245,7 @@ qual to  0.
 To define the model, 
 \code{var} is the set of program variables, 
 \code{val} is the set of primitive values, 
-\code{\es} is the set of event sequences (or event multi-trees, per se), indicating the sequencing constraints on temporal behaviour.
+\code{\effect} is the set of event sequences (or event multi-trees, per se), indicating the sequencing constraints on temporal behaviour.
 Let \code{d, s, \varphi \models \effect} denote the model relation, i.e., 
 the effects \code{\effect} take exactly \code{d} time units to complete; 
 the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
@@ -1292,25 +1283,25 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%     Concatenate        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}, (\es_1\cdot\es_2)}  
+&\code{d, s, \varphi \models \pure{\pi}, (\effect_1\cdot\effect_2)}  
 &\m{iff}\quad & \exists \code{\varphi_1,\varphi_2}. \  
 \code{ \varphi_1 {\lappend} \varphi_2 {=} \varphi}\ and\ 
 \exists \code{d_1,d_2}. \  
 \code{ d_1 {+} d_2 {=} d} \\
-&&& \qquad  s.t. \ \code{d_1, s, \varphi_1 {\models} \pure{\pi}  , \es_1 }
-\ and \ \code{d_2, s, \varphi_2 {\models} \pure{\pi}  , \es_2 }\\
+&&& \qquad  s.t. \ \code{d_1, s, \varphi_1 {\models} \pure{\pi}  , \effect_1 }
+\ and \ \code{d_2, s, \varphi_2 {\models} \pure{\pi}  , \effect_2 }\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    disjunction         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}  , (\es_1{\vee}\es_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , \es_1 } 
-\ or\ \code{d, s, \varphi \models \pure{\pi}  , \es_2 } \\
+&\code{d, s, \varphi \models \pure{\pi}  , (\effect_1{\vee}\effect_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , \effect_1 } 
+\ or\ \code{d, s, \varphi \models \pure{\pi}  , \effect_2 } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    parallel         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi} , (ev_1{\cdot}\es_1)||(ev_2{\cdot}\es_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , ev_1{\cdot} (\es_1||(ev_2{\cdot}\es_2)) } 
-\ or\ \code{d, s, \varphi \models \pure{\pi}  , ev_2{\cdot}((ev_1{\cdot}\es_1)||es_2)  } \\
+&\code{d, s, \varphi \models \pure{\pi} , (ev_1{\cdot}\effect_1)||(ev_2{\cdot}\effect_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , ev_1{\cdot} (\effect_1||(ev_2{\cdot}\effect_2)) } 
+\ or\ \code{d, s, \varphi \models \pure{\pi}  , ev_2{\cdot}((ev_1{\cdot}\effect_1)||\effect_2)  } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    parallel  2        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1320,21 +1311,21 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    t times         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}  ,\es\# t}  &\m{iff}\quad &
+&\code{d, s, \varphi \models \pure{\pi}  ,\effect\# t}  &\m{iff}\quad &
  \code{\llbracket \pure{\pi}  , t {=} 0 \rrbracket_{s} {=}  
  \pure{True} }, \ \code{d, s, \varphi \models \pure{\pi}  , \empt}\ or  \\
 & & &  \code{\llbracket \pure{\pi}, t {>} 0 \rrbracket_{s} {=}  
 \pure{True} }, 
-\  \exists \code{\es_1,\es_2}. \  \code{ es_1 {\cdot}  es_2 {=} es}\\
+\  \exists \code{\effect_1,\effect_2}. \  \code{\effect_1 {\cdot} \effect_2 {=} \effect}\\
 &&& \qquad  s.t. \ \code{d, s, \varphi {\models} \pure{(\pi 
 {\wedge} t_1{\geq}0{\wedge}t_2{\geq}0 {\wedge} t_1{+} t_2{=}t)}  , 
-(es_1\#t_1) {\cdot} (es_2\#t_2) } \\
+(\effect_1\#t_1) {\cdot} (\effect_2\#t_2) } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    star         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}, \es^\star}  &\m{iff}\quad & 
+&\code{d, s, \varphi \models \pure{\pi}, \effect^\star}  &\m{iff}\quad & 
 \code{d, s, \varphi \models \pure{\pi}  , \empt}\ or \ 
-\code{d, s, \varphi \models \pure{\pi}  , es {\cdot} \es^\star}\\
+\code{d, s, \varphi \models \pure{\pi}  , \effect {\cdot} \effect^\star}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    FALSE         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1342,7 +1333,7 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
  \code{\llbracket \pure{\pi}  \rrbracket_{s} {=} \pure{False} } \ or \ \code{\varphi {=} \bott}
 \end{align*}
   \vspace{-2mm}
-\caption{Semantics of \timedEffects .}
+\caption{Semantics of \timedEffects.}
 \label{fig:Sementic}
 \vspace{-2mm}
 \end{figure}
@@ -1380,38 +1371,33 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            CONCATE                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : (\es_1{\cdot}\es_2)}  
+&\code{d, \varphi \models  \pi : (\effect_1{\cdot}\effect_2)}  
 &\m{iff}\quad 
 & {\tt{SAT}(\pi)}  \ and \ \exists \code{\varphi_1, \varphi_2, d_1, d_2}\ and\ \code{
 \varphi {=} \varphi_1 \lappend \varphi_2, d {=} d_1 {+} d_2 \ and 
 }\\
 & & &
-\code{d_1, \varphi_1 \models  \pi : \es_1}  \ and \ 
-\code{d_2, \varphi_2 \models  \pi : \es_2}  
+\code{d_1, \varphi_1 \models  \pi : \effect_1}  \ and \ 
+\code{d_2, \varphi_2 \models  \pi : \effect_2}  
  \\[0.2em]
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                       DISJUNCTION                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : (\es_1 {\vee} \es_2)}  
+&\code{d, \varphi \models  \pi : (\effect_1 {\vee} \effect_2)}  
 &\m{iff}\quad 
-& {\tt{SAT}(\pi)}  \ and \ \code{d, \varphi \models  \pi :  \es_1 } \ or \ 
- \code{d, \varphi \models  \pi :  \es_2}  
+& {\tt{SAT}(\pi)}  \ and \ \code{d, \varphi \models  \pi :  \effect_1 } \ or \ 
+ \code{d, \varphi \models  \pi :  \effect_2}  
 \\[0.2em]
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                       timed                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : \es \# t }  
+&\code{d, \varphi \models  \pi : \effect \# t }  
 &\m{iff}\quad 
-& d, \varphi \models  (\pi \wedge t{=}d) : \es
+& d, \varphi \models  (\pi \wedge t{=}d) : \effect
 \\[0.2em]
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            KLEENE                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d,  \varphi \models \pi : \esn{\es}{\star}  }  
-&\m{iff}\quad 
-&d, \varphi \models \pi :  \empt \ or \ 
-d, \varphi \models \pi :  (\es \cdot \esn{\es}{\star} ) 
- \\[0.2em]
    %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            FALSE                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1485,19 +1471,20 @@ The input of the TRS is a pair of effects LHS and RHS, referring to the inclusio
 \label{Forward_Rules}
 
 
-We here present the forward verification rules, s
+We here present the forward verification rules, 
 which are used to systematically accumulate the effects based on 
 the syntax of each statement.
 \code{\mathcal{P}} denotes the program being checked. 
 With pre/post conditions declared for each method in \code{\mathcal{P}}, 
 we can apply modular verification to a method's body using Hoare-style 
-triples \code{ \Pi, \env \vdash \s{ \effect_c} \ e\ \s{\effect_c^\prime}}
+triples \code{\ \vdash \s{ \effect, \Pi, \env } \ e\ \s{\effect^\prime, \Pi^\prime, \env^\prime}}
 where 
+\code{\effect} is the current effects, 
 \code{\Pi} is the current guard, 
 \code{\env} is the current valuation of the variables;
-\code{\effect_c} is the current effects, 
-and \code{ \effect_C^\prime}
-is the resulting effects by executing \code{e}. 
+and \s{\effect^\prime, \Pi^\prime, \env^\prime}  
+is the resulting state by executing \code{e}. 
+The program state is initialized using \s{\epsilon, True, []}. 
 
 
 \begin{comment}
@@ -1508,7 +1495,7 @@ To define the model, we introduce a stack \env\ and describe
 a program state in a four-elements tuple \s{H, G}, with the following concrete domains:
 \begin{flalign*}
 G {\defeq} \pi, \qquad\qquad
-H  {\defeq} es, \qquad\qquad
+H  {\defeq} \effect, \qquad\qquad
 \env {\defeq} \code{var {\rightarrow} val }
 \end{flalign*}
 
@@ -1518,11 +1505,8 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 
 
 
-  v \ | \ 
-    [b]\ e \ |\ mn({v^*}) \ }
-  \code{| 
- % v.f:=e \ | 
- \ e_1;e_2\ | \ e_1 || e_2 \ 
+     \ |\ mn({v^*}) \ }
+
   |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
  }  \\
 
@@ -1534,17 +1518,56 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 \end{comment}
 
 \begin{gather*}
-  \code{\frac{\effect_C^\prime {=} \effect_C\cdot \anyevent{a}}{\vdash \{  \effect_C \}\  \textbf{event} [\anyevent{a}] \ \{ \effect_C^\prime \}} \   {[FV\text{-}Event]}} 
-  \qquad
-  \code{\frac{\vdash \{ \effect_C\}\ e_1 \ \{  \effect_C^\prime\} \qquad \vdash \{  \effect_C^\prime\}\ e_2 \ \{  \effect_C^{\prime\prime}\} }{\vdash \{  \effect_C\}\  e_1;e_2 \ \{  \effect_C^{\prime\prime}\}} \  {[FV\text{-}Seq]}}  
+  \code{\frac{
+  }
+{  \vdash \{  \effect,\Pi, \env \}\  v \ 
+\{ \effect, \Pi, \env \}} \  
+ {[FV\text{-}Value]}} 
+ \qquad
+ \code{\frac{
+  }
+{  \vdash \{  \effect, \Pi, \env \}\  [b]\ e \ 
+\{ \effect, \Pi{\wedge} b, \env  \}} \  
+ {[FV\text{-}Guard]}} 
+\end{gather*}
+
+
+\begin{gather*}
+  \code{\frac{ 
+ \vdash \{ \effect, \Pi, \env\}\ e_1 \ \{  \effect^\prime, \Pi^\prime, \env^\prime\} 
+\qquad 
+\vdash \{ \effect^\prime, \Pi^\prime, \env^\prime\}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime}, \env^{\prime\prime} \} 
+}{
+  \vdash \{  \effect, \Pi, \env \}\  
+  e_1;e_2 \ \{ \effect^{\prime\prime}, \Pi^{\prime\prime}, 
+  \env^{\prime\prime}\}} \ 
+   {[FV\text{-}Seq]}}  
+\end{gather*}
+
+
+\begin{gather*}
+  \code{\frac{
+ \vdash \{ \effect, \Pi, \env \}\ e_1 \ \{  \effect^\prime, \Pi^\prime, \env^\prime\} 
+\qquad 
+\vdash \{  \effect, \Pi, \env \}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime}, \env^{\prime\prime} \} 
+    }{
+\vdash \{   \effect, \Pi, \env \}\  e_1 || e_2 \ \{ \effect^\prime || \effect^{\prime\prime}, 
+\Pi^{\prime} {\wedge}\Pi^{\prime\prime}, 
+\}} \   
+{[FV\text{-}Par]}} 
+\end{gather*}
+     
+
+\begin{gather*}
+  \code{\frac{\effect^\prime {=} \effect\cdot \anyevent{a}}{\vdash \{  \effect \}\  \textbf{event} [\anyevent{a}] \ \{ \effect^\prime \}} \   {[FV\text{-}Event]}} 
 \end{gather*}
      
 
 
 
 \begin{gather*}
-\code{\frac{ \vdash \{  v \wedge \effect_C  \} \ e_1 \ \{  \effect_C^{\prime}\} \qquad \vdash \{ \neg v \wedge \effect_C \} \ e_2 \ \{  \effect_C^{\prime\prime}\}  }
-{\vdash \{  \effect_C\}\  \textbf{if}\ v\ \textbf{then}\ e_1\ \textbf{else}\ e_2 \ \{  \effect_C^{\prime} \vee\effect_C^{\prime\prime} \} } \  {[FV\text{-}If\text{-}Else]}} 
+\code{\frac{ \vdash \{  v \wedge \effect  \} \ e_1 \ \{  \effect^{\prime}\} \qquad \vdash \{ \neg v \wedge \effect \} \ e_2 \ \{  \effect^{\prime\prime}\}  }
+{\vdash \{  \effect\}\  \textbf{if}\ v\ \textbf{then}\ e_1\ \textbf{else}\ e_2 \ \{  \effect^{\prime} \vee\effect^{\prime\prime} \} } \  {[FV\text{-}If\text{-}Else]}} 
 \end{gather*}
 
 \begin{gather*}
@@ -1552,13 +1575,13 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 \begin{matrix}
 \text{\code{  \tau \ mn  \ {( \tau\ x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
 \\
-\text{\code{\vdash rev( \effect_C) \CONTAIN rev([y^*/x^*] \effect_{pre})   \qquad   \effect_C^\prime =  \effect_C \cdot  [y^*/x^*]\effect_{post}}}
+\text{\code{\vdash rev( \effect) \CONTAIN rev([y^*/x^*] \effect_{pre})   \qquad   \effect^\prime =  \effect \cdot  [y^*/x^*]\effect_{post}}}
 \end{matrix}}
-{\vdash \{  \effect_C \} \  mn({y^*})  \ \{  \effect_C^\prime\}} \ {[FV\text{-}Call]}}
+{\vdash \{  \effect \} \  mn({y^*})  \ \{  \effect^\prime\}} \ {[FV\text{-}Call]}}
 \end{gather*}
 
 \begin{gather*}
-\code{\frac{  \vdash \{  \empt \}  \ e \  \{ \effect_C \} \qquad\qquad  \vdash\effect_C \CONTAIN   \effect_{post}}{  \vdash \tau \ mn  \ {( \tau\ x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \}} \ {[FV\text{-}Meth]}}  
+\code{\frac{  \vdash \{  \empt \}  \ e \  \{ \effect \} \qquad\qquad  \vdash\effect \CONTAIN   \effect_{post}}{  \vdash \tau \ mn  \ {( \tau\ x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \}} \ {[FV\text{-}Meth]}}  
 \end{gather*}
 
 
@@ -1587,7 +1610,7 @@ An inclusion with a disjunctive antecedent succeeds if both disjunctions entail 
 
 Now, the inclusions are disjunction-free formulas. 
 Next we provide the definitions and implementations of auxiliary functions \emph{Nullable}(\code{\delta}), \emph{First}(\code{fst}) and \emph{Derivative}(\code{D}) respectively.
-Intuitively, the Nullable function \code{\delta(\es)} returns a boolean value indicating whether \code{\es} contains the empty trace; the First function \code{fst_{\pure{\pi}}( \es)} computes a set of possible initial time instances of \code{\pure{\pi} : \es}; and the Derivative function \code{D_{I\# t}^{\pure{\pi}}(\es)} computes a next-state effects after eliminating one event \code{I} w.r.t. the execution time \code{t} from the current effects \code{\pure{\pi} : \es}. 
+Intuitively, the Nullable function \code{\delta(\effect)} returns a boolean value indicating whether \code{\effect} contains the empty trace; the First function \code{fst_{\pure{\pi}}( \effect)} computes a set of possible initial time instances of \code{\pure{\pi} : \effect}; and the Derivative function \code{D_{I\# t}^{\pure{\pi}}(\effect)} computes a next-state effects after eliminating one event \code{I} w.r.t. the execution time \code{t} from the current effects \code{\pure{\pi} : \effect}. 
 
 
 
@@ -1600,12 +1623,12 @@ Intuitively, the Nullable function \code{\delta(\es)} returns a boolean value in
 
 
 \begin{definition}[Nullable]\label{Nullable}
-Given any time sequence \code{\es}, we recursively define \code{\delta(\es)} as:\\
+Given any time sequence \code{\effect}, we recursively define \code{\delta(\effect)} as:\\
 {
-\code{\delta(\es) :bool {=}
+\code{\delta(\effect) :bool {=}
 \begin{cases}
-      \code{true} & \code{if\ \empt \in \es}\\
-      \code{false} & \code{if\ \empt \notin \es}
+      \code{true} & \code{if\ \empt \in \effect}\\
+      \code{false} & \code{if\ \empt \notin \effect}
     \end{cases} }
     }, where   
 { 
@@ -1618,39 +1641,37 @@ Given any time sequence \code{\es}, we recursively define \code{\delta(\es)} as:
 \qquad\quad
 \code{\delta(\textbf{S}?){=} false}   
 \qquad\quad\
-    \code{\delta(\esn{\es}{\star} ) {=} true}   
+    \code{\delta({\effect^\star} ) {=} true}   
 \\ 
-\code{\delta(\es_1 \seq \es_2) {=} \delta(\es_1) \wedge \delta(\es_2)}
+\code{\delta(\effect_1 \seq \effect_2) {=} \delta(\effect_1) \wedge \delta(\effect_2)}
 \qquad\qquad
-  \code{\delta(\es_1 \choice \es_2) {=} \delta(\es_1) \vee \delta(\es_2)}   
-  \qquad\quad
-  \code{\delta(\esn{\es}{\omega} ) {=} false}     
+  \code{\delta(\effect_1 \choice \effect_2) {=} \delta(\effect_1) \vee \delta(\effect_2)}   
   \\
-\code{\delta(\es_1 || \es_2) {=} \delta(\es_1) \wedge \delta(\es_2)}
+\code{\delta(\effect_1 || \effect_2) {=} \delta(\effect_1) \wedge \delta(\effect_2)}
 \qquad\qquad\quad
- \code{\delta(\es \# t) {=} \delta(\es)}
+ \code{\delta(\effect \# t) {=} \delta(\effect)}
 \end{gather*}}
 \end{definition}
 
 To better outline our contribution, we first present the original \emph{First} function used in  Antimirov's rewriting system, denoted using \code{fst^\prime}, defined as follows:
 
 \begin{definition}[Antimirov's First]\label{First1}
-Let \code{fst^\prime(\es){:=}\{ I\ |\  (I \cdot \es^\prime) \in \llbracket  \es \rrbracket  \}} be the set of initial instances derivable from  sequence \code{\es}. (\code{\llbracket  \es \rrbracket } represents all the traces contained in \code{\es}.)
+Let \code{fst^\prime(\effect){:=}\{ I\ |\  (I \cdot \effect^\prime) \in \llbracket  \effect \rrbracket  \}} be the set of initial instances derivable from  sequence \code{\effect}. (\code{\llbracket  \effect \rrbracket } represents all the traces contained in \code{\effect}.)
 { 
  \begin{gather*} 
 \code{fst^\prime( \bott) {=} \_ } \qquad\ 
 \code{ fst^\prime(\empt) {=} \_} \qquad\ 
 \code{fst^\prime( I) {=} \{ I \} }
  \qquad\ 
-\code{fst^\prime(  \es_1 {\vee} \es_2) {=} fst^\prime(  \es_1) \cup fst^\prime(  \es_2)}
+\code{fst^\prime(  \effect_1 {\vee} \effect_2) {=} fst^\prime(  \effect_1) \cup fst^\prime(  \effect_2)}
 \\
 {
-\code{fst^\prime( \esn{\es}{\star} ) {=} fst^\prime({ \es})} 
+\code{fst^\prime( {\effect^\star} ) {=} fst^\prime({ \effect})} 
 \qquad\quad\
-\code{fst^\prime(\es_1 {\seq} \es_2) {=} } 
+\code{fst^\prime(\effect_1 {\seq} \effect_2) {=} } 
 \begin{cases}
-      \code{\code{fst^\prime(  \es_1)} \cup \code{fst^\prime(  \es_2)} } \quad & \code{ if\ \delta(\es_1) {=} true}\\
-      \code{\code{fst^\prime(  \es_1)}} & \code{  if\ \delta(\es_1) {=} false}
+      \code{\code{fst^\prime(  \effect_1)} \cup \code{fst^\prime(  \effect_2)} } \quad & \code{ if\ \delta(\effect_1) {=} true}\\
+      \code{\code{fst^\prime(  \effect_1)}} & \code{  if\ \delta(\effect_1) {=} false}
     \end{cases} 
     }
 \end{gather*}
@@ -1664,30 +1685,29 @@ the real-time bounds constructor \code{\#}. Next, we define the novel  \emph{Fir
 %but helps to build up our \emph{First} function \code{fst}. 
 
 \begin{definition}[First]\label{First}
-Let \code{fst_{\pure{\pi}}(\es){:=}\{ (I,  \pi, t) \ |\  \pi {\wedge} t{\geq}0 : (I\# t) \cdot \es^\prime \in \llbracket  \pi {:} \es \rrbracket \}} be the set of initial time instances derivable from effects \code{\pi {:} \es}. (\code{\llbracket  \pi {:} \es \rrbracket } represents all the time  traces contained in \code{\pi {:} \es}) 
+Let \code{fst_{\pure{\pi}}(\effect){:=}\{ (I,  \pi, t) \ |\  \pi {\wedge} t{\geq}0 : (I\# t) \cdot \effect^\prime \in \llbracket  \pi {:} \effect \rrbracket \}} be the set of initial time instances derivable from effects \code{\pi {:} \effect}. (\code{\llbracket  \pi {:} \effect \rrbracket } represents all the time  traces contained in \code{\pi {:} \effect}) 
 { 
  \begin{gather*} 
 \code{fst_{\pure{\pi}}( \bott) {=} \_ } \qquad\quad
 \code{fst_{\pure{\pi}}(\empt) {=} \_ } \qquad\quad
 \code{fst_{\pure{\pi}}( I ) {=} \{ (I, \pi {\wedge} t{\geq}0, t) \}  \ (t\ is\ fresh)} 
 \qquad\quad
-   \code{fst_{\pure{\pi}}(  \es \# t) {=}  fst_{pi}(\es)}
+   \code{fst_{\pure{\pi}}(  \effect \# t) {=}  fst_{pi}(\effect)}
  \\
-\code{fst_{\pure{\pi}}( \esn{\es}{\star} ) {=} fst_{\pure{\pi}}({ \es})}
+\code{fst_{\pure{\pi}}( {\effect^\star} ) {=} fst_{\pure{\pi}}({ \effect})}
 \qquad\quad
-\code{fst_{\pure{\pi}}( \esn{\es}{\omega} ) {=} fst_{\pure{\pi}}({ \es})} 
 \qquad\quad
-\code{fst_{\pure{\pi}}(  \es_1 {\vee} \es_2) {=} fst_{\pure{\pi}}(  \es_1) \cup fst_{\pure{\pi}}(  \es_2)  }  \\
+\code{fst_{\pure{\pi}}(  \effect_1 {\vee} \effect_2) {=} fst_{\pure{\pi}}(  \effect_1) \cup fst_{\pure{\pi}}(  \effect_2)  }  \\
 \code{fst_{\pure{\pi}}( \textbf{S}? ) {=} fst_{\pure{\pi}}( \{\textbf{S}\} ) \cup fst_{\pure{\pi}}( \{ \overline{\textbf{S}} \} ) }
     \qquad\qquad\quad
-   \code{fst_{\pure{\pi}}(  \es_1 {||} \es_2) {=} unify \ 
-    (fst_{\pure{\pi}}(  \es_1)) \  (fst_{\pure{\pi}}(  \es_2))  }  
+   \code{fst_{\pure{\pi}}(  \effect_1 {||} \effect_2) {=} unify \ 
+    (fst_{\pure{\pi}}(  \effect_1)) \  (fst_{\pure{\pi}}(  \effect_2))  }  
    \\
 {
-\code{fst_{\pure{\pi}}(\es_1 {\seq} \es_2) {=} } 
+\code{fst_{\pure{\pi}}(\effect_1 {\seq} \effect_2) {=} } 
 \begin{cases}
-      \code{\code{fst_{\pure{\pi}}(  \es_1)} \cup \code{fst_{\pure{\pi}}(  \es_2)} } & \code{ if\ \delta(\es_1) {=} true}\\
-      \code{\code{fst_{\pure{\pi}}(  \es_1)}} & \code{  if\ \delta(\es_1) {=} false}
+      \code{\code{fst_{\pure{\pi}}(  \effect_1)} \cup \code{fst_{\pure{\pi}}(  \effect_2)} } & \code{ if\ \delta(\effect_1) {=} true}\\
+      \code{\code{fst_{\pure{\pi}}(  \effect_1)}} & \code{  if\ \delta(\effect_1) {=} false}
     \end{cases} 
     }  
 \end{gather*}
@@ -1721,9 +1741,9 @@ Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we d
 
 \begin{definition}[Partial Derivative\footnote{Intuitively, the partial derivative refers to the left quotient of a language equation, for example, for REs, \code{x^{{-}1} \llbracket x\cdot y\rrbracket {=} y};  \code{y^{{-}1} \llbracket x\cdot y\rrbracket {=} \bott}; and  \code{y^{{-}1} \llbracket x + y\rrbracket {=} \epsilon}. Here we come up with a new notion of partial derivative for \timedEffects. 
 }]\label{Derivative}
-The partial derivative \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\es)} 
-of effects \code{\pi : \es} 
-w.r.t. a event \code{(I, \pi^\prime, t^\prime)} computes the  effects for the left quotient \code{(I, \pi^\prime, t^\prime)^{\text{-}1}\llbracket \pi : \es \rrbracket}. \footnote{For understanding of the derivative rule for \code{es\# t} (cf. \tabref{tab:rewriting_tree_send}  step \textcircled{3}), it is essentially splitting \code{\es} with a head and a tail, bound with fresh terms \code{t_1} and \code{t_2} respectively. Meanwhile it unifies \code{t_1} with \code{t^\prime} and  adds the constraint \code{t_1 {+} t_2 {=} t}.}
+The partial derivative \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\effect)} 
+of effects \code{\pi : \effect} 
+w.r.t. a event \code{(I, \pi^\prime, t^\prime)} computes the  effects for the left quotient \code{(I, \pi^\prime, t^\prime)^{\text{-}1}\llbracket \pi : \effect \rrbracket}. \footnote{For understanding of the derivative rule for \code{\effect\# t} (cf. \tabref{tab:rewriting_tree_send}  step \textcircled{3}), it is essentially splitting \code{\effect} with a head and a tail, bound with fresh terms \code{t_1} and \code{t_2} respectively. Meanwhile it unifies \code{t_1} with \code{t^\prime} and  adds the constraint \code{t_1 {+} t_2 {=} t}.}
 %\footnote{As the reader may notice, our First and Derivative function does not handle the timed sequences constructed by \code{||}, as the synchronous parallel is reduced during the normalization phase.}
 \begin{gather*}
 \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\bott) {=}}  
@@ -1732,27 +1752,26 @@ w.r.t. a event \code{(I, \pi^\prime, t^\prime)} computes the  effects for the le
 \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \empt) {=}}   
 \code{False : \bott} 
 \qquad \ 
-\code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(es_1 || es_2)} {=} \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(es_1)} || \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}( es_2)} 
+\code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\effect_1 ||\effect_2)} {=} \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\effect_1)} || \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\effect_2)} 
     \\
-        \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \esn{\es}{\star}) } {=} \code{ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  {\es}) \cdot (\esn{\es}{\star})}  
+        \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  {\effect^\star}) } {=} \code{ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  {\effect}) \cdot ({\effect^\star})}  
         \qquad\qquad
-                \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \esn{\es}{\omega}) } {=} \code{ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  {\es}) \cdot (\esn{\es}{\omega})}  
 \\
 {
- \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(   \es_1 \seq \es_2) {=} }
+ \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(   \effect_1 \seq \effect_2) {=} }
 \begin{cases}
-      \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(   \es_1) \cdot  \es_2 \vee  D^{\pi}_{(I, \pi^\prime, t^\prime)}( \es_2)} \quad &\code{if\ \delta(\es_1) {=} true}   \\
-      \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}  ( \es_1) \cdot  \es_2} & \code{if\ \delta(\es_1) {=} false} 
+      \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(   \effect_1) \cdot  \effect_2 \vee  D^{\pi}_{(I, \pi^\prime, t^\prime)}( \effect_2)} \quad &\code{if\ \delta(\effect_1) {=} true}   \\
+      \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}  ( \effect_1) \cdot  \effect_2} & \code{if\ \delta(\effect_1) {=} false} 
     \end{cases} 
     }
  \\
-\code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \es_1 \choice \es_2) } {=} \code{ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \es_1) \choice D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \es_2)} 
+\code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \effect_1 \choice \effect_2) } {=} \code{ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \effect_1) \choice D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \effect_2)} 
 %\\
-%\code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \es_1 \ ||\  \es_2) } {=} \code{ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \es_1) \ ||\ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \es_2)} 
+%\code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \effect_1 \ ||\  \effect_2) } {=} \code{ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \effect_1) \ ||\ D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \effect_2)} 
 \\
-\code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \es \# t) } {=}
+\code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(  \effect \# t) } {=}
 \code{
-\pi \wedge(t_1{+} t_2 {=}t) \wedge (t_1{=}t^\prime) : (D^{\pi}_{(I, \pi^\prime, t^\prime)}(\es))\# t_2} \ \ \ 
+\pi \wedge(t_1{+} t_2 {=}t) \wedge (t_1{=}t^\prime) : (D^{\pi}_{(I, \pi^\prime, t^\prime)}(\effect))\# t_2} \ \ \ 
 \code{(fresh \ t_1\ t_2 )}
 \\
 \code{D^{\pi}_{(I, \pi^\prime, t^\prime)}(\textbf{S}?)} {=} \code{\pi: \empt\ (}\code{ I {\subseteq} \{\textbf{S}\})}
@@ -1825,19 +1844,19 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 %\vspace{0mm}
 %\begin{tabular}{l || l || l}
 %\hline
-%  \code{\es \choice \es \rightarrow \es} 
-%  &\code{\bott \cdot \es \rightarrow \bott }  
+%  \code{\effect \choice \effect \rightarrow \effect} 
+%  &\code{\bott \cdot \effect \rightarrow \bott }  
 %  &
 % 
 %  
 %\\ \hline
 %
-%  \code{\bott \choice \es \rightarrow \es } & \code{ \es  \cdot \bott \rightarrow \bott }  &
+%  \code{\bott \choice \effect \rightarrow \effect } & \code{ \effect  \cdot \bott \rightarrow \bott }  &
 %
-%\code{ (\es_1 \cdot \es_2) \cdot \es_3 \rightarrow \es_1 \cdot (\es_2 \cdot \es_3)}
+%\code{ (\effect_1 \cdot \effect_2) \cdot \effect_3 \rightarrow \effect_1 \cdot (\effect_2 \cdot \effect_3)}
 %\\ \hline
 %
-%\code{ \es \choice \bott \rightarrow \es }
+%\code{ \effect \choice \bott \rightarrow \effect }
 %&\code{\bott ^\star \rightarrow \empt}
 %& 
 %
@@ -1846,7 +1865,7 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 %\\ \hline
 %
 %
-% \code{\empt \cdot \es  \rightarrow \es }
+% \code{\empt \cdot \effect  \rightarrow \effect }
 % &  \code{\epsilon^\star \rightarrow \epsilon}
 % &  
 %
@@ -1854,8 +1873,8 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 %\\ \hline
 %
 %
-%\code{ \es \cdot \empt \rightarrow \es}
-%& \code{(\empt \vee \es)^\star \rightarrow \es^\star}
+%\code{ \effect \cdot \empt \rightarrow \effect}
+%& \code{(\empt \vee \effect)^\star \rightarrow \effect^\star}
 %& \code{ }
 %
 % 
@@ -1884,37 +1903,37 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 \begin{tabular}{||l|l}
 \hline
 (A1)  &
-\code{\es_1 \vee (\es_2 \vee \es_3) \rightarrow   (\es_1 \vee \es_2) \vee \es_3 }\\
+\code{\effect_1 \vee (\effect_2 \vee \effect_3) \rightarrow   (\effect_1 \vee \effect_2) \vee \effect_3 }\\
 \hline
 (A2)  &
-\code{\es_1 \cdot (\es_2 \cdot \es_3)\rightarrow     (\es_1 \cdot \es_2) \cdot \es_3 }\\
+\code{\effect_1 \cdot (\effect_2 \cdot \effect_3)\rightarrow     (\effect_1 \cdot \effect_2) \cdot \effect_3 }\\
 \hline
 (A3)  &
-\code{\es_1 \vee \es_2 \rightarrow   \es_2 \vee \es_1 }\\
+\code{\effect_1 \vee \effect_2 \rightarrow   \effect_2 \vee \effect_1 }\\
 \hline
 (A4)  &
-\code{\es \cdot (\es_1 \vee \es_2)  \rightarrow \es \cdot \es_1  \vee \es \cdot \es_2 }\\
+\code{\effect \cdot (\effect_1 \vee \effect_2)  \rightarrow \effect \cdot \effect_1  \vee \effect \cdot \effect_2 }\\
 \hline
 (A5)  &
- \code{(\es_1 \vee \es_2)\cdot \es   \rightarrow \es_1 \cdot \es   \vee  \es_2 \cdot \es}\\
+ \code{(\effect_1 \vee \effect_2)\cdot \effect   \rightarrow \effect_1 \cdot \effect   \vee  \effect_2 \cdot \effect}\\
 \hline
 (A6)  &
- \code{\es \vee \es   \rightarrow \es}\\
+ \code{\effect \vee \effect   \rightarrow \effect}\\
 \hline
 (A7)  &
- \code{  \es \cdot \epsilon   \rightarrow \es}\\
+ \code{  \effect \cdot \epsilon   \rightarrow \effect}\\
 \hline
 (A8)  &
- \code{  \es \cdot  \bot \rightarrow \bot}\\
+ \code{  \effect \cdot  \bot \rightarrow \bot}\\
 \hline
 (A9)  &
- \code{\es \vee \bot   \rightarrow \es}\\
+ \code{\effect \vee \bot   \rightarrow \effect}\\
 \hline
 (A10)  &
- \code{\epsilon \vee (\es \cdot \es^\star)   \rightarrow  \es^\star}\\
+ \code{\epsilon \vee (\effect \cdot \effect^\star)   \rightarrow  \effect^\star}\\
 \hline
 (A11)  &
- \code{(\epsilon \vee \es)^\star   \rightarrow  \es^\star}\\
+ \code{(\epsilon \vee \effect)^\star   \rightarrow  \effect^\star}\\
 \hline
 
 
@@ -1931,22 +1950,22 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 \code{\bot^\omega  \rightarrow \bot }\\
 \hline
 (A13)  &
-\code{\es^\omega \cdot \es_1 \rightarrow \es^\omega }\\
+\code{\effect^\omega \cdot \effect_1 \rightarrow \effect^\omega }\\
 \hline
 (A14)  &
 \code{\epsilon^\omega \rightarrow \bot }\\
 \hline
 (A15)  &
-\code{ \es\ ||\ \empt \rightarrow \es}\\
+\code{ \effect\ ||\ \empt \rightarrow \effect}\\
 \hline
 (A16)  &
-\code{ \es\ ||\ \bott \rightarrow \bott}\\
+\code{ \effect\ ||\ \bott \rightarrow \bott}\\
 \hline
 (A17)  &
- \code{(I\# t) \cdot \es_1\ ||\ J \cdot\es_2 \rightarrow ((I  {\cup} J) \# t) \cdot (\es_1 || \es_2)}\\
+ \code{(I\# t) \cdot \effect_1\ ||\ J \cdot\effect_2 \rightarrow ((I  {\cup} J) \# t) \cdot (\effect_1 || \effect_2)}\\
 \hline
 (A18)  &
-\code{\pi : (\es \# t_1 ) \# t_2 \rightarrow \pi  \wedge (t_1 {=} t_2) : \es \# t_1 }\\
+\code{\pi : (\effect \# t_1 ) \# t_2 \rightarrow \pi  \wedge (t_1 {=} t_2) : \effect \# t_1 }\\
 \hline
 (A19)  &
  \code{\empt \# t \rightarrow \empt}\\
@@ -1955,13 +1974,13 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
  \code{\bot \# t \rightarrow  \bott}\\
 \hline
 (A21)  &
- \code{{\pure{False}} : \es \rightarrow {\pure{False}} : \bott}\\
+ \code{{\pure{False}} : \effect \rightarrow {\pure{False}} : \bott}\\
 \hline
 (A22)  &
  \code{{\pi} : \bott \rightarrow {\pure{False}} : \bott}\\
 \hline
- %\code{\es \choice \es \rightarrow \es} 
-%  &\code{\bott \cdot \es \rightarrow \bott }  
+ %\code{\effect \choice \effect \rightarrow \effect} 
+%  &\code{\bott \cdot \effect \rightarrow \bott }  
 %  &
 
 
@@ -2512,14 +2531,14 @@ For each inference rules, if inclusions in their premises are valid, and their s
 
 \item \textbf{Disprove Rules:} 
 \input{rules/rule2}
-- It's straightforward to prove soundness of the rule \codeme{[DISPROVE]}, Given that \codeme{ \es1} is nullable, while \codeme{ \es_2} is not nullable, thus clearly the antecedent contains more event traces than the consequent.  Therefore, these entailments are evidently invalid.\\
+- It's straightforward to prove soundness of the rule \codeme{[DISPROVE]}, Given that \codeme{ \effect1} is nullable, while \codeme{ \effect_2} is not nullable, thus clearly the antecedent contains more event traces than the consequent.  Therefore, these entailments are evidently invalid.\\
 
 
 \item \textbf{Prove Rules:} 
 \input{rules/rule3}
-- To prove soundness of the rule \code{[PROVE]}, we consider an arbitrary model, \codeme{d,  \varphi} such that:  \codeme{d,  \varphi \models  {\pi_1 : \es_1}}. Given the side conditions from the promises, we get \codeme{d,  \varphi \models {\pi_2 : \es_1}}. When the \code{\m{fst}} set of \code{\es_1} is empty, \code{\es_1} is possible \code{\bot} or \code{\epsilon}; and \code{\es_2} is nullable. For both cases, the inclusion is valid. 
+- To prove soundness of the rule \code{[PROVE]}, we consider an arbitrary model, \codeme{d,  \varphi} such that:  \codeme{d,  \varphi \models  {\pi_1 : \effect_1}}. Given the side conditions from the promises, we get \codeme{d,  \varphi \models {\pi_2 : \effect_1}}. When the \code{\m{fst}} set of \code{\effect_1} is empty, \code{\effect_1} is possible \code{\bot} or \code{\epsilon}; and \code{\effect_2} is nullable. For both cases, the inclusion is valid. 
 
-- To prove soundness of the rule \codeme{[REOCCUR]}, we consider an arbitrary model, \codeme{d,  \varphi} such that:  \codeme{d,  \varphi \models  {\pi_1 : \es_1}}. Given the promises that  \codeme{\pi_1 : \es_1 \CONTAIN \pi_3 : \es_3}, we get \codeme{d,  \varphi \models {\pi_3 : \es_3}}; Given the promise that there exists a hypothesis \codeme{\pi_3 : \es_3 \CONTAIN  \pi_4 : \es_4}, we get \codeme{d,  \varphi \models {\pi_4 : \es_4}}; Given the promises that  \codeme{\pi_4 : \es_4 \CONTAIN \pi_2 : \es_2}, we get \codeme{d,  \varphi \models {\pi_2 : \es_2}}. Therefore,  the inclusion is valid. 
+- To prove soundness of the rule \codeme{[REOCCUR]}, we consider an arbitrary model, \codeme{d,  \varphi} such that:  \codeme{d,  \varphi \models  {\pi_1 : \effect_1}}. Given the promises that  \codeme{\pi_1 : \effect_1 \CONTAIN \pi_3 : \effect_3}, we get \codeme{d,  \varphi \models {\pi_3 : \effect_3}}; Given the promise that there exists a hypothesis \codeme{\pi_3 : \effect_3 \CONTAIN  \pi_4 : \effect_4}, we get \codeme{d,  \varphi \models {\pi_4 : \effect_4}}; Given the promises that  \codeme{\pi_4 : \effect_4 \CONTAIN \pi_2 : \effect_2}, we get \codeme{d,  \varphi \models {\pi_2 : \effect_2}}. Therefore,  the inclusion is valid. 
 \\
 
 
@@ -2527,14 +2546,14 @@ For each inference rules, if inclusions in their premises are valid, and their s
 \input{rules/rule4}
 
 
-- To prove soundness of the rule \codeme{[UNFOLD]}, we consider an arbitrary model, \codeme{d_1,  \varphi_1} and \codeme{d_2,  \varphi_2}  such that:  \codeme{d_1,  \varphi_1 \models {\pi_1 : \es_1}} and \codeme{d_2,  \varphi_2 \models  {\pi_2 : \es_2}}. For an arbitrary event \codeme{(I, \pi, t)}, let \codeme{d_1^\prime, {\varphi_1}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket  \pi_1: \es_1 \rrbracket}; and 
-\codeme{d_2^\prime, {\varphi_2}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket \pi_2 : \es_2 \rrbracket}. 
+- To prove soundness of the rule \codeme{[UNFOLD]}, we consider an arbitrary model, \codeme{d_1,  \varphi_1} and \codeme{d_2,  \varphi_2}  such that:  \codeme{d_1,  \varphi_1 \models {\pi_1 : \effect_1}} and \codeme{d_2,  \varphi_2 \models  {\pi_2 : \effect_2}}. For an arbitrary event \codeme{(I, \pi, t)}, let \codeme{d_1^\prime, {\varphi_1}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket  \pi_1: \effect_1 \rrbracket}; and 
+\codeme{d_2^\prime, {\varphi_2}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket \pi_2 : \effect_2 \rrbracket}. 
 
-Case 1), \codeme{\codeme{(I, \pi, t)} \notin F}, \codeme{d_1^\prime, {\varphi_1}^\prime \models \bott}, thus automatically \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)};
+Case 1), \codeme{\codeme{(I, \pi, t)} \notin F}, \codeme{d_1^\prime, {\varphi_1}^\prime \models \bott}, thus automatically \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \effect_2)};
 
-Case 2), \codeme{\codeme{(I, \pi, t)} \in F}, given that inclusions in the rule's premise is valid, then \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)}. 
+Case 2), \codeme{\codeme{(I, \pi, t)} \in F}, given that inclusions in the rule's premise is valid, then \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \effect_2)}. 
 
-By \defref{Inclusion}, since for all \codeme{(I, \pi, t)}, \codeme{D^{\pi_1}_{\codeme{(I, \pi, t)}} (\es_1) \CONTAIN    D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)}, the conclusion is valid. 
+By \defref{Inclusion}, since for all \codeme{(I, \pi, t)}, \codeme{D^{\pi_1}_{\codeme{(I, \pi, t)}} (\effect_1) \CONTAIN    D^{\pi_2}_{\codeme{(I, \pi, t)}}( \effect_2)}, the conclusion is valid. 
 \\
 
 \end{enumerate}
