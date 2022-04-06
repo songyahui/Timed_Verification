@@ -67,7 +67,7 @@
 \usepackage{adjustbox}
 \usepackage{ebproof}
 \usepackage{cancel}
-\newcommand{\env}{\code{\mathcal{S}}}
+\newcommand{\env}{\code{\mathcal{V}}}
 
 \newcommand{\timedEffects}{\emph{TimEffs}}
 \usepackage{xcolor}
@@ -888,16 +888,17 @@ then it behaves as \code{e}, else it idles until \code{b} becomes true;
 %data structure allocation \code{\textbf{new}\ d({v^*})},  
 %local variable declaration \code{\alpha; e}, 
 method calls \code{mn({x^*})}; 
-variable assignments \code{\alpha}; 
+%variable assignments \code{\alpha}; 
 %field update \code{v.f:=e}, 
 expression sequences \code{e_1;e_2};
 parallel composition \code{e_1 || e_2}, where \code{e_1} and \code{e_2} 
-may communicate via multi-party event synchronization or shared variables. 
-%conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}. 
-The expression \code{ \textbf{event} [\anyevent{A}(v)] } 
-raises an event \anyevent{A} parametrized with \code{v}. 
-%and takes a set of 
-%assignment actions \code{(x:=v)^*}. 
+may communicate via multi-party event synchronization or shared variables; 
+conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}. 
+
+The expression \code{ \textbf{event} [\anyevent{A}(v,  \alpha^*)] } 
+raises an event \anyevent{A} parametrized with \code{v}, 
+and takes a set of 
+assignment actions \code{\alpha^*}. 
 Furthermore, a number of timed process constructs can be used to capture common 
 real-time system behavior patterns. Without loss of generality, we 
 assume d is a non-negative integer constant.  $\textbf{delay} [d]$ idles for exactly $d$ 
@@ -940,16 +941,15 @@ Process $\textbf{deadline} [d]\ e$ constrains $e$ to terminate before $d$ time u
   \\
   \m{(Expressions)} &  \code{e}&\code{  ::= }&
     \code{ v \ | \ 
-    \alpha  \ | \ 
     [b]\ e \ |\ mn({v^*}) \ }
   \code{| 
  % v.f:=e \ | 
  \ e_1;e_2\ | \ e_1 || e_2 \ 
- % |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
- |\ \textbf{event} [\anyevent{A}(v)] 
+  |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
  }  \\
 
  &   & & \code{
+  |\ \textbf{event} [\anyevent{A}(v, \alpha^*)] 
   | \ \textbf{delay} [d] \ 
   | \ e_1\ \textbf{timeout} [d] \  e_2 \ 
   | \ \textbf{deadline}  [d] \ e \  
@@ -982,8 +982,7 @@ Process $\textbf{deadline} [d]\ e$ constrains $e$ to terminate before $d$ time u
 
 
 
-We remark additional process constructs (e.g. if-then-else, while, etc.) 
-can be defined using the above. In this setting, clock variables are 
+In this setting, clock variables are 
 made implicit and hence they cannot be compared with each other 
 directly, which potentially allows efficient clock manipulation and 
 hence system verification.
@@ -1261,7 +1260,7 @@ the effects \code{\effect} take exactly \code{d} time units to complete;
 the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
 temporal effects \code{\effect}, with \code{d}, \code{s}, \code{\varphi} 
 from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}}, 
-\code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{[ev]} \ .
+\code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{ev^*} \ .
 
 As shown in \figref{fig:Sementic}, we define the semantics of our effects. 
 We use $\lappend$ to represent the append operation of two event sequences. 
@@ -1327,7 +1326,8 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 & & &  \code{\llbracket \pure{\pi}, t {>} 0 \rrbracket_{s} {=}  
 \pure{True} }, 
 \  \exists \code{\es_1,\es_2}. \  \code{ es_1 {\cdot}  es_2 {=} es}\\
-&&& \qquad  s.t. \ \code{d, s, \varphi {\models} \pure{(\pi {\wedge}t_1{+} t_2{=}t)}  , 
+&&& \qquad  s.t. \ \code{d, s, \varphi {\models} \pure{(\pi 
+{\wedge} t_1{\geq}0{\wedge}t_2{\geq}0 {\wedge} t_1{+} t_2{=}t)}  , 
 (es_1\#t_1) {\cdot} (es_2\#t_2) } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    star         %%
@@ -1472,16 +1472,43 @@ The inputs of the forward verifier are HipHop.js programs annotated with tempora
 The input of the TRS is a pair of effects LHS and RHS, referring to the inclusion LHS \code{\CONTAIN} RHS to be checked 
 \textit{(LHS refers to left-hand side effects, and RHS refers to right-hand side effects.)}. Besides, the verifier calls the TRS to prove produced inclusions, i.e., between the effects states and pre/post conditions or assertions (cf. \figref{fig:forward_example}). The TRS will be explained in \secref{sec:Entailment_Prover}. 
 
+\newcommand{\s}[1]{\code{\{ #1\}}}
 
 
 
-In this section, we give an axiomatic semantics model\footnote{Based on the operational semantics of Esterel and JavaScript's asynchrony formally defined in \cite{berry1992esterel} and  \cite{madsen2017model} respectively.} for the core language \code{\timedL}, by formalising a set of forward inductive rules. 
+
+
+
+ 
+
+\subsection{Forward Inference Rules}
+\label{Forward_Rules}
+
+
+We here present the forward verification rules, s
+which are used to systematically accumulate the effects based on 
+the syntax of each statement.
+\code{\mathcal{P}} denotes the program being checked. 
+With pre/post conditions declared for each method in \code{\mathcal{P}}, 
+we can apply modular verification to a method's body using Hoare-style 
+triples \code{ \Pi, \env \vdash \s{ \effect_c} \ e\ \s{\effect_c^\prime}}
+where 
+\code{\Pi} is the current guard, 
+\code{\env} is the current valuation of the variables;
+\code{\effect_c} is the current effects, 
+and \code{ \effect_C^\prime}
+is the resulting effects by executing \code{e}. 
+
+
+\begin{comment}
+  In this section, we give an axiomatic semantics model\footnote{Based on the operational semantics of Esterel and JavaScript's asynchrony formally defined in \cite{berry1992esterel} and  \cite{madsen2017model} respectively.} for the core language \code{\timedL}, by formalising a set of forward inductive rules. 
 These rules transfer program states and systematically accumulate the effects syntactically. 
-To define the model, we introduce a stack \env\ and describe a program state in a four-elements tuple \code{\langle \Pi, H, T \rangle}, with the following concrete domains:
+
+To define the model, we introduce a stack \env\ and describe 
+a program state in a four-elements tuple \s{H, G}, with the following concrete domains:
 \begin{flalign*}
-\Pi {\defeq} t {\rightarrow} \pi, \qquad\qquad
+G {\defeq} \pi, \qquad\qquad
 H  {\defeq} es, \qquad\qquad
-T {\defeq} t, \qquad\qquad
 \env {\defeq} \code{var {\rightarrow} val }
 \end{flalign*}
 
@@ -1491,34 +1518,48 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 
 
 
-%We describe the input and output histories of ESTEREL programs by streams carrying sets of signals.
+  v \ | \ 
+    [b]\ e \ |\ mn({v^*}) \ }
+  \code{| 
+ % v.f:=e \ | 
+ \ e_1;e_2\ | \ e_1 || e_2 \ 
+  |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
+ }  \\
 
-%which is used for the description of a reactive program. 
+ &   & & \code{
+  |\ \textbf{event} [\anyevent{A}(v, \alpha^*)] 
+  | \ \textbf{delay} [d] \ 
+  | \ e_1\ \textbf{timeout} [d] \  e_2 \ 
+  | \ \textbf{deadline}  [d] \ e \  
+\end{comment}
 
-%The main difficulty in giving a semantics to \code{\timedL} consists in the idea of instantaneous reactions of ESTEREL programs to input signals. 
-
-%We base this semantics on a functional model of behaviour. We describe the input and output histories of ESTEREL programs by streams carrying sets of signals.
-
-
-%we mainly present the forward verifier
-% based on the syntax of each statement. 
-
-%We present the intermediate representation of program states in \figref{fig:intermediate_representation}
-
-
-
-
-%\noindent   the second element represents the  containing the path constraints (\code{\pi}) and signal assignments (\code{\phi})\footnote{The difference between \code{\textbf{S} = \theta} and \code{\textbf{S} \mapsto \theta } is: the former one denotes the constraints along the execution path, which creates \emph{false} if there are two different status assignments to the same signal; while the latter one records the current status of one signal, and will be overwritten when the presence of a signal had been determined.}; 
-
-
-
-
-\subsection{Forward Inference Rules}
-\label{Forward_Rules}
-
+\begin{gather*}
+  \code{\frac{\effect_C^\prime {=} \effect_C\cdot \anyevent{a}}{\vdash \{  \effect_C \}\  \textbf{event} [\anyevent{a}] \ \{ \effect_C^\prime \}} \   {[FV\text{-}Event]}} 
+  \qquad
+  \code{\frac{\vdash \{ \effect_C\}\ e_1 \ \{  \effect_C^\prime\} \qquad \vdash \{  \effect_C^\prime\}\ e_2 \ \{  \effect_C^{\prime\prime}\} }{\vdash \{  \effect_C\}\  e_1;e_2 \ \{  \effect_C^{\prime\prime}\}} \  {[FV\text{-}Seq]}}  
+\end{gather*}
      
 
 
+
+\begin{gather*}
+\code{\frac{ \vdash \{  v \wedge \effect_C  \} \ e_1 \ \{  \effect_C^{\prime}\} \qquad \vdash \{ \neg v \wedge \effect_C \} \ e_2 \ \{  \effect_C^{\prime\prime}\}  }
+{\vdash \{  \effect_C\}\  \textbf{if}\ v\ \textbf{then}\ e_1\ \textbf{else}\ e_2 \ \{  \effect_C^{\prime} \vee\effect_C^{\prime\prime} \} } \  {[FV\text{-}If\text{-}Else]}} 
+\end{gather*}
+
+\begin{gather*}
+\code{\frac{
+\begin{matrix}
+\text{\code{  \tau \ mn  \ {( \tau\ x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
+\\
+\text{\code{\vdash rev( \effect_C) \CONTAIN rev([y^*/x^*] \effect_{pre})   \qquad   \effect_C^\prime =  \effect_C \cdot  [y^*/x^*]\effect_{post}}}
+\end{matrix}}
+{\vdash \{  \effect_C \} \  mn({y^*})  \ \{  \effect_C^\prime\}} \ {[FV\text{-}Call]}}
+\end{gather*}
+
+\begin{gather*}
+\code{\frac{  \vdash \{  \empt \}  \ e \  \{ \effect_C \} \qquad\qquad  \vdash\effect_C \CONTAIN   \effect_{post}}{  \vdash \tau \ mn  \ {( \tau\ x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \}} \ {[FV\text{-}Meth]}}  
+\end{gather*}
 
 
 \section{Temporal Verification via a TRS}
