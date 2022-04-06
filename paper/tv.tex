@@ -1477,14 +1477,15 @@ the syntax of each statement.
 \code{\mathcal{P}} denotes the program being checked. 
 With pre/post conditions declared for each method in \code{\mathcal{P}}, 
 we can apply modular verification to a method's body using Hoare-style 
-triples \code{\ \vdash \s{ \effect, \Pi, \env } \ e\ \s{\effect^\prime, \Pi^\prime, \env^\prime}}
+triples \code{\ \vdash \s{ \effect, \Pi } \ e\ 
+\s{\effect^\prime, \Pi^\prime}}
 where 
 \code{\effect} is the current effects, 
 \code{\Pi} is the current guard, 
-\code{\env} is the current valuation of the variables;
-and \s{\effect^\prime, \Pi^\prime, \env^\prime}  
+%\code{\env} is the current valuation of the variables;
+and \s{\effect^\prime, \Pi^\prime}  
 is the resulting state by executing \code{e}. 
-The program state is initialized using \s{\epsilon, True, []}. 
+The program state is initialized using \s{\epsilon, True}. 
 
 
 \begin{comment}
@@ -1505,83 +1506,131 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 
 
 
-     \ |\ mn({v^*}) \ }
-
-  |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
- }  \\
-
- &   & & \code{
-  |\ \textbf{event} [\anyevent{A}(v, \alpha^*)] 
-  | \ \textbf{delay} [d] \ 
-  | \ e_1\ \textbf{timeout} [d] \  e_2 \ 
-  | \ \textbf{deadline}  [d] \ e \  
 \end{comment}
 
 \begin{gather*}
   \code{\frac{
   }
-{  \vdash \{  \effect,\Pi, \env \}\  v \ 
-\{ \effect, \Pi, \env \}} \  
+{  \vdash \{  \effect,\Pi \}\  v \ 
+\{ \effect, \Pi \}} \  
  {[FV\text{-}Value]}} 
  \qquad
  \code{\frac{
   }
-{  \vdash \{  \effect, \Pi, \env \}\  [b]\ e \ 
-\{ \effect, \Pi{\wedge} b, \env  \}} \  
+{  \vdash \{  \effect, \Pi \}\  [b]\ e \ 
+\{ \effect, \Pi{\wedge} b  \}} \  
  {[FV\text{-}Guard]}} 
 \end{gather*}
 
 
 \begin{gather*}
   \code{\frac{ 
- \vdash \{ \effect, \Pi, \env\}\ e_1 \ \{  \effect^\prime, \Pi^\prime, \env^\prime\} 
+ \vdash \{ \effect, \Pi\}\ e_1 \ \{  \effect^\prime, \Pi^\prime\} 
 \qquad 
-\vdash \{ \effect^\prime, \Pi^\prime, \env^\prime\}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime}, \env^{\prime\prime} \} 
+\vdash \{ \effect^\prime, \Pi^\prime\}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime} \} 
 }{
-  \vdash \{  \effect, \Pi, \env \}\  
-  e_1;e_2 \ \{ \effect^{\prime\prime}, \Pi^{\prime\prime}, 
-  \env^{\prime\prime}\}} \ 
+  \vdash \{  \effect, \Pi \}\  
+  e_1;e_2 \ \{ \effect^{\prime\prime}, \Pi^{\prime\prime}
+  \}} \ 
    {[FV\text{-}Seq]}}  
 \end{gather*}
 
 
 \begin{gather*}
   \code{\frac{
- \vdash \{ \effect, \Pi, \env \}\ e_1 \ \{  \effect^\prime, \Pi^\prime, \env^\prime\} 
+ \vdash \{ \effect, \Pi \}\ e_1 \ \{  \effect^\prime, \Pi^\prime\} 
 \qquad 
-\vdash \{  \effect, \Pi, \env \}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime}, \env^{\prime\prime} \} 
+\vdash \{  \effect, \Pi \}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime} \} 
     }{
-\vdash \{   \effect, \Pi, \env \}\  e_1 || e_2 \ \{ \effect^\prime || \effect^{\prime\prime}, 
-\Pi^{\prime} {\wedge}\Pi^{\prime\prime}, 
+\vdash \{   \effect, \Pi \}\  e_1 || e_2 \ \{ \effect^\prime || \effect^{\prime\prime}, 
+\Pi^{\prime} {\wedge}\Pi^{\prime\prime}
 \}} \   
 {[FV\text{-}Par]}} 
 \end{gather*}
-     
-
-\begin{gather*}
-  \code{\frac{\effect^\prime {=} \effect\cdot \anyevent{a}}{\vdash \{  \effect \}\  \textbf{event} [\anyevent{a}] \ \{ \effect^\prime \}} \   {[FV\text{-}Event]}} 
-\end{gather*}
-     
-
 
 
 \begin{gather*}
-\code{\frac{ \vdash \{  v \wedge \effect  \} \ e_1 \ \{  \effect^{\prime}\} \qquad \vdash \{ \neg v \wedge \effect \} \ e_2 \ \{  \effect^{\prime\prime}\}  }
-{\vdash \{  \effect\}\  \textbf{if}\ v\ \textbf{then}\ e_1\ \textbf{else}\ e_2 \ \{  \effect^{\prime} \vee\effect^{\prime\prime} \} } \  {[FV\text{-}If\text{-}Else]}} 
+  \code{\frac{ 
+    \begin{matrix}
+\vdash \{ \effect, \Pi {\wedge}  v   \} \ e_1 \ \{  \effect^{\prime} , \Pi^\prime \} 
+\qquad \vdash \{ \effect, \Pi {\wedge} \neg v  \} \ e_2 \ 
+\{  \effect^{\prime\prime}, \Pi^{\prime\prime} \}  
+\\ \{  \effect_f, \Pi_f \} {=} \s{ \effect^{\prime} , \Pi^\prime} \cup \s{\effect^{\prime\prime}, \Pi^{\prime\prime}}
+\end{matrix}}
+  {\vdash \s{ \effect, \Pi}\  \textbf{if}\ v\ \textbf{then}\ e_1\ 
+  \textbf{else}\ e_2 \ \{  \effect_f, \Pi_f \} } \  
+  {[FV\text{-}If\text{-}Else]}} 
+  \end{gather*}
+  
+     
+
+\begin{gather*}
+  \code{\frac{
+    \effect^\prime {=} \effect\cdot \anyevent{A}(v, \Pi, \alpha^*) 
+    }
+  {\vdash \s{ \effect, \Pi} \  
+  \textbf{event} [\anyevent{A}(v, \alpha^*)] 
+   \ \{ \effect^\prime, True \}} \   {[FV\text{-}Event]}} 
+   \qquad
+  \code{\frac{
+    \effect^\prime {=} \effect\cdot \epsilon\#t \quad (t\ is\ fresh) 
+    }
+  {\vdash \s{ \effect, \Pi} \  
+  \textbf{delay} [d] 
+   \ \{ \effect^\prime, True \}} \   {[FV\text{-}Delay]}} 
 \end{gather*}
+     
+
+\begin{gather*}
+  \code{\frac{
+    \begin{matrix}
+      \vdash \{ \epsilon, \Pi \}\ e_1 \ \{  \effect^\prime, \Pi^\prime\} 
+      \qquad 
+      \vdash \{  \epsilon, \Pi \}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime} \} 
+      \\
+      \s{\effect_f, \Pi_f} {=} \s{\effect {\cdot}(\effect^\prime\#t), \Pi^\prime {\wedge}t{\leq}d}
+      \cup 
+  \s{\effect {\cdot}(\effect^{\prime\prime}\#t), \Pi^{\prime\prime} {\wedge}t{>}d}   
+  \quad (t\ is\ fresh)     
+\end{matrix}
+  }
+  {\vdash \s{ \effect, \Pi} \  
+  e_1\ \textbf{timeout} [d] \  e_2
+   \ \s{\effect_f, \Pi_f} } \   {[FV\text{-}Timeout]}} 
+\end{gather*}
+
+\begin{gather*}
+  \code{\frac{
+    \begin{matrix}
+      \vdash \{ \epsilon, \Pi \}\ e \ \{  \effect^\prime, \Pi^\prime\} 
+      \qquad 
+      \s{\effect_f, \Pi_f} {=} \s{\effect {\cdot}(\effect^\prime\#t), \Pi^\prime {\wedge}t{\leq}d}
+  \quad (t\ is\ fresh)     
+\end{matrix}
+  }
+  {\vdash \s{ \effect, \Pi} \  
+  \textbf{deadline}  [d] \ e 
+   \ \s{\effect_f, \Pi_f} } \   {[FV\text{-}Deadline]}} 
+\end{gather*}
+
+
+
 
 \begin{gather*}
 \code{\frac{
 \begin{matrix}
-\text{\code{  \tau \ mn  \ {( \tau\ x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
+\text{\code{  mn  \ {x^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
 \\
-\text{\code{\vdash rev( \effect) \CONTAIN rev([y^*/x^*] \effect_{pre})   \qquad   \effect^\prime =  \effect \cdot  [y^*/x^*]\effect_{post}}}
+\text{\code{\vdash  \effect \CONTAIN [v^*/x^*] \effect_{pre}   \qquad   \effect^\prime =  \effect \cdot  [y^*/x^*]\effect_{post}}}
 \end{matrix}}
-{\vdash \{  \effect \} \  mn({y^*})  \ \{  \effect^\prime\}} \ {[FV\text{-}Call]}}
+{\vdash \s{ \effect, \Pi} \ mn({v^*})  \ 
+\{  \effect^\prime,  \Pi\}} \ {[FV\text{-}Call]}}
 \end{gather*}
 
 \begin{gather*}
-\code{\frac{  \vdash \{  \empt \}  \ e \  \{ \effect \} \qquad\qquad  \vdash\effect \CONTAIN   \effect_{post}}{  \vdash \tau \ mn  \ {( \tau\ x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \}} \ {[FV\text{-}Meth]}}  
+\code{\frac{  \vdash \{  \empt, True \} 
+ \ e \  \{ \effect, \Pi \} \qquad\qquad  \vdash\effect \CONTAIN  
+  \effect_{post}}{  \vdash  \ mn  \ {x^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \}} \ {[FV\text{-}Meth]}}  
 \end{gather*}
 
 
