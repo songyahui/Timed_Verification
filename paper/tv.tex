@@ -539,8 +539,8 @@ var x := -1;
 var ct := 0;
 
 void process (int i)
-/* requires d1<d2,  emp 
-   ensures  true, (Update(i)#d1.emp#d2.([x=i]Critical(i).Exit(i) \/ emp))^* */
+/* req  d1<d2,  emp 
+   ens  true, (Update(i)#d1.emp#d2.([x=i]Critical(i).Exit(i) \/ emp))^* */
 {
   [x=-1] 
   deadline (event[Update(i)]{x := i}, d1);
@@ -554,9 +554,9 @@ void process (int i)
 }
 
 void main () 
-/* requires true /\ emp 
-   ensures  true, (!Critical \/ (Critical(i) /\ i=x))^* */
-// ensures  true, (ct <= 1)^*
+/* req true /\ emp 
+   ens  true, (!Critical \/ (Critical(i) /\ i=x))^* */
+// ens  true, (ct <= 1)^*
 { process(0) || process(1) || process(2); }
 \end{lstlisting}  
   \vspace{0mm}
@@ -576,16 +576,16 @@ As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specificatio
       \vspace{0mm}
 \begin{lstlisting}[columns=fullflexible]
 void addSugar(int n)
-/* requires n>0,  _^*.Cup 
-   ensures  t>=n, Sugar # t */
+/* req n>0,  _^*.Cup 
+   ens  t>=n, Sugar # t */
 { if n == 0 then event[Sugar] 
   else {
     timeout (oneSugar(), 1);
     addSugar (n-1);}}
   
 void makeCoffee (int n)
-/* requires n>0, emp 
- ensures  t<5/\t>=n/\t1<3, 
+/* req n>0, emp 
+ ens  t<5/\t>=n/\t1<3, 
  Cup.(Sugar#t).(Coffee#t1).Done */
 { event[Cup];
   deadline (addSugar(n), 5);
@@ -593,8 +593,8 @@ void makeCoffee (int n)
   event[Done];}
   
 void main () 
-/* requires true, emp 
- ensures  t<8, (_^*.Done)#t */
+/* req true, emp 
+ ens  t<8, (_^*.Done)#t */
 { makeCoffee(3);}
 // make coffee with 3 lumps of sugar
 
@@ -933,7 +933,7 @@ Process $\textbf{deadline} [d]\ e$ constrains $e$ to terminate before $d$ time u
 % \code{d\ |\ \tau} 
 % \\    
   \m{(Method\ Def.)} &  \code{meth}&\code{  ::= }&
-  \code{ mn  \ {(x)^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \}}
+  \code{ mn  \ {(x)^*}\ \{\textbf{req}\ \effect_{pre}\ \textbf{ens}\  \effect_{post}\} \ \{ e \}}
   \\
   \m{(Values)} & \code{v} &\code{  ::= } & ()\ |\ c \ | \ b \ |\ x\  
   \\
@@ -1012,7 +1012,7 @@ In the following, we present the firing rules which are associated with
 the timed process constructs. 
 
 
-
+{{\small
 \begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   Wait                 %%
@@ -1023,14 +1023,14 @@ the timed process constructs.
 \qquad \qquad 
 \code{\frac{
 }{(V, \textbf{delay} [0]) \xrightarrow[]{\tau} (V, ())}\ [de_2]} 
-\end{flalign*}
+\end{flalign*}}}
 
 The above captures behaviors of process \code{\textbf{delay}[d]}. 
 Rule \code{de_1} states that the process may idle for 
 any amount of time as long as it is less than or equal to \codem{d} time units; 
 Rule \code{de_2} states that the process terminates immediately after 
 \codem{d} becomes \codem{0}.
-\begin{flalign*}
+{{\small\begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   timeout                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1048,7 +1048,7 @@ Rule \code{de_2} states that the process terminates immediately after
 \quad  
 \code{\frac{
 }{(V, e_1\ \textbf{timeout}   [0] \ e_2) \xrightarrow[]{\tau} (V, e_2)}\ [to_4]} 
-\end{flalign*}
+\end{flalign*}}}
 If an observable event \anyevent{A} can be engaged by \code{e_1}, 
 then \code{e_1\ \textbf{timeout}[d]\ e_2} becomes \code{e_1^\prime} (rule \code{[to_1]}). 
 An invisible transition does 
@@ -1057,62 +1057,62 @@ If \code{e_1} may idle for less than or equal
 to \codem{d} time units, so is the composition (rule \code{[to_3]}). 
 When \codem{d} becomes \codem{0}, 
 \code{e_2} takes over control by a silent transition (rule \code{[to_4]}).
-\begin{flalign*}
+{{\small\begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   deadline                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
   (V,e) \xrightarrow[]{\anyevent{A}} (V^\prime,e^\prime)
-}{(V, \textbf{deadline} [d] \ e ) \xrightarrow[]{\anyevent{A}} (V^\prime, \textbf{deadline}  [d] \ e^\prime)}\ [dl_1]} 
-\  
+}{(V, \textbf{deadline} [d] \ e ) \xrightarrow[]{\anyevent{A}} (V^\prime, \textbf{deadline}  [d] \ e^\prime)} [dl_1]} 
+\quad 
 \code{\frac{
   (V,e) \xrightarrow[]{\text{t}} (V,e^\prime)  \quad (t {\leq} d)
-}{(V, \textbf{deadline}  [d]\ e ) \xrightarrow[]{\text{t}} (V, \textbf{deadline}  [d \text{-}t] \ e^\prime )}\ [dl_2]} 
-\end{flalign*}
+}{(V, \textbf{deadline}  [d]\ e ) \xrightarrow[]{\text{t}} (V, \textbf{deadline}  [d \text{-}t] \ e^\prime )} [dl_2]} 
+\end{flalign*}}}
 
 Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as 
 \code{e} except that it must terminate before \codem{d} time units.
 
-\begin{flalign*}
+{{\small\begin{flalign*}
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%   deadline                 %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \code{\frac{
     V \not\models  b 
   }{(V, [b] \ e ) \xrightarrow[]{t} (V, [b] \ e)}\ [gu_1]} 
-  \quad
+  \ \ \qquad
   \code{\frac{
     V \models  b 
   }{(V, [b] \ e ) \xrightarrow[]{\tau} (V, e)}\ [gu_2]} 
-  \quad
+  \ \ \qquad 
   \code{\frac{
   }{(V, \alpha ) \xrightarrow[]{\tau} (\alpha(V), ())}\ [assign]} 
-\end{flalign*}
+\end{flalign*}}}
 
-\begin{flalign*}
+{{\small\begin{flalign*}
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   %%   deadline                 %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \code{\frac{
     (V,e_1) \xrightarrow[]{\anyevent{A}} (V^\prime,e_1^\prime) 
   }{(V, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (V^\prime, e_1^\prime || e_2)}\ [pa_1]} 
-  \quad  
+  \ \   
   \code{\frac{
     (V,e_2) \xrightarrow[]{\anyevent{A}} (V^\prime,e_2^\prime) 
   }{(V, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (V^\prime, e_1 || e_2^\prime)}\ [pa_2]} 
-\quad
+\ \ 
 \code{\frac{
   (V,e_1) \xrightarrow[]{\anyevent{A}/\tau} (V^\prime,e_1^\prime) 
 }{(V, e_1; e_2 ) \xrightarrow[]{\anyevent{A}/\tau} (V^\prime, e_1^\prime ; e_2)}\ [se]} 
-\end{flalign*}
+\end{flalign*}}}
 
 
 
 \subsection{The Specification Language}
 \label{subsec:Specification_language}
 
-We plant the effects specifications into the Hoare-style verification system, using \code{ \effect_{pre}} and \code{  \effect_{post} }  to capture the temporal pre/post 
-condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
+We plant the effects specifications into the Hoare-style verification system, using \code{ es_{pre}} and \code{  es_{post} }  to capture the temporal pre/post 
+condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
 
 {
     \vspace{0mm}
@@ -1122,19 +1122,25 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
   $
   \begin{array}{rrcl}
 
-
- \m{(Timed\ Effects)}  & \ \code{\effect}   &\code{ ::=}&
+ 
+    \m{(Timed\ Effects)} &  \effect &\code{  ::= }&
+    \code{
+          (\pure{\pi}, es)
+   \ | \ \effect_1 \vee \effect_2
+}
+    \\
+ \m{(Event \ Sequences)}  & \ \code{es}   &\code{ ::=}&
    
    \code{ \bott
    \  | \ \empt 
     \ | \ ev 
     %   \ | \ \anyevent{a}
-   \  | \ \effect_1 {\seq} \effect_2
-    \ | \ \effect_1 {\vee} \effect_2
-    \ | \ \effect_1 {||} \effect_2
-      %    \  | \ \effect_1 \times \effect_2
-      \ | \ \effect \# t 
-   \  | \  \effect^\star
+   \  | \ es_1 {\seq} es_2
+    \ | \ es_1 {\vee} es_2
+    \ | \ es_1 {||} es_2
+      %    \  | \ es_1 \times es_2
+      \ | \ es \# t 
+   \  | \  es^\star
 }
 
 \\
@@ -1205,18 +1211,18 @@ condition. %\code{\effect_{pre}} and the postcondition \code{\effect_{post}}.
 
 The  syntax of the \timedEffects is formally defined in 
 \figref{fig:Syntax_of_Types_and_Effects} Effects is 
- a conditioned time  event sequence \code{\pure{\pi},  \effect} or a disjunction of two effects $\effect_1 \vee \effect_2$.
+ a conditioned time  event sequence \code{\pure{\pi},  es} or a disjunction of two effects $es_1 \vee es_2$.
 Timed sequences comprise \textit{nil} ($\bott$);
  an empty trace $\empt$;
 a single event \code{ev};
   %where \anyevent{a} is an element from a finite set of events, donated by \code{\Sigma};
 %parametrized event \code{ \anyevent{a}.\iota} where \code{\iota} is a list pattern expressing a possibly infinite list (for example, \code{\anyevent{a}.[1,2,3,4]},  \code{\anyevent{a}.[1 .. 4]} and \code{\anyevent{a}.[1, 2.. 4]} all refer to the finite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot \anyevent{a}.4},
 %while \code{\anyevent{a}.[1 ..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot}..., and \code{\anyevent{a}.[1, 3..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.3 \cdot \anyevent{a}.5\cdot}...);
- sequences concatenation \code{\effect_1\cdot \effect_2};
-disjunction  \code{\effect_1\vee \effect_2};
-parallel composition of two processes is written as \code{\effect_1 || \effect_2}, where \code{\effect_1} and \code{\effect_2} 
+ sequences concatenation \code{es_1\cdot es_2};
+disjunction  \code{es_1\vee es_2};
+parallel composition of two processes is written as \code{es_1 || es_2}, where \code{es_1} and \code{es_2} 
 may communicate via multi-party event synchronization or shared variables. 
-We introduce a new operator \code{\#}, and the effects \code{\effect \# t } represents that a trace takes real-time \code{t} to complete, where \code{t} is a \emph{term}. 
+We introduce a new operator \code{\#}, and the effects \code{es \# t } represents that a trace takes real-time \code{t} to complete, where \code{t} is a \emph{term}. 
 A time sequence can be constructed by \code{\star}, representing zero or more times repetition of a trace.
 
 \code{\anyevent{A}(v, \pi, \alpha^*)} stands for an event labeled 
@@ -1245,11 +1251,11 @@ qual to  0.
 To define the model, 
 \code{var} is the set of program variables, 
 \code{val} is the set of primitive values, 
-\code{\effect} is the set of event sequences (or event multi-trees, per se), indicating the sequencing constraints on temporal behaviour.
-Let \code{d, s, \varphi \models \effect} denote the model relation, i.e., 
-the effects \code{\effect} take exactly \code{d} time units to complete; 
+\code{es} is the set of event sequences (or event multi-trees, per se), indicating the sequencing constraints on temporal behaviour.
+Let \code{d, s, \varphi \models es} denote the model relation, i.e., 
+the effects \code{es} take exactly \code{d} time units to complete; 
 the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
-temporal effects \code{\effect}, with \code{d}, \code{s}, \code{\varphi} 
+temporal effects \code{es}, with \code{d}, \code{s}, \code{\varphi} 
 from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}}, 
 \code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{ev^*} \ .
 
@@ -1283,25 +1289,25 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%     Concatenate        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}, (\effect_1\cdot\effect_2)}  
+&\code{d, s, \varphi \models \pure{\pi}, (es_1\cdot es_2)}  
 &\m{iff}\quad & \exists \code{\varphi_1,\varphi_2}. \  
 \code{ \varphi_1 {\lappend} \varphi_2 {=} \varphi}\ and\ 
 \exists \code{d_1,d_2}. \  
 \code{ d_1 {+} d_2 {=} d} \\
-&&& \qquad  s.t. \ \code{d_1, s, \varphi_1 {\models} \pure{\pi}  , \effect_1 }
-\ and \ \code{d_2, s, \varphi_2 {\models} \pure{\pi}  , \effect_2 }\\
+&&& \qquad  s.t. \ \code{d_1, s, \varphi_1 {\models} \pure{\pi}  , es_1 }
+\ and \ \code{d_2, s, \varphi_2 {\models} \pure{\pi}  , es_2 }\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    disjunction         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}  , (\effect_1{\vee}\effect_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , \effect_1 } 
-\ or\ \code{d, s, \varphi \models \pure{\pi}  , \effect_2 } \\
+&\code{d, s, \varphi \models \pure{\pi}  , (es_1{\vee}es_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , es_1 } 
+\ or\ \code{d, s, \varphi \models \pure{\pi}  , es_2 } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    parallel         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi} , (ev_1{\cdot}\effect_1)||(ev_2{\cdot}\effect_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , ev_1{\cdot} (\effect_1||(ev_2{\cdot}\effect_2)) } 
-\ or\ \code{d, s, \varphi \models \pure{\pi}  , ev_2{\cdot}((ev_1{\cdot}\effect_1)||\effect_2)  } \\
+&\code{d, s, \varphi \models \pure{\pi} , (ev_1{\cdot}es_1)||(ev_2{\cdot}es_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , ev_1{\cdot} (es_1||(ev_2{\cdot}es_2)) } 
+\ or\ \code{d, s, \varphi \models \pure{\pi}  , ev_2{\cdot}((ev_1{\cdot}es_1)||es_2)  } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    parallel  2        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1311,21 +1317,21 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    t times         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}  ,\effect\# t}  &\m{iff}\quad &
+&\code{d, s, \varphi \models \pure{\pi}  ,es\# t}  &\m{iff}\quad &
  \code{\llbracket \pure{\pi}  , t {=} 0 \rrbracket_{s} {=}  
  \pure{True} }, \ \code{d, s, \varphi \models \pure{\pi}  , \empt}\ or  \\
 & & &  \code{\llbracket \pure{\pi}, t {>} 0 \rrbracket_{s} {=}  
 \pure{True} }, 
-\  \exists \code{\effect_1,\effect_2}. \  \code{\effect_1 {\cdot} \effect_2 {=} \effect}\\
+\  \exists \code{es_1,es_2}. \  \code{es_1 {\cdot} es_2 {=} es}\\
 &&& \qquad  s.t. \ \code{d, s, \varphi {\models} \pure{(\pi 
 {\wedge} t_1{\geq}0{\wedge}t_2{\geq}0 {\wedge} t_1{+} t_2{=}t)}  , 
-(\effect_1\#t_1) {\cdot} (\effect_2\#t_2) } \\
+(es_1\#t_1) {\cdot} (es_2\#t_2) } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    star         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}, \effect^\star}  &\m{iff}\quad & 
+&\code{d, s, \varphi \models \pure{\pi}, es^\star}  &\m{iff}\quad & 
 \code{d, s, \varphi \models \pure{\pi}  , \empt}\ or \ 
-\code{d, s, \varphi \models \pure{\pi}  , \effect {\cdot} \effect^\star}\\
+\code{d, s, \varphi \models \pure{\pi}  , es {\cdot} es^\star}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    FALSE         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1350,9 +1356,9 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                          Disjunction                          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models \effect_1 {\vee} \effect_2}  
+&\code{d, \varphi \models es_1 {\vee} es_2}  
 &\m{iff}\quad 
-&  d, \varphi \models \effect_1 \ or \ d, \varphi \models \effect_2
+&  d, \varphi \models es_1 \ or \ d, \varphi \models es_2
 \\[0.2em]
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                          EMPTY                          %%
@@ -1371,29 +1377,29 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            CONCATE                            %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : (\effect_1{\cdot}\effect_2)}  
+&\code{d, \varphi \models  \pi : (es_1{\cdot}es_2)}  
 &\m{iff}\quad 
 & {\tt{SAT}(\pi)}  \ and \ \exists \code{\varphi_1, \varphi_2, d_1, d_2}\ and\ \code{
 \varphi {=} \varphi_1 \lappend \varphi_2, d {=} d_1 {+} d_2 \ and 
 }\\
 & & &
-\code{d_1, \varphi_1 \models  \pi : \effect_1}  \ and \ 
-\code{d_2, \varphi_2 \models  \pi : \effect_2}  
+\code{d_1, \varphi_1 \models  \pi : es_1}  \ and \ 
+\code{d_2, \varphi_2 \models  \pi : es_2}  
  \\[0.2em]
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                       DISJUNCTION                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : (\effect_1 {\vee} \effect_2)}  
+&\code{d, \varphi \models  \pi : (es_1 {\vee} es_2)}  
 &\m{iff}\quad 
-& {\tt{SAT}(\pi)}  \ and \ \code{d, \varphi \models  \pi :  \effect_1 } \ or \ 
- \code{d, \varphi \models  \pi :  \effect_2}  
+& {\tt{SAT}(\pi)}  \ and \ \code{d, \varphi \models  \pi :  es_1 } \ or \ 
+ \code{d, \varphi \models  \pi :  es_2}  
 \\[0.2em]
  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                       timed                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : \effect \# t }  
+&\code{d, \varphi \models  \pi : es \# t }  
 &\m{iff}\quad 
-& d, \varphi \models  (\pi \wedge t{=}d) : \effect
+& d, \varphi \models  (\pi \wedge t{=}d) : es
 \\[0.2em]
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            KLEENE                            %%
@@ -1420,9 +1426,9 @@ we use \code{\varphi} (\emph{a trace of events}) to represent
 the computation execution (or events multi-trees, per se), indicating 
 the sequential constraint of the temporal behaviour; and we use \code{d} 
 to record the computation duration of given effects. 
-Let \code{d, \varphi \models \effect} denote the model relation, i.e., 
-the effects \code{\effect} take exactly \code{d} time units to complete; and 
-the linear temporal sequence \code{\varphi} satisfies the sequential time  instances defined from \code{\effect}, with \code{d}, \code{\varphi} from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{Z^+}} and \code{\varphi}   {\defeq}\ \code{list\ of\ I} (a sequence of time instances).
+Let \code{d, \varphi \models es} denote the model relation, i.e., 
+the effects \code{es} take exactly \code{d} time units to complete; and 
+the linear temporal sequence \code{\varphi} satisfies the sequential time  instances defined from \code{es}, with \code{d}, \code{\varphi} from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{Z^+}} and \code{\varphi}   {\defeq}\ \code{list\ of\ I} (a sequence of time instances).
 
 
 As shown in \figref{fig:Sementic}, we define the semantics of \timedEffects. 
@@ -1508,7 +1514,7 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 
 \end{comment}
 
-\begin{gather*}
+{{\small\begin{gather*}
   \code{\frac{
   }
 {  \vdash \{  \effect,\Pi \}\  v \ 
@@ -1520,51 +1526,49 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 {  \vdash \{  \effect, \Pi \}\  [b]\ e \ 
 \{ \effect, \Pi{\wedge} b  \}} \  
  {[FV\text{-}Guard]}} 
-\end{gather*}
+\end{gather*}}}
 
 
-\begin{gather*}
+{{\small\begin{gather*}
   \code{\frac{ 
- \vdash \{ \effect, \Pi\}\ e_1 \ \{  \effect^\prime, \Pi^\prime\} 
-\qquad 
-\vdash \{ \effect^\prime, \Pi^\prime\}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime} \} 
+ \vdash \{ \effect, \Pi\} e_1  \{  \effect^\prime, \Pi^\prime\} 
+\ \  \ 
+\vdash \{ \effect^\prime, \Pi^\prime\} e_2  \{  \effect^{\prime\prime}, \Pi^{\prime\prime} \} 
 }{
   \vdash \{  \effect, \Pi \}\  
   e_1;e_2 \ \{ \effect^{\prime\prime}, \Pi^{\prime\prime}
-  \}} \ 
+  \}} 
    {[FV\text{-}Seq]}}  
-\end{gather*}
-
-
-\begin{gather*}
+\  \ 
   \code{\frac{
- \vdash \{ \effect, \Pi \}\ e_1 \ \{  \effect^\prime, \Pi^\prime\} 
-\qquad 
-\vdash \{  \effect, \Pi \}\ e_2 \ \{  \effect^{\prime\prime}, \Pi^{\prime\prime} \} 
+ \vdash \{ \effect, \Pi \} e_1  \{  \effect^\prime, \Pi^\prime\} 
+\ \  \
+\vdash \{  \effect, \Pi \} e_2  \{  \effect^{\prime\prime}, \Pi^{\prime\prime} \} 
     }{
 \vdash \{   \effect, \Pi \}\  e_1 || e_2 \ \{ \effect^\prime || \effect^{\prime\prime}, 
 \Pi^{\prime} {\wedge}\Pi^{\prime\prime}
-\}} \   
+\}}  
 {[FV\text{-}Par]}} 
-\end{gather*}
+\end{gather*}}}
 
 
-\begin{gather*}
+{{\small\begin{gather*}
   \code{\frac{ 
     \begin{matrix}
 \vdash \{ \effect, \Pi {\wedge}  v   \} \ e_1 \ \{  \effect^{\prime} , \Pi^\prime \} 
 \qquad \vdash \{ \effect, \Pi {\wedge} \neg v  \} \ e_2 \ 
 \{  \effect^{\prime\prime}, \Pi^{\prime\prime} \}  
-\\ \{  \effect_f, \Pi_f \} {=} \s{ \effect^{\prime} , \Pi^\prime} \cup \s{\effect^{\prime\prime}, \Pi^{\prime\prime}}
+\qquad 
+ \{  \effect_f, \Pi_f \} {=} \s{ \effect^{\prime} , \Pi^\prime} \cup \s{\effect^{\prime\prime}, \Pi^{\prime\prime}}
 \end{matrix}}
   {\vdash \s{ \effect, \Pi}\  \textbf{if}\ v\ \textbf{then}\ e_1\ 
   \textbf{else}\ e_2 \ \{  \effect_f, \Pi_f \} } \  
   {[FV\text{-}If\text{-}Else]}} 
-  \end{gather*}
+  \end{gather*}}}
   
      
 
-\begin{gather*}
+  {{\small\begin{gather*}
   \code{\frac{
     \effect^\prime {=} \effect\cdot \anyevent{A}(v, \Pi, \alpha^*) 
     }
@@ -1578,10 +1582,10 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
   {\vdash \s{ \effect, \Pi} \  
   \textbf{delay} [d] 
    \ \{ \effect^\prime, True \}} \   {[FV\text{-}Delay]}} 
-\end{gather*}
+\end{gather*}}}
      
 
-\begin{gather*}
+{{\small\begin{gather*}
   \code{\frac{
     \begin{matrix}
       \vdash \{ \epsilon, \Pi \}\ e_1 \ \{  \effect^\prime, \Pi^\prime\} 
@@ -1597,9 +1601,9 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
   {\vdash \s{ \effect, \Pi} \  
   e_1\ \textbf{timeout} [d] \  e_2
    \ \s{\effect_f, \Pi_f} } \   {[FV\text{-}Timeout]}} 
-\end{gather*}
+\end{gather*}}}
 
-\begin{gather*}
+{{\small\begin{gather*}
   \code{\frac{
     \begin{matrix}
       \vdash \{ \epsilon, \Pi \}\ e \ \{  \effect^\prime, \Pi^\prime\} 
@@ -1611,27 +1615,26 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
   {\vdash \s{ \effect, \Pi} \  
   \textbf{deadline}  [d] \ e 
    \ \s{\effect_f, \Pi_f} } \   {[FV\text{-}Deadline]}} 
-\end{gather*}
+\end{gather*}}}
 
 
 
 
-\begin{gather*}
+{{\small\begin{gather*}
 \code{\frac{
 \begin{matrix}
-\text{\code{  mn  \ {x^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
+{\code{  mn  \ {x^*}\ \{\textbf{req}\ \effect_{pre}\ \textbf{ens}\  \effect_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
 \\
 \text{\code{\vdash  \effect \CONTAIN [v^*/x^*] \effect_{pre}   \qquad   \effect^\prime =  \effect \cdot  [y^*/x^*]\effect_{post}}}
 \end{matrix}}
 {\vdash \s{ \effect, \Pi} \ mn({v^*})  \ 
 \{  \effect^\prime,  \Pi\}} \ {[FV\text{-}Call]}}
-\end{gather*}
-
-\begin{gather*}
+\ \quad 
 \code{\frac{  \vdash \{  \empt, True \} 
- \ e \  \{ \effect, \Pi \} \qquad\qquad  \vdash\effect \CONTAIN  
-  \effect_{post}}{  \vdash  \ mn  \ {x^*}\ \{\textbf{requires}\ \effect_{pre}\ \textbf{ensures}\  \effect_{post}\} \ \{ e \}} \ {[FV\text{-}Meth]}}  
-\end{gather*}
+ \ e \  \{ \effect, \Pi \} \quad  \vdash\effect \CONTAIN  
+  \effect_{post}}{  \vdash  \ mn  \ {x^*}\ \{\textbf{req}\ \effect_{pre}\ 
+  \textbf{ens}\  \effect_{post}\} \ \{ e \}} \  {[FV\text{-}Meth]}}  
+\end{gather*}}}
 
 
 \section{Temporal Verification via a TRS}
