@@ -120,7 +120,7 @@
 \newcommand{\m}{\mathit} 
 \newcommand{\lappend}{\mathrel{\texttt{++}}}
 
-\newcommand{\mysharp}{\mathrel{\texttt{\#}}}
+\newcommand{\mysharp}{{\mathrel{\texttt{\#}}}}
 
 \newcommand{\toolName}{Tvide}
 \def\defeq{\ensuremath{\,\triangleq}}
@@ -1517,7 +1517,7 @@ The meaning of the transition rules, can be described as:
 \qquad\qquad\quad \code{\s{ \Pi^\prime, \Theta^\prime } = 
 \wbigcup_{i{=}0}^{|\s{ \Pi, \Theta }| \text{-} 1}  
 \s{\pi_i^\prime, \es_i^\prime} \ \ where\ \ 
- \vdash  \s{\pi_i, \es_i} \ p \ \s{\pi_i^\prime, \es_i^\prime}.} 
+ \vdash  \s{\pi_i, \es_i} \ e \ \s{\pi_i^\prime, \es_i^\prime}.} 
 \footnote{\code{|\s{ \Pi, \Theta }|} is the 
 size of \code{\s{ \Pi, \Theta }}.}
 \vspace{3mm}
@@ -1552,21 +1552,32 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 
 \end{comment}
 
+$[FV\text{-}\m{Value}]$  obtains the next program state by 
+inheriting the current program state.
+$[FV\text{-}Guard]$ updates the event sequences with with
+the guard \code{b}. 
 {{\small\begin{gather*}
   \code{\frac{
   }
-{  \vdash \{  \Theta,\Pi \}\  v \ 
+{  \vdash \{  \Pi, \Theta \}\  v \ 
 \{ \Pi, \Theta \}} \  
  {[FV\text{-}Value]}} 
  \qquad
  \code{\frac{
+  \vdash \{  \Pi, \Theta \}\  e \ 
+  \{ \Pi^\prime, \Theta^\prime \}
   }
 {  \vdash \{  \Pi, \Theta \}\  [b]\ e \ 
-\{ \Pi, \Theta \}} \  
+\{  \Pi^\prime, b? \Theta^\prime \}} \  
  {[FV\text{-}Guard]}} 
 \end{gather*}}}
 
-
+$[FV\text{-}Seq]$ infers  \code{ \{  \Pi_1, \Theta_1\} } 
+from \code{e_1}, 
+then further computes  \code{ \{  \Pi_2, \Theta_2 \} } by 
+continuously infer the behaviors of \code{e_2}, to be the final state.
+$[FV\text{-}Par]$ infers behaviors for  \code{e_1} and \code{e_2} independently,
+then parallel merges the effects from these two branches.  
 {{\small\begin{gather*}
   \code{\frac{ 
  \vdash \{ \Pi, \Theta\} \ e_1 \ \{  \Pi_1, \Theta_1\} 
@@ -1583,8 +1594,8 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 \ \  
 \vdash \{  \Pi, \Theta \} \ e_2 \  \{  \Pi_2, \Theta_2 \} 
     }{
-\vdash \{   \Pi, \Theta \}\  e_1 || e_2 \ \{ \Theta_1 || \Theta_2, 
-\Pi^{\prime} {\wedge}\Pi_2
+\vdash \{   \Pi, \Theta \}\  e_1 || e_2 \ \{ 
+\Pi_1 {\wedge}\Pi_2 , \Theta_1 || \Theta_2
 \}}  
 {[FV\text{-}Par]}} 
 \end{gather*}}}
@@ -1593,33 +1604,45 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 {{\small\begin{gather*}
   \code{\frac{ 
     \begin{matrix}
-\vdash \{ \Pi, \Theta {\wedge}  v   \} \ e_1 \ \{  \Theta^{\prime} , \Pi_1 \} 
-\qquad \vdash \{ \Pi, \Theta {\wedge} \neg v  \} \ e_2 \ 
-\{  \Pi_2, \Theta_2 \}  
+\vdash \{ \Pi{\wedge} v, \Theta    \} \ e_1 \ \{  \Theta^{\prime} , \Pi_1 \} 
 \qquad 
- \{  \Theta_f, \Pi_f \} {=} \s{ \Theta^{\prime} , \Pi_1} \cup \s{\Pi_2, \Theta_2}
+\vdash \{ \Pi{\wedge} \neg v , \Theta  \} \ e_2 \ 
+\{  \Pi_2, \Theta_2 \}  
+\qquad (v\ is\ local)
 \end{matrix}}
   {\vdash \s{ \Pi, \Theta}\  \textbf{if}\ v\ \textbf{then}\ e_1\ 
-  \textbf{else}\ e_2 \ \{  \Theta_f, \Pi_f \} } \  
-  {[FV\text{-}If\text{-}Else]}} 
+  \textbf{else}\ e_2 \ \s{ \Theta^{\prime} , \Pi_1} {\cup} \s{\Pi_2, \Theta_2} } \  
+  {[FV\text{-}If\text{-}Else\text{-}Local]}} 
+\\
+\code{\frac{ 
+  \begin{matrix}
+\vdash \{ \Pi, \Theta    \} \ e_1 \ \{  \Theta^{\prime} , \Pi_1 \} 
+\qquad 
+\vdash \{ \Pi , \Theta  \} \ e_2 \ 
+\{  \Pi_2, \Theta_2 \}  
+\qquad (v\ is\ global)
+\end{matrix}}
+{\vdash \s{ \Pi, \Theta}\  \textbf{if}\ v\ \textbf{then}\ e_1\ 
+\textbf{else}\ e_2 \ \s{\Pi, v. \Theta_1 \vee \Theta_2 }} \  
+{[FV\text{-}If\text{-}Else\text{-}Global]}} 
   \end{gather*}}}
   
      
 
   {{\small\begin{gather*}
   \code{\frac{
-    \Theta_1 {=} \Theta\cdot \anyevent{A}(v, \Pi, \alpha^*) 
+    \Theta^\prime {=} \Theta\cdot \anyevent{A}(v, \alpha^*) 
     }
   {\vdash \s{ \Pi, \Theta} \  
   \textbf{event} [\anyevent{A}(v, \alpha^*)] 
-   \ \{ \Theta_1, True \}} \   {[FV\text{-}Event]}} 
+   \ \{\Pi, \Theta^\prime \}} \   {[FV\text{-}Event]}} 
    \qquad
   \code{\frac{
-    \Theta_1 {=} \Theta\cdot \epsilon\mysharp t \quad (t\ is\ fresh) 
+    \Theta^\prime {=} \Theta\cdot \epsilon\mysharp t \quad (t\ is\ fresh) 
     }
   {\vdash \s{ \Pi, \Theta} \  
   \textbf{delay} [d] 
-   \ \{ \Theta_1, True \}} \   {[FV\text{-}Delay]}} 
+   \ \{ \Pi{\wedge} t {=}d,  \Theta^\prime \}} \   {[FV\text{-}Delay]}} 
 \end{gather*}}}
      
 
@@ -1630,9 +1653,9 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
       \qquad 
       \vdash \{  \epsilon, \Pi \}\ e_2 \ \{  \Pi_2, \Theta_2 \} 
       \\
-      \s{\Theta_f, \Pi_f} {=} \s{\Theta {\cdot}(\Theta_1\mysharp t), \Pi_1 {\wedge}t{\leq}d}
+      \s{\Theta_f, \Pi_f} {=} \s{\Pi_1 {\wedge}t{\leq}d, \Theta {\cdot}(\Theta_1\mysharp t)}
       \cup 
-  \s{\Theta {\cdot}(\Theta_2\mysharp t), \Pi_2 {\wedge}t{>}d}   
+  \s{\Pi_2 {\wedge}t{>}d, \Theta {\cdot}(\Theta_2\mysharp t)}   
   \quad (t\ is\ fresh)     
 \end{matrix}
   }
@@ -1645,15 +1668,19 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
   \code{\frac{
     \begin{matrix}
       \vdash \{ \epsilon, \Pi \}\ e \ \{  \Pi_1, \Theta_1\} 
-      \qquad 
-      \s{\Theta_f, \Pi_f} {=} \s{\Theta {\cdot}(\Theta_1\mysharp t), \Pi_1 {\wedge}t{\leq}d}
   \quad (t\ is\ fresh)     
 \end{matrix}
   }
   {\vdash \s{ \Pi, \Theta} \  
   \textbf{deadline}  [d] \ e 
-   \ \s{\Theta_f, \Pi_f} } \   {[FV\text{-}Deadline]}} 
-\end{gather*}}}
+   \ \s{\Pi_1 {\wedge}t{\leq}d, \Theta {\cdot}(\Theta_1\mysharp t)} }   
+    {[FV\text{-}Deadline]}} 
+\ 
+\code{\frac{  \vdash \effect_{pre} 
+ \ e \  \{ \Pi, \Theta \} \quad   \{ \Pi, \Theta \} \CONTAIN  
+  \effect_{post}}{  \vdash  \ mn  \ {x^*}\ \{\textbf{req}\ \effect_{pre}\ 
+  \textbf{ens}\  \effect_{post}\} \ \{ e \}}   {[FV\text{-}Meth]}}  
+  \end{gather*}}}
 
 
 
@@ -1661,17 +1688,13 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 {{\small\begin{gather*}
 \code{\frac{
 \begin{matrix}
-{\code{  mn  \ {x^*}\ \{\textbf{req}\ \Theta_{pre}\ \textbf{ens}\  \Theta_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
+{\code{  mn  \ {x^*}\ \{\textbf{req}\ \effect_{pre}\ \textbf{ens}\  \effect_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
 \\
-\text{\code{\vdash  \Theta \CONTAIN [v^*/x^*] \Theta_{pre}   \qquad   \Theta_1 =  \Theta \cdot  [y^*/x^*]\Theta_{post}}}
+\text{\code{ \s{ \Pi, \Theta} \CONTAIN [v^*/x^*] \effect_{pre}   
+\qquad   \effect_f =  \s{ \Pi, \Theta} \cdot  [y^*/x^*]\effect_{post}}}
 \end{matrix}}
 {\vdash \s{ \Pi, \Theta} \ mn({v^*})  \ 
-\{  \Theta_1,  \Pi\}} \ {[FV\text{-}Call]}}
-\ \quad 
-\code{\frac{  \vdash \{  \empt, True \} 
- \ e \  \{ \Pi, \Theta \} \quad  \vdash\Theta \CONTAIN  
-  \Theta_{post}}{  \vdash  \ mn  \ {x^*}\ \{\textbf{req}\ \Theta_{pre}\ 
-  \textbf{ens}\  \Theta_{post}\} \ \{ e \}} \  {[FV\text{-}Meth]}}  
+\effect_f} \ {[FV\text{-}Call]}}
 \end{gather*}}}
 
 
