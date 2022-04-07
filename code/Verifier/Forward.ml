@@ -136,7 +136,7 @@ let concatanateEffEff eff1 eff2 : effect =
 
 let rec verifier (caller:string) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
-  | EventRaise (ev, p, ops) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present (TRUE, ev, p, ops) )))) current
+  | EventRaise (ev, p, ops) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present (ev, p, ops) )))) current
   | Seq (e1, e2) -> 
     let eff1 = verifier caller e1 precondition current prog in 
     verifier caller e2 precondition eff1 prog
@@ -318,10 +318,10 @@ print_string (inputfile ^ "\n" ^ outputfile^"\n");*)
       let raw_prog = List.map (fun a -> (true, a)) (Parser.prog Lexer.token (Lexing.from_string line)) in
       let prog = getIncludedFiles raw_prog in
 
-      (*
-      let testprintProg = printProg prog in 
-      print_string testprintProg;
-*)
+      
+      let testprintProg = printProg (List.map (fun (_, a) -> a) raw_prog) in 
+      print_string testprintProg; 
+
       let evn = List.map (fun (ind, a) -> a) prog in
       let verification_re = List.fold_right (fun dec acc -> acc ^ (verification dec evn)) prog ""  in
       (*let oc = open_out outputfile in    (* 新建或修改文件,返回通道 *)

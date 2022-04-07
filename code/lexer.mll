@@ -78,6 +78,7 @@ rule token = parse
 | '-' { MINUS }
 | '#' { SHARP }
 | '_' {UNDERLINE}
+| '?' {GUARD}
 | '*' {KLEENE}
 | '~' {NEGATION}
 | "/*" {LSPEC}

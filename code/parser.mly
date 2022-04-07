@@ -10,7 +10,7 @@
 %token EMPTY ASSERTKEY EVENTKEY CHOICE LPAR RPAR CONCAT  POWER PLUS MINUS TRUE FALSE DISJ CONJ   ENTIL INTT BOOLT VOIDT  (* OMEGA *)
 %token LBRACK RBRACK COMMA SIMI  IF ELSE REQUIRE ENSURE LSPEC RSPEC  LBrackets  RBrackets 
 %token EOF GT LT EQ GTEQ LTEQ INCLUDE SHARP EQEQ UNDERLINE KLEENE NEGATION
-%token LILOR COLON
+%token LILOR COLON GUARD
 %token TimeoutKEY DeadlineKEY DelayKEY
 
 %left CHOICE
@@ -143,15 +143,13 @@ pure:
 
 
 
-gaude:
-| {TRUE}
-| LBrackets p=pure RBrackets {p}
 
 
 es:
 | EMPTY { Emp }
-| g=gaude str = EVENT p=parm  ops= maybe_assign_list { Event (Present (g, str, p, ops)) }
+| str = EVENT p=parm  ops= maybe_assign_list { Event (Present (str, p, ops)) }
 | NEGATION str = EVENT {Event (Absent str)}
+| LBrackets p=pure RBrackets GUARD trace = es {Guard(p, trace)}
 | LPAR r = es RPAR { r }
 | a = es CHOICE b = es { ESOr(a, b) }
 | a = es LILOR b = es { Par(a, b) }

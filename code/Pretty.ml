@@ -92,25 +92,22 @@ let rec showPure (p:pure):string =
 let rec showES (es:es):string = 
   let string_of_event ev : string = 
     match ev with 
-    | Present (pi, str, param, ops) -> 
-      let print_pi = (match pi with
-      | TRUE -> ""
-      | p -> "[" ^ showPure p  ^ "]"
-      ) in 
+    | Present (str, param, ops) -> 
       let print_param = (
         match param with 
         | None -> ""
         | Some v -> "(" ^ string_of_value v ^ ")"
       )in 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
-      print_pi ^ str ^ print_param ^ print_ops
+      str ^ print_param ^ print_ops
     | Absent str -> "!" ^ str
     | Any -> "_"
   in 
   match es with
     Bot -> "_|_"
   | Emp -> "emp"
-  | Event (ev) -> string_of_event ev  
+  | Event (ev) -> string_of_event ev 
+  | Guard (pi, es1) ->  "[" ^ showPure pi ^ "]" ^(showES es1)
   | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
   | ESOr (es1, es2) -> "("^(showES es1) ^ " + " ^ (showES es2)^")"
   | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
@@ -302,6 +299,7 @@ let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es =
     Bot  -> es
   | Emp  -> es
   | Event _  -> es
+  | Guard (p, es1) -> Guard (p, substituteESWithAgr es1 realArg formalArg)
   | Cons (es1, es2) ->  Cons (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | ESOr (es1, es2) ->  ESOr (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | Ttimes (esIn, t) -> Ttimes (substituteESWithAgr esIn realArg formalArg, substituteTermWithAgr t realArg formalArg)
@@ -492,7 +490,7 @@ let rec normalTerms (t:terms):terms  =
 
 let compareEvent ev1 ev2 : bool=
   match (ev1, ev2) with 
-  | (Present (_, str1, _, _), Present (_, str2, _, _)) -> if String.compare str1 str2 = 0 then true else false 
+  | (Present (str1, _, _), Present (str2, _, _)) -> if String.compare str1 str2 = 0 then true else false 
   | (Absent str1, Absent str2) -> if String.compare str1 str2 = 0 then true else false 
   | (Any, Any) -> true 
   | _ -> false 

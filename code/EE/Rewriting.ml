@@ -73,7 +73,7 @@ let rec normalES (es:es) (pi:pure) : es =
   | Par (Bot, es2) -> Bot
   | Par (es1, Bot) -> Bot
   | Par (es1, es2) -> Par (normalES es1 pi, normalES es2 pi)
-
+  | Guard (pi1, es1) -> Guard (pi1, normalES es1 pi) 
   | Cons (Cons (esIn1, esIn2), es2)-> normalES (Cons (esIn1, Cons (esIn2, es2))) pi 
   | Cons (es1, es2) -> 
       let normalES1 = normalES es1 pi  in
@@ -154,6 +154,9 @@ let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure) =
   | Kleene (es1) ->
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     (Kleene (es1'),  pi1)
+  | Guard (pi1, es1) ->
+    let (es1', pi1) =   normalESUnifyTime es1 pi in   
+    (Guard (pi1, es1'), pi1)
   | _ -> (es', pi)
   ;;
 
@@ -169,6 +172,7 @@ let rec nullable (pi :pure) (es:es) : bool=
   | Ttimes (es1, t) ->  askZ3 (PureAnd(pi, Eq(t, Number 0))) 
   | Kleene es1 -> true
   | Par (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
+  | Guard (pi1, es1) -> (nullable pi es1)
 ;;
 
 let nullableEff (eff:effect) : bool = 
@@ -193,6 +197,7 @@ let rec fst (pi :pure) (es:es): head list =
   | ESOr (es1, es2) -> append (fst pi es1) (fst pi es2)
   | Par (es1, es2) -> append (fst pi es1) (fst pi es2)
   | Kleene es1 -> fst pi es1
+  | Guard (_,  es1) -> fst pi es1
 
 ;;
 
@@ -203,8 +208,8 @@ let appendEff_ES eff es: effect = List.map (fun (pi, es1) -> (pi, Cons (es1, es)
 let entailEvent ev1 ev2 : bool =
   match (ev1, ev2) with 
   | (_, Any) -> true 
-  | (Present (_, str1, _, _), Present (_, str2, _, _)) -> String.compare str1 str2 == 0 
-  | (Present (_, str1, _, _), Absent str2) -> String.compare str1 str2 != 0 
+  | (Present (str1, _, _), Present (str2, _, _)) -> String.compare str1 str2 == 0 
+  | (Present (str1, _, _), Absent str2) -> String.compare str1 str2 != 0 
   | (Absent str1, Absent str2) ->  String.compare str1 str2 == 0
   | _ -> false 
 ;;
@@ -241,6 +246,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
       (Cons (es1_der, es), side1)
     | Par (es1, es2) -> raise (Foo "I have not thought this through...")
       
+    
     )
   | Ev (ev, t) -> 
     (match es with 
