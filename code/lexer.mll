@@ -14,6 +14,7 @@ let next_line lexbuf =
 
 (* part 1 *)
 let int =  '-'? ['0'-'9'] ['0'-'9']*
+let pint = ['0'-'9'] ['0'-'9']*
 
 (* part 2 *)
 let digit = ['0'-'9']
@@ -45,10 +46,11 @@ rule token = parse
 | "FALSE" { FALSE }
 | "if" {IF}
 | "else" {ELSE}
-| "require" {REQUIRE}
-| "ensure" {ENSURE}
+| "req:" {REQUIRE}
+| "ens:" {ENSURE}
 | "include" {INCLUDE}
 | int      { INTE (int_of_string (Lexing.lexeme lexbuf)) }
+| pint { POSINT (int_of_string (Lexing.lexeme lexbuf))}
 | "true" { TRUEE (bool_of_string (Lexing.lexeme lexbuf))}
 | "false" { FALSEE (bool_of_string (Lexing.lexeme lexbuf))}
 | '"'      { read_string (Buffer.create 17) lexbuf }

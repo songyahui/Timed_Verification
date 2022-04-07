@@ -62,7 +62,7 @@ and value = Unit
 | String of string
 | Variable of var
 
-and assign =  (var * value)  
+and assign =  (var * terms)  
 
 
 and expression = 
@@ -70,14 +70,18 @@ and expression =
           | LocalDel of _type * var * expression 
           | Call of mn * expression list 
           | Seq of expression * expression
+          | Parallel of expression * expression
           | EventRaise of (string * value option * assign list) 
-          | Timeout of (expression * int)  
-          | Deadline of (expression * int)
-          | Delay of int
+          | Timeout of (expression * value)  
+          | Deadline of (expression * value)
+          | Delay of value
           | IfElse of expression * expression * expression
           | Cond of value * value * string
           | BinOp of value * value * string
           | Assertion of effect
+          | GuardE of pure * expression
+
+          
 
 and param  = (_type * var) list
 

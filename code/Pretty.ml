@@ -67,7 +67,7 @@ let string_of_value v : string =
 let rec string_of_assigns li : string =
   match li with 
   | [] -> ""
-  | (str, v):: rest -> str ^ " := " ^ string_of_value v ^ ";" ^ string_of_assigns rest 
+  | (str, v):: rest -> str ^ " := " ^ showTerms v ^ ";" ^ string_of_assigns rest 
 ;;
 
 
@@ -165,15 +165,17 @@ let rec printExpr (expr: expression):string =
   | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
   (*| Assign (v, e) -> v ^ " = " ^ printExpr e *)
   | Seq (e1, e2) -> printExpr e1 ^ ";" ^ printExpr e2
+  | Parallel (e1, e2) -> printExpr e1 ^ "||" ^ printExpr e2
+  | GuardE (pi, e2) -> "[" ^ showPure pi ^ "] " ^ printExpr e2
   | EventRaise (ev, param, ops) -> ev ^ (
     match param with 
     | None -> ""
     | Some v -> "("^ string_of_value v ^")"
   )^ string_of_assigns ops 
-  | Deadline (e, n) -> "deadline (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
-  | Timeout (e, n) -> "timeout (" ^ printExpr e ^", " ^ string_of_int n ^")\n"
+  | Deadline (e, n) -> "deadline (" ^ printExpr e ^", " ^ string_of_value n ^")\n"
+  | Timeout (e, n) -> "timeout (" ^ printExpr e ^", " ^ string_of_value n ^")\n"
 
-  | Delay n -> "delay " ^  string_of_int n ^"\n"
+  | Delay n -> "delay " ^  string_of_value n ^"\n"
   | IfElse (e1, e2, e3) -> "if " ^ printExpr e1 ^ " then " ^ printExpr e2 ^ " else " ^ printExpr e3 
   | Cond (e1, e2, str) -> string_of_value e1 ^ str ^ string_of_value e2 
   | BinOp (e1, e2, str) -> string_of_value e1 ^ str ^ string_of_value e2 

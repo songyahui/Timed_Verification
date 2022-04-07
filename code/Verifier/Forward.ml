@@ -121,17 +121,25 @@ let checkPrecondition (state:effect) (pre:effect)  =
 let condToPure (expr :expression) :pure = 
   match expr with 
     Cond (Variable v, Integer n, "==")  -> Eq (Var v, Number n)
+  | Cond (Variable v, Variable n, "==")  -> Eq (Var v, Var n)
   | Cond (Variable v, Integer n, "<=")  -> PureOr(Eq (Var v, Number n),Lt (Var v, Number n))
   | Cond (Variable v, Integer n, ">=")  -> PureOr(Eq (Var v, Number n),Gt (Var v, Number n))
   | Cond (Variable v, Integer n, ">")  -> Gt (Var v, Number n)
   | Cond (Variable v, Integer n, "<")  -> Lt (Var v, Number n)
-  | _ -> raise (Foo "exception in condToPure")
+  | _ -> raise (Foo ("exception in condToPure"^ printExpr expr))
   ;;
 
 let concatanateEffEff eff1 eff2 : effect = 
   List.flatten (List.map (fun (p1, es1) -> List.map (fun (p2, es2) -> 
     (PureAnd(p1, p2), Cons (es1, es2))
   ) eff2) eff1)
+  ;;
+
+let valueToTerm v : terms =
+  match v with 
+  | Integer n -> Number n 
+  | Variable str -> Var str 
+  | _ -> raise (Foo "not yet in valueToTerm ")
   ;;
 
 let rec verifier (caller:string) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
@@ -151,19 +159,19 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
   | Timeout (e, n) -> 
     let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
-    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, Number n)), Ttimes(es, Var x))) eff in 
+    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, valueToTerm n)), Ttimes(es, Var x))) eff in 
     concatanateEffEff current addABound
 
   | Deadline (e, n) -> 
     let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
-    let addABound = List.map (fun (pi, es) -> (PureAnd(Gt(Var x, Number n) , PureAnd(pi, LtEq(Var x, Number n))), Ttimes(es, Var x))) eff in 
+    let addABound = List.map (fun (pi, es) -> (PureAnd(Gt(Var x, valueToTerm n) , PureAnd(pi, LtEq(Var x, valueToTerm n))), Ttimes(es, Var x))) eff in 
     concatanateEffEff current addABound
 
   | Delay n -> 
     let x = verifier_getAfreeVar () in 
 
-    List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, Number n)), Cons (es, Ttimes (Emp, Var x)))) current
+    List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, valueToTerm n)), Cons (es, Ttimes (Emp, Var x)))) current
 
   | LocalDel (t, v , e) ->   verifier caller e precondition current prog      
   | Assertion eff ->   
@@ -256,6 +264,8 @@ let rec printMeth (me:meth) :string =
     let p = printType t ^ mn^ "(" ^ printParam list_parm ^ ") "^ printSpec (PrePost (pre, post))^"{"^ printExpr expression ^"}\n" in
     p 
     ;;
+
+
 
 let rec printProg (pram: declare list) :string =
   match pram with 

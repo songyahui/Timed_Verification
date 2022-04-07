@@ -2,8 +2,8 @@
 
 void oneSugar() 
     /*
-    require TRUE/\(_^*).emp
-    ensure TRUE/\emp
+    req: TRUE/\(_^*).emp
+    ens: TRUE/\emp
     */
 {
     1
@@ -11,8 +11,8 @@ void oneSugar()
 
 void addSugar (int n) 
     /*
-    require TRUE/\(_^*)
-    ensure  (t>=n)/\ (Sugar #t)
+    req: TRUE/\(_^*)
+    ens:  (t>=n)/\ (Sugar #t)
     */
 {
 
@@ -27,8 +27,8 @@ void addSugar (int n)
 
 void makeCoffee (int n)
     /*
-    require TRUE/\emp
-    ensure (t<=5/\t>=n/\t1<=3)/\Cup.(Sugar#t).(Coffee#t1).Done
+    req: TRUE/\emp
+    ens: (t<=5/\t>=n/\t1<=3)/\Cup.(Sugar#t).(Coffee#t1).Done
     */
 {
     event["Cup"];
@@ -40,8 +40,8 @@ void makeCoffee (int n)
 
 int main ()
 /*
-    require TRUE /\emp
-    ensure (t<8)/\ (((_^*).Done)#t)
+    req: TRUE /\emp
+    ens: (t<8)/\ (((_^*).Done)#t)
     */
 {
     makeCoffee (3);
