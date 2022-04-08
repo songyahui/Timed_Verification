@@ -636,76 +636,57 @@ Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is
 \subsection{Forward Verification}
 As shown in \figref{fig:forward_example}, we demonstrate the forward verification process of the module  {\ttfamily{main}}. The program effects states  are captured in the form of \code{\langle \textcolor{huntergreen}{\effect} \rangle}. To facilitate the illustration, we label the verification steps by (1), ..., (9), and mark the deployed inference rules (cf. \secref{Forward_Rules}) in \textcolor{mGray}{[gray]}.
 
+
+\begin{comment}
+  
+/*require n>=0, _^*
+  ensure  t>=n, Sugar#t */
+{  
+    
+  
+    
+    
+\end{comment}
+
 {
-\begin{figure}[ht]
-      \vspace{0mm}
+\begin{figure}[!ht]
+    %  \vspace{-4mm}
      \begin{minipage}[c]{\columnwidth}
-      \vspace{0mm}
          \centering
          {\small
-\begin{enumerate}
-  \item  \code{\key{fork}\{    } 
-                 \textcolor{mGray}{  \emph{(– initialize the current effects state using the module precondition –)}}
-  \\
- \code{\langle  \textcolor{darklavender}{true : emp} \rangle }
-                  \textcolor{mGray}{  \emph{(– emp indicates an empty trace –)}}
-  \item    \code{~\qquad \key{await}\ Ready;}
-   \\
- \code{\langle  \textcolor{darklavender}{true : Ready? \cdot\_ } \rangle }
-     \siderule{ [FV\text{-}Await]}
-     \\
-   \item    \code{~\qquad \key{emit}\ Go;}
-         \\
- \code{\langle  \textcolor{darklavender}{true : Ready? \cdot\{Go\}} \rangle }
-     \siderule{ [FV\text{-}Emit]}
-     \\
-  \item \code{ \} \key{par}\{ }
-       \textcolor{mGray}{  \emph{(– initialize the current effects state using the module precondition –)}}
-  \\
- \code{\langle  \textcolor{darklavender}{true : emp} \rangle }
-  \item    \code{~\qquad \key{emit}\ Prep; }
-     \\
- \code{\langle  \textcolor{darklavender}{true : \{Prep\}} \rangle }
-     \siderule{ [FV\text{-}Emit]}
-     \\
-  \item    \code{~\qquad \key{async}\ Ready\{}
-  %   \item    \code{~\qquad \key{yield}; }
- %     \\
-% \code{\langle  \textcolor{darklavender}{true : Ready? \cdot\_} \rangle }
- %    \siderule{ [FV\text{-}Yield]}
-%     \\
-  \item      \code{~\qquad \ \qquad \key{run}\ cook\ (3, Cook) 
-     \}\}\}}
+         \begin{enumerate}
+\item \lstinline|void addSugar (int n) {| \textcolor{mGray}{\footnotesize \emph{(-- initialize the current effects state --)}} \\
+     \textcolor{darkpastelred}{\{\code{\effect_C {=}\effect_{pre}^{addSugar(n)} =  n{\geq}0 \wedge  \_^\star \} }} 
+      \siderule{\scriptsize[FV\text{-}Meth] } \\
+     \item ~\qquad \lstinline|if (n == 0) {| \\
+     \textcolor{darkpastelred}{\code{\{ n{=}0 \wedge \anyevent{Ready} \cdot \_^\star \}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
+      \item ~\qquad~\qquad \lstinline|event ["Sugar"];} |  \\
+     \textcolor{darkpastelred}{\code{\{n{=}0 \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Done}\} }} \siderule{\scriptsize [FV\text{-}Event]}
+     \item 
+     ~\qquad \lstinline|else {| \\
+     \textcolor{darkpastelred}{\code{\{ n  {\neq} 0\}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
+    \item 
+     ~\qquad~\qquad \lstinline|timeout (oneSugar() , 1);| \\
+     \textcolor{darkpastelred}{\code{\{n  {\neq} 0  \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Send}  }\}} \siderule {\scriptsize [FV\text{-}Event]}
+     \item 
+     ~\qquad~\qquad \lstinline|addSugar (n-1);}}|  \\
+      \code{rev(n  {\neq} 0  \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Send})  \CONTAIN rev(\effect_{pre}^{send(n\text{-}1)}) }
+      \textcolor{mGray}{  \emph{(-check precondition-) }}\\
+     \textcolor{darkpastelred}{\code{\{ n  {\neq} 0  \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Send}\cdot \effect_{post}^{send(n\text{-}1)} }\}} \siderule {\scriptsize [FV\text{-}Call]}
+      \item \textcolor{darkpastelred}{\code{\effect_C^\prime {=} (n{=}0 \wedge \anyevent{Ready} \cdot \_^\star \cdot  \anyevent{Done})\ \vee\ }\code{ (n  {\neq} 0  \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Send}\cdot \effect_{post}^{send(n\text{-}1)}) }} 
       \\
-                     \textcolor{mGray}{\emph{(-TRS: check the  precondition of module cook-) }} \\
-              \code{  \textcolor{darkred}{d{=}3 : \{Prep\}  \CONTAIN  d{>}2 \wedge \{Prep\}} }   \\
-             
-               \textcolor{mGray}{\emph{(-TRS: succeed-) }}
-      \\
-     \code{\langle  \textcolor{darklavender}{ 0{\leq}t {<}3 : (\{Prep\}\cdot \{Cook\})\mysharp  t}  \rangle } 
-     \siderule{ [FV\text{-}Call]}
-      \\
-     \code{\langle  \textcolor{darklavender}{ 0{\leq}t {<}3 : (\{Prep\}\cdot \{Cook\})\mysharp  t \cdot \{ Ready\}}  \rangle } 
-     \siderule{ [FV\text{-}Async]}
-     \\ \item
-                   \code{\langle \textcolor{huntergreen}{(true \wedge 0{\leq}t {<}3) :  Ready? \cdot\{Go\}  \ || \  (\{Prep\}\cdot \{Cook\})\mysharp  t \cdot \{ Ready\}} \rangle }   \siderule{ [FV\text{-}Fork]} 
-        \\ 
-         \code{\langle \textcolor{huntergreen}{0{\leq}t {<}3 : (\{Prep\}\cdot \{Cook\})\mysharp  t \cdot \{ Ready\} \cdot \{Go\}} \rangle }
-         \siderule{ [Effects\text{-}Normalization]} 
-         \\
-              \item 
-               \textcolor{mGray}{  \emph{(-TRS: check the  postcondition of module main; Succeed, cf. \tabref{tab:rewriting_tree_send}-) }}\\
-                  \code{  \textcolor{darkred}{
-{0 {\leq} t {<}3} : (\{Prep\}\cdot \{Cook\})\mysharp  t \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN {0 {\leq} t  {<}3} : \_\cdot (\{Cook\})\mysharp  t \cdot\_^\star} 
-                  }    \\
+       \item \code{
+       %\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  \neq 0  \wedge \anyevent{Send}\cdot \effect_{post}^{send(n-1)}) } 
+       \effect_C^\prime \CONTAIN \effect_{pre}^{send(n)} \cdot \effect_{post}^{send(n)} \Leftrightarrow   \textcolor{mGray}{  \emph{(-- check postcondition --) }}}
+        \\ \code{\code{\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  {\neq} 0  \wedge \anyevent{Send}\cdot \effect_{post}^{send(n\text{-}1)}) } \CONTAIN \effect_{post}^{send(n)}}}\\
+    
      
 \end{enumerate}}
 
      \end{minipage}
-      \vspace{0mm}
-      \caption{The forward verification example for the module {\ttfamily{main}}. }\label{fig:forward_example}
-      \vspace{-1mm}
+
+      \caption{The forward verification example for method \code{send}. }\label{fig:forward_example}
+      \vspace{-4mm}
 \end{figure}
 }
 
