@@ -70,7 +70,7 @@
 \newcommand{\env}{\code{\mathcal{V}}}
 
 \newcommand{\es}{\theta}
-\newcommand{\ev}{\iota}
+\newcommand{\ev}{ev}
 
 
 \newcommand{\timedEffects}{\emph{TimEffs}}
@@ -1815,8 +1815,10 @@ A head can be  $t$, denoting a pure time passing;
   \qquad\quad 
   \qquad\quad
   \code{fst_{{\pi}}(  \es_1 {\vee} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }  \\
+  \code{fst_{{\pi}}(\epsilon \mysharp  t) {=}  \{t\}} 
+   \qquad \qquad
   \code{fst_{{\pi}}( \pi^\prime? \es ) {=} fst_{\pi}(\es)  }
-      \qquad\qquad\quad
+      \qquad\qquad
      \code{fst_{{\pi}}(  \es_1 {||} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }   
      \\
   {
@@ -1854,6 +1856,14 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
 \code{D^{\env}_{h}( \pi \wedge {\es^\star}) } {=} \code{ D^{\env}_{h}(\pi \wedge  {\es}) \cdot {\es^\star}}  
 \\
 {
+ \code{\code{D^{\env}_{h}(\pi \wedge \pi^\prime? \es)} {=}}
+\begin{cases}
+      \code{\pi \wedge \pi^\prime? \es} \quad &\code{if\ \llbracket \pi^\prime  \rrbracket_{\env} {=} false}   \\
+      \code{D^{\env}_{h}(\pi \wedge \es)} & \code{if\ \llbracket \pi^\prime  \rrbracket_{\env} {=} true} 
+    \end{cases} 
+    }
+    \\ 
+{
  \code{D^{\env}_{h}(\pi \wedge \es_1 {\cdot} \es_2) {=} }
 \begin{cases}
       \code{D^{\env}_{h}(\pi \wedge \es_1) \cdot  \es_2\ \vee \  D^{\env}_{h}(\pi \wedge \es_2)} \quad &\code{if\ \delta_{\pi}(\es_1) {=} true}   \\
@@ -1866,21 +1876,33 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
 \code{D^{\env}_{h}(\pi \wedge \es_1 {||}\es_2)} {=} \code{PD^{\env}_{h}(\pi \wedge \es_1)} || \code{PD^{\env}_{h}(\pi \wedge \es_2)} 
  \\~\\
  \hline
-%\\
-%\code{D^{\env}_{h}(  \effect_1 \ ||\  \effect_2) } {=} \code{ D^{\env}_{h}(  \effect_1) \ ||\ D^{\env}_{h}(  \effect_2)} 
+ ~\\
+ \code{D^{\env}_{t}(\pi \wedge  \ev) } {=} \code{False \wedge \bott} 
+ \qquad\qquad 
+ \code{D^{\env}_{t}(\pi \wedge  \epsilon \mysharp t^\prime) } {=}  
+ \code{\pi{\wedge}(t{=}t^\prime) \wedge \epsilon}
+ \\
+ \code{D^{\env}_{t}(\pi \wedge  \es \mysharp t^\prime) } {=} 
+ \code{\pi{\wedge}(t{+}t^{\prime\prime}{=}t^\prime) \wedge  
+ \es \mysharp t^{\prime\prime} \ \ \  {(t^{\prime\prime}\ is\ fresh)} } 
+\\~\\
+\hline
+~\\
+\code{D^{\env}_{\ev}(\pi \wedge  \ev^\prime) } {=} 
+\code{\pi{\wedge}(\ev{=}\ev^\prime) \wedge \epsilon} 
+\qquad \quad 
+\code{D^{\env}_{\ev}(\pi \wedge  \es \mysharp t^\prime) } {=} 
+\code{\{(\pi^\prime \wedge \es^\prime \mysharp t^\prime) \ | \ (\pi^\prime \wedge \es^\prime) \in D^{\env}_{\ev}(\pi \wedge  \es)\}} 
+\\~\\
+\hline
+~\\
+\code{D^{\env}_{(\ev, t)}(\pi \wedge  \ev^\prime) } {=} 
+\code{False \wedge \bott}  
+\qquad \ \ \  
+\code{D^{\env}_{(\ev, t)}(\pi \wedge  \es \mysharp t^\prime) } {=} 
+\code{\pi{\wedge}(t{+}t^{\prime\prime}{=}t^\prime) \wedge  
+(D^{\env}_{\ev}(\pi \wedge  \es)) \mysharp t^{\prime\prime} \ \ \  {(t^{\prime\prime}\ is\ fresh)}} 
 \\
-\code{D^{\env}_{h}(  \es \mysharp  t) } {=}
-\code{
-\pi \wedge(t_1{+} t_2 {=}t) \wedge (t_1{=}t^\prime) : (D^{\env}_{h}(\effect))\mysharp  t_2} \ \ \ 
-\code{(fresh \ t_1\ t_2 )}
-\\
-\code{D^{\env}_{h}(\pi^\prime? \es)} {=} \code{\pi: \empt\ (}\code{ I {\subseteq} \{\textbf{S}\})}
-\qquad
-\code{D^{\env}_{h}(\textbf{S}?)} {=} \code{\pi: \textbf{S}?\ (}\code{ I {\not\subseteq} \{\textbf{S}\})}
-\\
-\code{D^{\env}_{h}(J)} {=} \code{\pi: \empt\ (}\code{ I {\subseteq} J)}
-\qquad\ 
-    \code{D^{\env}_{h}( J)} {=} \code{False : \bott \ (}\code{I {\not\subseteq} J)} 
 \end{gather*}
 \end{definition}
 
