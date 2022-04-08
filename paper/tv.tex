@@ -1847,46 +1847,57 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
 \rrbracket_{\env}}. 
 %\footnote{As the reader may notice, our First and Derivative function does not handle the timed sequences constructed by \code{||}, as the synchronous parallel is reduced during the normalization phase.}
 \begin{gather*}
-\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(\bott) {=}}  
- \code{False : \bott} 
-\qquad\ 
-\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(  \empt) {=}}   
-\code{False : \bott} 
-\qquad \ 
-\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(\effect_1 ||\effect_2)} {=} \code{D^{\pi}_{(I, \Pi_1, t^\prime)}(\effect_1)} || \code{D^{\pi}_{(I, \Pi_1, t^\prime)}(\effect_2)} 
-    \\
-        \code{D^{\pi}_{(I, \Pi_1, t^\prime)}(  {\effect^\star}) } {=} \code{ D^{\pi}_{(I, \Pi_1, t^\prime)}(  {\effect}) \cdot ({\effect^\star})}  
-        \qquad\qquad
+\code{D^{\env}_{h}(\pi \wedge \bott) {=}}  \code{False \wedge \bott} 
+\qquad\ \ \  
+\code{D^{\env}_{h}( \pi \wedge \empt) {=}}  \code{False \wedge \bott} 
+\qquad\ \ \ 
+\code{D^{\env}_{h}( \pi \wedge {\es^\star}) } {=} \code{ D^{\env}_{h}(\pi \wedge  {\es}) \cdot {\es^\star}}  
 \\
 {
- \code{D^{\pi}_{(I, \Pi_1, t^\prime)}(   \effect_1 \seq \effect_2) {=} }
+ \code{D^{\env}_{h}(\pi \wedge \es_1 {\cdot} \es_2) {=} }
 \begin{cases}
-      \code{D^{\pi}_{(I, \Pi_1, t^\prime)}(   \effect_1) \cdot  \effect_2 \vee  D^{\pi}_{(I, \Pi_1, t^\prime)}( \effect_2)} \quad &\code{if\ \delta(\effect_1) {=} true}   \\
-      \code{D^{\pi}_{(I, \Pi_1, t^\prime)}  ( \effect_1) \cdot  \effect_2} & \code{if\ \delta(\effect_1) {=} false} 
+      \code{D^{\env}_{h}(\pi \wedge \es_1) \cdot  \es_2\ \vee \  D^{\env}_{h}(\pi \wedge \es_2)} \quad &\code{if\ \delta_{\pi}(\es_1) {=} true}   \\
+      \code{D^{\env}_{h}(\pi \wedge \es_2) \cdot  \es_2} & \code{if\ \delta_{\pi}(\es_1) {=} false} 
     \end{cases} 
     }
- \\
-\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(  \effect_1 \choice \effect_2) } {=} \code{ D^{\pi}_{(I, \Pi_1, t^\prime)}(  \effect_1) \choice D^{\pi}_{(I, \Pi_1, t^\prime)}(  \effect_2)} 
-%\\
-%\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(  \effect_1 \ ||\  \effect_2) } {=} \code{ D^{\pi}_{(I, \Pi_1, t^\prime)}(  \effect_1) \ ||\ D^{\pi}_{(I, \Pi_1, t^\prime)}(  \effect_2)} 
 \\
-\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(  \effect \mysharp  t) } {=}
+\code{D^{\env}_{h}(\pi \wedge  \es_1 {\choice} \es_2) } {=} \code{ D^{\env}_{h}(\pi \wedge  \es_1) \choice D^{\env}_{h}( \pi \wedge \es_2)} 
+\qquad 
+\code{D^{\env}_{h}(\pi \wedge \es_1 {||}\es_2)} {=} \code{PD^{\env}_{h}(\pi \wedge \es_1)} || \code{PD^{\env}_{h}(\pi \wedge \es_2)} 
+ \\~\\
+ \hline
+%\\
+%\code{D^{\env}_{h}(  \effect_1 \ ||\  \effect_2) } {=} \code{ D^{\env}_{h}(  \effect_1) \ ||\ D^{\env}_{h}(  \effect_2)} 
+\\
+\code{D^{\env}_{h}(  \es \mysharp  t) } {=}
 \code{
-\pi \wedge(t_1{+} t_2 {=}t) \wedge (t_1{=}t^\prime) : (D^{\pi}_{(I, \Pi_1, t^\prime)}(\effect))\mysharp  t_2} \ \ \ 
+\pi \wedge(t_1{+} t_2 {=}t) \wedge (t_1{=}t^\prime) : (D^{\env}_{h}(\effect))\mysharp  t_2} \ \ \ 
 \code{(fresh \ t_1\ t_2 )}
 \\
-\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(\textbf{S}?)} {=} \code{\pi: \empt\ (}\code{ I {\subseteq} \{\textbf{S}\})}
+\code{D^{\env}_{h}(\pi^\prime? \es)} {=} \code{\pi: \empt\ (}\code{ I {\subseteq} \{\textbf{S}\})}
 \qquad
-\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(\textbf{S}?)} {=} \code{\pi: \textbf{S}?\ (}\code{ I {\not\subseteq} \{\textbf{S}\})}
+\code{D^{\env}_{h}(\textbf{S}?)} {=} \code{\pi: \textbf{S}?\ (}\code{ I {\not\subseteq} \{\textbf{S}\})}
 \\
-\code{D^{\pi}_{(I, \Pi_1, t^\prime)}(J)} {=} \code{\pi: \empt\ (}\code{ I {\subseteq} J)}
+\code{D^{\env}_{h}(J)} {=} \code{\pi: \empt\ (}\code{ I {\subseteq} J)}
 \qquad\ 
-    \code{D^{\pi}_{(I, \Pi_1, t^\prime)}( J)} {=} \code{False : \bott \ (}\code{I {\not\subseteq} J)} 
+    \code{D^{\env}_{h}( J)} {=} \code{False : \bott \ (}\code{I {\not\subseteq} J)} 
 \end{gather*}
 \end{definition}
 
 
+\begin{definition}[Parallel Derivative]\label{Derivative_maybe}
+  Given any \code{\effect {=} \pi \wedge \es}, and a variable valuation function \code{\env}, 
+  the parallel derivative is defined as: {
+    \code{PD^{\env}_{h}(\pi \wedge \es) {=}
+    \begin{cases}
+          \code{\pi \wedge \es} & \code{if\ D^{\env}_{h}(\pi \wedge \es) = (False \wedge \bott)}\\
+          \code{D^{\env}_{h}(\pi \wedge \es)} & \code{otherwise}
+        \end{cases} }
+        }
 
+
+  
+\end{definition}
 
 \subsection{Rewriting Rules}
 \label{InferenceRules}
