@@ -8,7 +8,7 @@
 %token <string> STRING
 %token <bool> TRUEE  
 %token <bool> FALSEE
-%token EMPTY ASSERTKEY EVENTKEY CHOICE LPAR RPAR CONCAT  POWER PLUS MINUS TRUE FALSE DISJ CONJ   ENTIL INTT BOOLT VOIDT  (* OMEGA *)
+%token EMPTY ASSERTKEY EVENTKEY CHOICE LPAR RPAR CONCAT  POWER MINUS TRUE FALSE DISJ CONJ   ENTIL INTT BOOLT VOIDT  (* OMEGA *)
 %token LBRACK RBRACK COMMA SIMI  IF ELSE REQUIRE ENSURE LSPEC RSPEC  LBrackets  RBrackets 
 %token EOF GT LT EQ GTEQ LTEQ INCLUDE SHARP EQEQ UNDERLINE KLEENE NEGATION
 %token LILOR COLON GUARD 
@@ -102,7 +102,7 @@ expres:
 | e1 = expres_help LILOR e2 = expres {Parallel (e1, e2)}
 
 | IF LPAR e1 = cond RPAR LBRACK e2 = expres RBRACK ELSE LBRACK e3 = expres RBRACK {IfElse (e1, e2, e3)}
-| e1 = value PLUS e2 = value {BinOp(e1, e2,"+" )}
+| e1 = value CHOICE e2 = value {BinOp(e1, e2,"+" )}
 | e1 = value MINUS e2 = value {BinOp(e1, e2,"-" )}
 
 (*PrePost([(TRUE, Emp)], [(TRUE, Emp)])*)
@@ -129,7 +129,7 @@ term:
 
 | LPAR a = term MINUS b = term RPAR {Minus (a, b )}
 
-| LPAR a = term PLUS b = term RPAR {Plus (a, b)}
+| LPAR a = term CHOICE b = term RPAR {Plus (a, b)}
 
 
 (*

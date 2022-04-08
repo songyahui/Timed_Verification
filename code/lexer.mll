@@ -76,7 +76,6 @@ rule token = parse
 | '}' { RBRACK }
 | ',' { COMMA }
 | ';' { SIMI }
-| '+' { PLUS }
 | '-' { MINUS }
 | '#' { SHARP }
 | '_' {UNDERLINE}
