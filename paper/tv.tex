@@ -1722,10 +1722,6 @@ An inclusion with a disjunctive antecedent succeeds if both disjunctions entail 
 }
 
 Now, the inclusions are disjunction-free formulas. 
-
-Next we provide the definitions and implementations of auxiliary functions \emph{Nullable}(\code{\delta}), \emph{First}(\code{fst}) and \emph{Derivative}(\code{D}) respectively.
-Intuitively, the Nullable function \code{\delta(\effect)} returns a boolean value indicating whether \code{\effect} contains the empty trace; the First function \code{fst_{{\pi}}( \effect)} computes a set of possible initial time instances of \code{{\pi} : \effect}; and the Derivative function \code{D_{I\mysharp  t}^{{\pi}}(\effect)} computes a next-state effects after eliminating one event \code{I} w.r.t. the execution time \code{t} from the current effects \code{{\pi} : \effect}. 
-
 Next we provide the definitions and the key implementations\footnote{As 
 the implementations according to basic regular expressions can be found 
 in prior work \cite{keil2014symbolic}. 
@@ -1737,9 +1733,9 @@ in prior work \cite{keil2014symbolic}.
 the Nullable function \code{\delta_{{\pi}}(\es)} returns a boolean 
 value indicating whether \code{{\pi} \wedge \es} contains the empty 
 trace; the First function \code{fst_{{\pi}}( \es)} computes a set of 
-possible initial events of \code{{\pi} \wedge \es}; and the Derivative 
-function \code{D_{\anyevent{a}}^{{\pi}}(\es)} computes a next-state 
-effects after eliminating one event \code{\anyevent{a}} from the current 
+ initial \emph{heads}, denoted as \code{h},  of \code{{\pi} \wedge \es}; and the Derivative 
+function \code{D_{h}^{{\pi}}(\es)} computes a next-state 
+effects after eliminating the head  \code{h} from the current 
 effects \code{{\pi} \wedge \es}. 
 
 %\subsection{closure of clock constrains}
@@ -1749,14 +1745,19 @@ effects \code{{\pi} \wedge \es}.
 
 
 \begin{definition}[Nullable]\label{Nullable}
-Given any timed sequence \code{\es} under condition \code{{\pi}}, we define \code{\delta_{{\pi}}(\es)} to be:\\
+Given any \code{\effect {=} \pi {\wedge} \es}, %we define 
+%\code{\delta_{{\pi}}(\es)} to be \\
 {
-\code{\delta_{{\pi}}(\es) :bool {=}
-\begin{cases}
-      \code{true} & \code{if\ \empt \in \llbracket {\pi} \wedge \es \rrbracket_{\varphi}}\\
-      \code{false} & \code{if\ \empt \notin \llbracket {\pi} \wedge \es \rrbracket_{\varphi}}
-    \end{cases} }
-    }, where\   
+  \code{\delta_{{\pi}}(\es) :bool {=}
+  \begin{cases}
+        \code{true} & \code{if\ \empt \in \llbracket {\pi} {\wedge} \es \rrbracket_{\varphi}}\\
+        \code{false} & \code{if\ \empt \notin \llbracket {\pi} {\wedge} \es \rrbracket_{\varphi}}
+      \end{cases} }
+      }, where:  
+\begin{comment}
+ a boolean value, indicating whether \code{\effect} contains the empty trace, i.e., $\epsilon$. 
+We define recursively:  
+\end{comment} 
 { 
 \begin{gather*}
 \code{\delta_{\pi}(\bott) {=} false} 
@@ -1783,23 +1784,35 @@ Given any timed sequence \code{\es} under condition \code{{\pi}}, we define \cod
 %Next, we define the novel  \emph{First} function used in this work, denoted using \code{fst}. 
 %but helps to build up our \emph{First} function \code{fst}. 
 
+
+\begin{definition}[Heads]\label{Heads}
+If \code{h} is a head of \code{\pi \wedge \es}, then there exists 
+\code{\pi^\prime} and \code{\es^\prime}, 
+such that \code{\pi \wedge \es} {=} \code{\pi^\prime \wedge h \cdot \es^\prime}. 
+   %We adopt the following naming convention for transition labels: 
+A head can be  $t$, denoting a pure time passing; 
+  $\ev $, denoting a pure event passing; 
+  $(\ev, t)$, denoting an event passing which takes time \code{t}. 
+\end{definition}
+
+
 \begin{definition}[First]\label{First}
-  Let \code{fst_{{\pi}}(\es): \{ (\ev,  t)  | 
-  \pi {\wedge} t{\geq}0 \wedge (\ev \mysharp  t) {\cdot} \es_1 \in \llbracket  
-  \pi \wedge \es \rrbracket \}} be the set of initial timed events  
-  derivable from effects \code{\pi \wedge \es}. (\code{\llbracket  \pi \wedge
-   \es \rrbracket } represents all the timed  traces contained in 
-   \code{\pi \wedge \es}) 
-  { 
+  Given any \code{\effect {=} \pi \wedge \es},
+  \code{fst_{{\pi}}(\es)} return a set of heads, be the set of initial elements   
+  derivable from effects \code{\pi \wedge \es}, where: 
+    { 
    \begin{gather*} 
-  \code{fst_{{\pi}}( \bott) {=} \{\} } \qquad\quad
-  \code{fst_{{\pi}}(\empt) {=}  \{\} } \qquad\quad
-  \code{fst_{{\pi}}( \ev) {=} \{ (\ev, t) \}  \ (t\ is\ fresh)} 
-  \qquad\quad
-     \code{fst_{{\pi}}(  \es \mysharp  t) {=}  fst_{\pi}(\es)}
-   \\
+  \code{fst_{{\pi}}( \bott) {=} \{\} } \qquad\ \ 
+  \code{fst_{{\pi}}(\empt) {=}  \{\} } \qquad\ \ 
+  \code{fst_{{\pi}}( \ev) {=} \{ \ev \}  }
+  \qquad\ \ 
+  \code{fst_{{\pi}}(  \epsilon \mysharp  t) {=}  \{ t \}}
+  \qquad\ \ 
   \code{fst_{{\pi}}( {\es^\star} ) {=} fst_{{\pi}}({ \es})}
-  \qquad\ \ \  
+   \\
+   \code{fst_{{\pi}}(\es \mysharp  t) {=}  \{(\ev, t) \ | \ \ev \in fst_{\pi}(\es) \}} 
+   \ \ \  \emph{(t\ is\ fresh)}
+  \qquad\quad 
   \qquad\quad
   \code{fst_{{\pi}}(  \es_1 {\vee} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }  \\
   \code{fst_{{\pi}}( \pi^\prime? \es ) {=} fst_{\pi}(\es)  }
@@ -1818,13 +1831,9 @@ Given any timed sequence \code{\es} under condition \code{{\pi}}, we define \cod
 \end{definition}
 
 
-\begin{definition}[First-Tuples Unification]\label{unify} Given two first tuples \code{(I_1, \pi_1, t_1)} and \code{(I_2, \pi_2, t_2) }, we define that: 
-%We deploy a \code{unify} function to merge two time instances, where \\ 
-\code{unify\ (I_1, \pi_1, t_1)\  (I_2, \pi_2, t_2) = (I_1 \cup I_2, \pi_1 \wedge \pi_2 \wedge (t1 {=} t2), t_1)}.
-\end{definition}
 
 
-\begin{definition}[Instances Subsumption]\label{Subsumption}
+\begin{definition}[Timed Event Subsumption]\label{Subsumption}
 Given two instances \code{I} and \code{J}, we define the subset relation \code{I {\subseteq} J} as: the set of present signals in \code{J} is a subset of the set of present signals in \code{I}, and the set of absent signals in \code{J} is a subset of the set of absent signals in \code{I}\footnote{As in having more constraints refers to a smaller set of satisfying instances.}.
 Formally, 
  \begin{gather*} 
