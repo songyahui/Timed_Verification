@@ -83,7 +83,7 @@
 \definecolor{mPurple}{rgb}{0.58,0,0.82}
 \definecolor{huntergreen}{rgb}{0.33, 0.42, 0.18}
 
-\definecolor{darkpastelred}{rgb}{0, 0, 0}
+\definecolor{darklavender}{rgb}{0, 0, 0}
 \definecolor{backgroundColour}{rgb}{0.95,0.95,0.92}
 \definecolor{brickred}{rgb}{0.8, 0.25, 0.33}
 \definecolor{red}{rgb}{0.6,0,0} 
@@ -99,7 +99,7 @@
 \definecolor{airforceblue}{rgb}{0.36, 0.54, 0.66}
 \definecolor{darkred}{rgb}{0.55, 0.0, 0.0}
 \usepackage{wrapfig}
-\newcommand{\effect}{\textcolor{black}{\ensuremath{\mathrm{\Phi}}}}
+\newcommand{\effect}{{\ensuremath{\mathrm{\Phi}}}}
 \definecolor{color_pure}{RGB}{3,35,14}
 \usepackage{epigraph}
 \newcommand{\anyevent}[1]{{\textcolor{darkred}
@@ -412,7 +412,7 @@ void addSugar (int n)
 The function 
 \code{\emph{addSugar}} is intended to takes a parameter \codem{n}, representing 
 the portion of the sugar we need to add. When \codem{n} decreases to \codem{0}, 
-it simply raises an event \anyevent{Sugar} to mark the end of the process. 
+it simply raises an event Sugar to mark the end of the process. 
 Otherwise, it adds one portion of the sugar then recursively calls \code{\emph{addSugar}} with parameter \codem{n-1}. 
 The use of statement \codem{timeout(e, d)} is standard, 
 which sets a timer which executes code \codem{e} once the timer 
@@ -423,7 +423,7 @@ no less than 1 time unit.
 
 The specifications of  \codem{addSugar(n)} indicates that the 
 input  \code{n} is non-negative; the method 
-generates a finite trace where \anyevent{Sugar} takes a no less 
+generates a finite trace where Sugar takes a no less 
 than \code{d} time units delay to finish. 
 Although these examples are simple, they show the benefits of deploying 
 value-dependent 
@@ -440,7 +440,7 @@ a set (possibly infinite) of exact transition systems.
 &\code{\effect^{send (d)} \defeq \  (0 {<} d {\leq}5 \wedge  0 {\leq} t {<} d),  ({\anyevent{Send} \mysharp  t)} \cdot \anyevent{Done}}.
 \end{align*}  
 effects of \code{addSugar(n)} as:
-\code{(n{>}0  \wedge  t {\geq} n) : ({\anyevent{Sugar} \mysharp  t)}}
+\code{(n{>}0  \wedge  t {\geq} n) : ({Sugar \mysharp  t)}}
 
 \end{comment}
 
@@ -656,29 +656,36 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
          {\small
          \begin{enumerate}
 \item \lstinline|void addSugar (int n) {| \textcolor{mGray}{\footnotesize \emph{(-- initialize the current effects state --)}} \\
-     \textcolor{darkpastelred}{\{\code{\effect_C {=}\effect_{pre}^{addSugar(n)} =  n{\geq}0 \wedge  \_^\star \} }} 
+     \textcolor{darklavender}{\{\code{\effect_C {=}\effect_{pre}^{addSugar(n)} =  n{\geq}0 \wedge  \_^\star \} }} 
       \siderule{\scriptsize[FV\text{-}Meth] } \\
      \item ~\qquad \lstinline|if (n == 0) {| \\
-     \textcolor{darkpastelred}{\code{\{ n{=}0 \wedge \anyevent{Ready} \cdot \_^\star \}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
+     \textcolor{darklavender}{\code{\{ n{=}0 \wedge  \_^\star \}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
       \item ~\qquad~\qquad \lstinline|event ["Sugar"];} |  \\
-     \textcolor{darkpastelred}{\code{\{n{=}0 \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Done}\} }} \siderule{\scriptsize [FV\text{-}Event]}
+     \textcolor{darklavender}{\code{\{n{=}0 \wedge  \_^\star \cdot Sugar\} }} \siderule{\scriptsize [FV\text{-}Event]}
      \item 
      ~\qquad \lstinline|else {| \\
-     \textcolor{darkpastelred}{\code{\{ n  {\neq} 0\}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
+     \textcolor{darklavender}{\code{\{ n  {\neq} 0\}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
     \item 
      ~\qquad~\qquad \lstinline|timeout (oneSugar() , 1);| \\
-     \textcolor{darkpastelred}{\code{\{n  {\neq} 0  \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Send}  }\}} \siderule {\scriptsize [FV\text{-}Event]}
+     \textcolor{darklavender}{\code{\{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t  }\}} \siderule {\scriptsize [FV\text{-}Event]}
      \item 
      ~\qquad~\qquad \lstinline|addSugar (n-1);}}|  \\
-      \code{rev(n  {\neq} 0  \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Send})  \CONTAIN rev(\effect_{pre}^{send(n\text{-}1)}) }
+     \textcolor{huntergreen}{\code{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t   \CONTAIN \effect_{pre}^{addSugar(n\text{-}1)} }}
       \textcolor{mGray}{  \emph{(-check precondition-) }}\\
-     \textcolor{darkpastelred}{\code{\{ n  {\neq} 0  \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Send}\cdot \effect_{post}^{send(n\text{-}1)} }\}} \siderule {\scriptsize [FV\text{-}Call]}
-      \item \textcolor{darkpastelred}{\code{\effect_C^\prime {=} (n{=}0 \wedge \anyevent{Ready} \cdot \_^\star \cdot  \anyevent{Done})\ \vee\ }\code{ (n  {\neq} 0  \wedge \anyevent{Ready} \cdot \_^\star \cdot \anyevent{Send}\cdot \effect_{post}^{send(n\text{-}1)}) }} 
+     \textcolor{darklavender}{\code{\{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star 
+     \cdot \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)} }\}} 
+     \siderule {\scriptsize [FV\text{-}Call]}
+      \item \textcolor{darklavender}{\code{\effect_C^\prime {=} (n{=}0 \wedge  \_^\star \cdot Sugar)\ \vee\ }
+      \code{ (n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)} ) }}
       \\
-       \item \code{
+       \item 
+       \textcolor{darkred}{\code{
        %\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  \neq 0  \wedge \anyevent{Send}\cdot \effect_{post}^{send(n-1)}) } 
-       \effect_C^\prime \CONTAIN \effect_{pre}^{send(n)} \cdot \effect_{post}^{send(n)} \Leftrightarrow   \textcolor{mGray}{  \emph{(-- check postcondition --) }}}
-        \\ \code{\code{\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  {\neq} 0  \wedge \anyevent{Send}\cdot \effect_{post}^{send(n\text{-}1)}) } \CONTAIN \effect_{post}^{send(n)}}}\\
+       \effect_C^\prime \CONTAIN \effect_{pre}^{addSugar(n)} \cdot \effect_{post}^{addSugar(n)} \Leftrightarrow  }}
+        \textcolor{mGray}{  \emph{(-- check postcondition --) }}
+        \\ 
+        \textcolor{darkred}{\code{\code{\code{(n{=}0 \wedge Sugar)\ \vee\ }
+        \code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)}) } \CONTAIN \effect_{post}^{send(n)}}}}\\
     
      
 \end{enumerate}}
