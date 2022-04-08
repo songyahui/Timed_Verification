@@ -101,7 +101,6 @@
 \usepackage{wrapfig}
 \newcommand{\effect}{\textcolor{black}{\ensuremath{\mathrm{\Phi}}}}
 \definecolor{color_pure}{RGB}{3,35,14}
-\newcommand\pure[1]{ \textcolor{black}{#1}}
 \usepackage{epigraph}
 \newcommand{\anyevent}[1]{{\textcolor{darkred}
 {{\textbf{\footnotesize #1}}}}}
@@ -1133,7 +1132,7 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
  
     \m{(Timed\ Effects)} &  \effect &\code{  ::= }&
     \code{
-          (\pure{\pi}, \es)
+          {\pi} \wedge \es
    \ | \ \effect_1 \vee \effect_2
 }
     \\
@@ -1162,16 +1161,16 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
 
 \\
     
-    \m{(Pure)}  & \code{\code{\pure{\pi}}}&\code{  ::= }&
-\pure{ \pure{True}}
-   \ |  \pure{False}
-   \ |  \pure{A(}{t_1, t_2}\pure{)}
-  \  |   \pure{\pure{\pi_1}} {\wedge} \code{\pure{\pi}}_2
-   \ |  \pure{\pure{\pi_1}} {\vee} \code{\pure{\pi}}_2
-   \ |  \neg\code{\pure{\pi}}
-  \  |   \pure{\pure{\pi_1}} {\Rightarrow} \pure{\pure{\pi_2}}
-   \ |  \forall x. \code{\pure{\pi}}
-   \ |  \exists x. \code{\pure{\pi}}
+    \m{(Pure)}  & \code{\code{{\pi}}}&\code{  ::= }&
+{ {True}}
+   \ |  {False}
+   \ |  {A(}{t_1, t_2}{)}
+  \  |   {{\pi_1}} {\wedge} \code{{\pi}}_2
+   \ |  {{\pi_1}} {\vee} \code{{\pi}}_2
+   \ |  \neg\code{{\pi}}
+  \  |   {{\pi_1}} {\Rightarrow} {{\pi_2}}
+   \ |  \forall x. \code{{\pi}}
+   \ |  \exists x. \code{{\pi}}
 
     
     \\
@@ -1219,7 +1218,7 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
 
 The  syntax of the \timedEffects is formally defined in 
 \figref{fig:Syntax_of_Types_and_Effects} Effects is 
- a conditioned time  event sequence \code{\pure{\pi},  es} or a disjunction of two effects $\es_1 \vee \es_2$.
+ a conditioned time  event sequence \code{{\pi},  es} or a disjunction of two effects $\es_1 \vee \es_2$.
 Timed sequences comprise \textit{nil} ($\bott$);
  an empty trace $\empt$;
 a single event \code{ev};
@@ -1241,8 +1240,8 @@ labeled using \anyevent{A}; and a wildcard \code{\_}, which matches to all the e
 
 
 
-We use \code{\pure{\pi}} to donate a pure formula which captures the (Presburger) arithmetic conditions on terms or program parameters. 
-We use \code{\pure{A(}{t_1, t_2}\pure{)}} to represent atomic formulas of two terms (including $  {=},
+We use \code{{\pi}} to donate a pure formula which captures the (Presburger) arithmetic conditions on terms or program parameters. 
+We use \code{{A(}{t_1, t_2}{)}} to represent atomic formulas of two terms (including $  {=},
    \ {>},
    \ {<},
    \ {\geq}\ $ and $ {\leq} $).
@@ -1285,80 +1284,80 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%         Empty          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s,  \varphi \models \pure{\pi}  , \empt}  
-&\m{iff}\quad & \code{d{=}0}\ and  \ \code{\llbracket \pure{\pi} \rrbracket_s {=}  
-\pure{True} } \ and\  \code{ \varphi {=} [] }\\
+&\code{d, s,  \varphi \models {\pi} \wedge \empt}  
+&\m{iff}\quad & \code{d{=}0}\ and  \ \code{\llbracket {\pi} \rrbracket_s {=}  
+{True} } \ and\  \code{ \varphi {=} [] }\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%         Event          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}  , \ev }  
-&\m{iff}\quad & \code{d{=}0}\ and  \ \code{\llbracket \pure{\pi} \rrbracket_s {=}  
-\pure{True} }\ and \ \varphi {=} [\ev]  \\
+&\code{d, s, \varphi \models {\pi} \wedge \ev }  
+&\m{iff}\quad & \code{d{=}0}\ and  \ \code{\llbracket {\pi} \rrbracket_s {=}  
+{True} }\ and \ \varphi {=} [\ev]  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%     Concatenate        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}, (\es_1\cdot \es_2)}  
+&\code{d, s, \varphi \models {\pi} \wedge (\es_1\cdot \es_2)}  
 &\m{iff}\quad & \exists \code{\varphi_1,\varphi_2}. \  
 \code{ \varphi_1 {\lappend} \varphi_2 {=} \varphi}\ and\ 
 \exists \code{d_1,d_2}. \  
 \code{ d_1 {+} d_2 {=} d} \\
-&&& \qquad  s.t. \ \code{d_1, s, \varphi_1 {\models} \pure{\pi}  , \es_1 }
-\ and \ \code{d_2, s, \varphi_2 {\models} \pure{\pi}  , \es_2 }\\
+&&& \qquad  s.t. \ \code{d_1, s, \varphi_1 {\models} {\pi}  \wedge \es_1 }
+\ and \ \code{d_2, s, \varphi_2 {\models} {\pi}  \wedge \es_2 }\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    disjunction         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}, \Pi_1.(\es_1{\vee}\es_2)}  
+&\code{d, s, \varphi \models {\pi} \wedge \pi_1.(\es_1{\vee}\es_2)}  
 &\m{iff}\quad & 
-\code{\llbracket \Pi_1  \rrbracket_{s} {=}  
- \pure{True} },\code{d, s, \varphi \models \pure{\pi}  , \es_1 } 
+\code{\llbracket \pi_1  \rrbracket_{s} {=}  
+ {True} },\code{d, s, \varphi \models {\pi}  \wedge \es_1 } 
 \ or\ 
-\code{\llbracket \Pi_1  \rrbracket_{s} {=}  
- \pure{False} },
-\code{d, s, \varphi \models \pure{\pi}  , \es_2 } \\
+\code{\llbracket \pi_1  \rrbracket_{s} {=}  
+ {False} },
+\code{d, s, \varphi \models {\pi}  \wedge \es_2 } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    parallel         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi} , (\ev_1{\cdot}\es_1)||(\ev_2{\cdot}\es_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models \pure{\pi}  , \ev_1{\cdot} (\es_1||(\ev_2{\cdot}\es_2)) } 
-\ or\ \code{d, s, \varphi \models \pure{\pi}  , \ev_2{\cdot}((\ev_1{\cdot}\es_1)||\es_2)  } \\
+&\code{d, s, \varphi \models {\pi} \wedge (\ev_1{\cdot}\es_1)||(\ev_2{\cdot}\es_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models {\pi}  \wedge \ev_1{\cdot} (\es_1||(\ev_2{\cdot}\es_2)) } 
+\ or\ \code{d, s, \varphi \models {\pi}  \wedge \ev_2{\cdot}((\ev_1{\cdot}\es_1)||\es_2)  } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    parallel  2        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi} , (\ev\mysharp t_1) || (\epsilon \mysharp  t_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models \pure{(\pi{\wedge}t_1 {\geq}t_2)}, (\ev\mysharp t_1) } 
-\ or\ \code{d, s, \varphi \models \pure{(\pi{\wedge}t_1 {<}t_2)}  , (\ev\mysharp t_1){\cdot}(\epsilon \mysharp  (t_2\text{-}t_1))  } \\
+&\code{d, s, \varphi \models {\pi} \wedge (\ev\mysharp t_1) || (\epsilon \mysharp  t_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models {(\pi{\wedge}t_1 {\geq}t_2)}, (\ev\mysharp t_1) } 
+\ or\ \code{d, s, \varphi \models {(\pi{\wedge}t_1 {<}t_2)}  , (\ev\mysharp t_1){\cdot}(\epsilon \mysharp  (t_2\text{-}t_1))  } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    block         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}, \Pi_1 ? es}  &\m{iff}\quad & 
-\code{\llbracket \Pi_1  \rrbracket_{s} {=}  
- \pure{True} }, \ \code{d, s, \varphi \models \pure{\pi}  , es}\ or  \ 
-  \code{\llbracket \Pi_1 \rrbracket_{s} {=}  
-\pure{False} }, 
-\  \code{d, s, \varphi \models \pure{\pi}, \Pi_1 ? es}\\
+&\code{d, s, \varphi \models {\pi} \wedge \pi_1 ? es}  &\m{iff}\quad & 
+\code{\llbracket \pi_1  \rrbracket_{s} {=}  
+ {True} }, \ \code{d, s, \varphi \models {\pi}  \wedge es}\ or  \ 
+  \code{\llbracket \pi_1 \rrbracket_{s} {=}  
+{False} }, 
+\  \code{d, s, \varphi \models {\pi} \wedge \pi_1 ? es}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    t times         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}  ,es\mysharp  t}  &\m{iff}\quad &
- \code{\llbracket \pure{\pi}  , t {=} 0 \rrbracket_{s} {=}  
- \pure{True} }, \ \code{d, s, \varphi \models \pure{\pi}  , \empt}\ or  \\
-& & &  \code{\llbracket \pure{\pi}, t {>} 0 \rrbracket_{s} {=}  
-\pure{True} }, 
+&\code{d, s, \varphi \models {\pi}  \wedge es\mysharp  t}  &\m{iff}\quad &
+ \code{\llbracket {\pi}  \wedge t {=} 0 \rrbracket_{s} {=}  
+ {True} }, \ \code{d, s, \varphi \models {\pi}  \wedge \empt}\ or  \\
+& & &  \code{\llbracket {\pi}\wedge t {>} 0 \rrbracket_{s} {=}  
+{True} }, 
 \  \exists \code{\es_1,\es_2}. \  \code{\es_1 {\cdot} \es_2 {=} es}\\
-&&& \qquad  s.t. \ \code{d, s, \varphi {\models} \pure{(\pi 
+&&& \qquad  s.t. \ \code{d, s, \varphi {\models} {(\pi 
 {\wedge} t_1{\geq}0{\wedge}t_2{\geq}0 {\wedge} t_1{+} t_2{=}t)}  , 
 (\es_1\mysharp t_1) {\cdot} (\es_2\mysharp t_2) } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    star         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models \pure{\pi}, es^\star}  &\m{iff}\quad & 
-\code{d, s, \varphi \models \pure{\pi}  , \empt}\ or \ 
-\code{d, s, \varphi \models \pure{\pi}  , es {\cdot} es^\star}\\
+&\code{d, s, \varphi \models {\pi}\wedge es^\star}  &\m{iff}\quad & 
+\code{d, s, \varphi \models {\pi}  \wedge \empt}\ or \ 
+\code{d, s, \varphi \models {\pi}  \wedge es {\cdot} es^\star}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    FALSE         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 & \code{d, s, \varphi \models false}  &\m{iff}\quad &
- \code{\llbracket \pure{\pi}  \rrbracket_{s} {=} \pure{False} } \ or \ \code{\varphi {=} \bott}
+ \code{\llbracket {\pi}  \rrbracket_{s} {=} {False} } \ or \ \code{\varphi {=} \bott}
 \end{align*}
   \vspace{-2mm}
 \caption{Semantics of \timedEffects.}
@@ -1433,7 +1432,7 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 &\m{iff}\quad 
 &   otherwise
 %{\tt{UNSAT}(\pi)}  \ or \  \varphi  {=} \bot
-%\exists t, d(t) \not\models \llbracket \pure{\pi} \rrbracket_{t}
+%\exists t, d(t) \not\models \llbracket {\pi} \rrbracket_{t}
 \end{align*}
     \vspace{-3mm}
 \caption{Semantics of \timedEffects.}
@@ -1723,10 +1722,25 @@ An inclusion with a disjunctive antecedent succeeds if both disjunctions entail 
 }
 
 Now, the inclusions are disjunction-free formulas. 
+
 Next we provide the definitions and implementations of auxiliary functions \emph{Nullable}(\code{\delta}), \emph{First}(\code{fst}) and \emph{Derivative}(\code{D}) respectively.
-Intuitively, the Nullable function \code{\delta(\effect)} returns a boolean value indicating whether \code{\effect} contains the empty trace; the First function \code{fst_{\pure{\pi}}( \effect)} computes a set of possible initial time instances of \code{\pure{\pi} : \effect}; and the Derivative function \code{D_{I\mysharp  t}^{\pure{\pi}}(\effect)} computes a next-state effects after eliminating one event \code{I} w.r.t. the execution time \code{t} from the current effects \code{\pure{\pi} : \effect}. 
+Intuitively, the Nullable function \code{\delta(\effect)} returns a boolean value indicating whether \code{\effect} contains the empty trace; the First function \code{fst_{{\pi}}( \effect)} computes a set of possible initial time instances of \code{{\pi} : \effect}; and the Derivative function \code{D_{I\mysharp  t}^{{\pi}}(\effect)} computes a next-state effects after eliminating one event \code{I} w.r.t. the execution time \code{t} from the current effects \code{{\pi} : \effect}. 
 
-
+Next we provide the definitions and the key implementations\footnote{As 
+the implementations according to basic regular expressions can be found 
+in prior work \cite{keil2014symbolic}. 
+%Here, we focus on presenting 
+%the definitions and how do we deal with dependent values in the effects, 
+%as the key novelties of this work. 
+%More detail implementations can be found in the extended technical report\citeref{Demo}.
+} of Nullable, First and Derivative respectively. Intuitively, 
+the Nullable function \code{\delta_{{\pi}}(\es)} returns a boolean 
+value indicating whether \code{{\pi} \wedge \es} contains the empty 
+trace; the First function \code{fst_{{\pi}}( \es)} computes a set of 
+possible initial events of \code{{\pi} \wedge \es}; and the Derivative 
+function \code{D_{\anyevent{a}}^{{\pi}}(\es)} computes a next-state 
+effects after eliminating one event \code{\anyevent{a}} from the current 
+effects \code{{\pi} \wedge \es}. 
 
 %\subsection{closure of clock constrains}
 %how to eliminate the unobservable transitions. 
@@ -1734,98 +1748,73 @@ Intuitively, the Nullable function \code{\delta(\effect)} returns a boolean valu
 %we allow the $\empt$transitions without carrying constraints and resetting clocks at the same time. 
 
 
-
-
 \begin{definition}[Nullable]\label{Nullable}
-Given any time sequence \code{\effect}, we recursively define \code{\delta(\effect)} as:\\
+Given any timed sequence \code{\es} under condition \code{{\pi}}, we define \code{\delta_{{\pi}}(\es)} to be:\\
 {
-\code{\delta(\effect) :bool {=}
+\code{\delta_{{\pi}}(\es) :bool {=}
 \begin{cases}
-      \code{true} & \code{if\ \empt \in \effect}\\
-      \code{false} & \code{if\ \empt \notin \effect}
+      \code{true} & \code{if\ \empt \in \llbracket {\pi} \wedge \es \rrbracket_{\varphi}}\\
+      \code{false} & \code{if\ \empt \notin \llbracket {\pi} \wedge \es \rrbracket_{\varphi}}
     \end{cases} }
-    }, where   
+    }, where\   
 { 
 \begin{gather*}
-\code{\delta(\bott) {=} false} 
+\code{\delta_{\pi}(\bott) {=} false} 
 \qquad\quad
-\code{\delta(\empt) {=} true} 
+\code{\delta_{\pi}(\empt) {=} true} 
 \qquad\quad
-\code{\delta(I){=} false}   
+\code{\delta_{\pi}(\ev){=} false}   
 \qquad\quad
-\code{\delta(\textbf{S}?){=} false}   
+\code{\delta_{\pi}(\pi^\prime? \es){=} \delta_{\pi}(\es)}   
 \qquad\quad\
-    \code{\delta({\effect^\star} ) {=} true}   
+    \code{\delta({\es^\star} ) {=} true}   
 \\ 
-\code{\delta(\effect_1 \seq \effect_2) {=} \delta(\effect_1) \wedge \delta(\effect_2)}
-\qquad\qquad
-  \code{\delta(\effect_1 \choice \effect_2) {=} \delta(\effect_1) \vee \delta(\effect_2)}   
-  \\
-\code{\delta(\effect_1 || \effect_2) {=} \delta(\effect_1) \wedge \delta(\effect_2)}
+\code{\delta_{\pi}(\es \seq \es_2) {=} \delta(\es_1) \wedge \delta(\es_2)}
 \qquad\qquad\quad
- \code{\delta(\effect \mysharp  t) {=} \delta(\effect)}
+  \code{\delta_{\pi}(\es_1 \choice \es_2) {=} \delta(\es_1) \vee \delta(\es_2)}   
+  \\
+\code{\delta_{\pi}(\es_1 || \es_2) {=} \delta(\es_1) \wedge \delta(\es_2)}
+\qquad\qquad\quad
+ \code{\delta_{\pi}(\es \mysharp  t) {=} SAT ({\pi} \wedge (t {=} 0) )}
 \end{gather*}}
 \end{definition}
 
-To better outline our contribution, we first present the original \emph{First} function used in  Antimirov's rewriting system, denoted using \code{fst^\prime}, defined as follows:
 
-\begin{definition}[Antimirov's First]\label{First1}
-Let \code{fst^\prime(\effect){:=}\{ I\ |\  (I \cdot \effect_1) \in \llbracket  \effect \rrbracket  \}} be the set of initial instances derivable from  sequence \code{\effect}. (\code{\llbracket  \effect \rrbracket } represents all the traces contained in \code{\effect}.)
-{ 
- \begin{gather*} 
-\code{fst^\prime( \bott) {=} \_ } \qquad\ 
-\code{ fst^\prime(\empt) {=} \_} \qquad\ 
-\code{fst^\prime( I) {=} \{ I \} }
- \qquad\ 
-\code{fst^\prime(  \effect_1 {\vee} \effect_2) {=} fst^\prime(  \effect_1) \cup fst^\prime(  \effect_2)}
-\\
-{
-\code{fst^\prime( {\effect^\star} ) {=} fst^\prime({ \effect})} 
-\qquad\quad\
-\code{fst^\prime(\effect_1 {\seq} \effect_2) {=} } 
-\begin{cases}
-      \code{\code{fst^\prime(  \effect_1)} \cup \code{fst^\prime(  \effect_2)} } \quad & \code{ if\ \delta(\effect_1) {=} true}\\
-      \code{\code{fst^\prime(  \effect_1)}} & \code{  if\ \delta(\effect_1) {=} false}
-    \end{cases} 
-    }
-\end{gather*}
-}
-\end{definition}
-
-As shown, \code{fst^\prime} does not handle 
-%the concurrent operator \code{||} nor contains 
-any arithmetic constraints, nor 
-the real-time bounds constructor \code{\mysharp }. Next, we define the novel  \emph{First} function used in this work, denoted using \code{fst}. 
+%Next, we define the novel  \emph{First} function used in this work, denoted using \code{fst}. 
 %but helps to build up our \emph{First} function \code{fst}. 
 
 \begin{definition}[First]\label{First}
-Let \code{fst_{\pure{\pi}}(\effect){:=}\{ (I,  \pi, t) \ |\  \pi {\wedge} t{\geq}0 : (I\mysharp  t) \cdot \effect_1 \in \llbracket  \pi {:} \effect \rrbracket \}} be the set of initial time instances derivable from effects \code{\pi {:} \effect}. (\code{\llbracket  \pi {:} \effect \rrbracket } represents all the time  traces contained in \code{\pi {:} \effect}) 
-{ 
- \begin{gather*} 
-\code{fst_{\pure{\pi}}( \bott) {=} \_ } \qquad\quad
-\code{fst_{\pure{\pi}}(\empt) {=} \_ } \qquad\quad
-\code{fst_{\pure{\pi}}( I ) {=} \{ (I, \pi {\wedge} t{\geq}0, t) \}  \ (t\ is\ fresh)} 
-\qquad\quad
-   \code{fst_{\pure{\pi}}(  \effect \mysharp  t) {=}  fst_{pi}(\effect)}
- \\
-\code{fst_{\pure{\pi}}( {\effect^\star} ) {=} fst_{\pure{\pi}}({ \effect})}
-\qquad\quad
-\qquad\quad
-\code{fst_{\pure{\pi}}(  \effect_1 {\vee} \effect_2) {=} fst_{\pure{\pi}}(  \effect_1) \cup fst_{\pure{\pi}}(  \effect_2)  }  \\
-\code{fst_{\pure{\pi}}( \textbf{S}? ) {=} fst_{\pure{\pi}}( \{\textbf{S}\} ) \cup fst_{\pure{\pi}}( \{ \overline{\textbf{S}} \} ) }
-    \qquad\qquad\quad
-   \code{fst_{\pure{\pi}}(  \effect_1 {||} \effect_2) {=} unify \ 
-    (fst_{\pure{\pi}}(  \effect_1)) \  (fst_{\pure{\pi}}(  \effect_2))  }  
+  Let \code{fst_{{\pi}}(\es): \{ (\ev,  t)  | 
+  \pi {\wedge} t{\geq}0 \wedge (\ev \mysharp  t) {\cdot} \es_1 \in \llbracket  
+  \pi \wedge \es \rrbracket \}} be the set of initial timed events  
+  derivable from effects \code{\pi \wedge \es}. (\code{\llbracket  \pi \wedge
+   \es \rrbracket } represents all the timed  traces contained in 
+   \code{\pi \wedge \es}) 
+  { 
+   \begin{gather*} 
+  \code{fst_{{\pi}}( \bott) {=} \{\} } \qquad\quad
+  \code{fst_{{\pi}}(\empt) {=}  \{\} } \qquad\quad
+  \code{fst_{{\pi}}( \ev) {=} \{ (\ev, t) \}  \ (t\ is\ fresh)} 
+  \qquad\quad
+     \code{fst_{{\pi}}(  \es \mysharp  t) {=}  fst_{\pi}(\es)}
    \\
-{
-\code{fst_{\pure{\pi}}(\effect_1 {\seq} \effect_2) {=} } 
-\begin{cases}
-      \code{\code{fst_{\pure{\pi}}(  \effect_1)} \cup \code{fst_{\pure{\pi}}(  \effect_2)} } & \code{ if\ \delta(\effect_1) {=} true}\\
-      \code{\code{fst_{\pure{\pi}}(  \effect_1)}} & \code{  if\ \delta(\effect_1) {=} false}
-    \end{cases} 
-    }  
-\end{gather*}
-}
+  \code{fst_{{\pi}}( {\es^\star} ) {=} fst_{{\pi}}({ \es})}
+  \qquad\ \ \  
+  \qquad\quad
+  \code{fst_{{\pi}}(  \es_1 {\vee} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }  \\
+  \code{fst_{{\pi}}( \pi^\prime? \es ) {=} fst_{\pi}(\es)  }
+      \qquad\qquad\quad
+     \code{fst_{{\pi}}(  \es_1 {||} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }   
+     \\
+  {
+  \code{fst_{{\pi}}(\es_1 {\seq} \es_2) {=} } 
+  \begin{cases}
+        \code{\code{fst_{{\pi}}(  \es_1)} \cup \code{fst_{{\pi}}(  \es_2)} } & \code{ if\ \delta(\es_1) {=} true}\\
+        \code{\code{fst_{{\pi}}(  \es_1)}} & \code{  if\ \delta(\es_1) {=} false}
+      \end{cases} 
+      }  
+  \end{gather*}
+  }
 \end{definition}
 
 
@@ -2088,10 +2077,10 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
  \code{\bot \mysharp  t \rightarrow  \bott}\\
 \hline
 (A21)  &
- \code{{\pure{False}} : \effect \rightarrow {\pure{False}} : \bott}\\
+ \code{{{False}} : \effect \rightarrow {{False}} : \bott}\\
 \hline
 (A22)  &
- \code{{\pi} : \bott \rightarrow {\pure{False}} : \bott}\\
+ \code{{\pi} : \bott \rightarrow {{False}} : \bott}\\
 \hline
  %\code{\effect \choice \effect \rightarrow \effect} 
 %  &\code{\bott \cdot \effect \rightarrow \bott }  
