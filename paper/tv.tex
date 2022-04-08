@@ -1003,7 +1003,7 @@ we define the notion of a configuration to capture the global
 system state during system execution.
 
 \begin{definition}[System configuration]
-A system configuration is a pair $c = (V , e)$ where $V$ is a variable valuation function and $e$ is an expression.
+A system configuration is a pair $c = (\env , e)$ where $\env$ is a variable valuation function and $e$ is an expression.
 \end{definition}
 
 A transition of the system is of the form $c \xrightarrow[]{l} c^\prime$ where $c$ and $c^\prime$ are 
@@ -1026,10 +1026,10 @@ the timed process constructs.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
   t {\leq} d 
-}{(V, \textbf{delay}[d]) \xrightarrow[]{\text{t}} (V, \textbf{delay} [d \text{-}t])}\ [de_1]} 
+}{(\env, \textbf{delay}[d]) \xrightarrow[]{\text{t}} (\env, \textbf{delay} [d \text{-}t])}\ [de_1]} 
 \qquad \qquad 
 \code{\frac{
-}{(V, \textbf{delay} [0]) \xrightarrow[]{\tau} (V, ())}\ [de_2]} 
+}{(\env, \textbf{delay} [0]) \xrightarrow[]{\tau} (\env, ())}\ [de_2]} 
 \end{flalign*}}}
 
 The above captures behaviors of process \code{\textbf{delay}[d]}. 
@@ -1042,19 +1042,19 @@ Rule \code{de_2} states that the process terminates immediately after
 %%   timeout                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
-  (V,e_1) \xrightarrow[]{\anyevent{A}} (V^\prime,e_1^\prime)
-}{(V, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\anyevent{A}} (V^\prime,e^\prime)}\ [to_1]} 
+  (\env,e_1) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_1^\prime)
+}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\anyevent{A}} (\env^\prime,e^\prime)}\ [to_1]} 
 \quad  
 \code{\frac{
-  (V,e_1) \xrightarrow[]{\tau} (V^\prime,e_1^\prime)  
-}{(V, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (V^\prime, e_1^\prime\ \textbf{timeout}[d]\ e_2 )}\ [to_2]} 
+  (\env,e_1) \xrightarrow[]{\tau} (\env^\prime,e_1^\prime)  
+}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env^\prime, e_1^\prime\ \textbf{timeout}[d]\ e_2 )}\ [to_2]} 
 \\
 \code{\frac{
-  (V,e_1) \xrightarrow[]{\text{t}} (V,e_1^\prime)  \quad (t {\leq} d) 
-}{(V, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (V,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [to_3]} 
+  (\env,e_1) \xrightarrow[]{\text{t}} (\env,e_1^\prime)  \quad (t {\leq} d) 
+}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [to_3]} 
 \quad  
 \code{\frac{
-}{(V, e_1\ \textbf{timeout}   [0] \ e_2) \xrightarrow[]{\tau} (V, e_2)}\ [to_4]} 
+}{(\env, e_1\ \textbf{timeout}   [0] \ e_2) \xrightarrow[]{\tau} (\env, e_2)}\ [to_4]} 
 \end{flalign*}}}
 If an observable event \anyevent{A} can be engaged by \code{e_1}, 
 then \code{e_1\ \textbf{timeout}[d]\ e_2} becomes \code{e_1^\prime} (rule \code{[to_1]}). 
@@ -1069,12 +1069,12 @@ When \codem{d} becomes \codem{0},
 %%   deadline                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
-  (V,e) \xrightarrow[]{\anyevent{A}} (V^\prime,e^\prime)
-}{(V, \textbf{deadline} [d] \ e ) \xrightarrow[]{\anyevent{A}} (V^\prime, \textbf{deadline}  [d] \ e^\prime)} [dl_1]} 
+  (\env,e) \xrightarrow[]{\anyevent{A}} (\env^\prime,e^\prime)
+}{(\env, \textbf{deadline} [d] \ e ) \xrightarrow[]{\anyevent{A}} (\env^\prime, \textbf{deadline}  [d] \ e^\prime)} [dl_1]} 
 \quad 
 \code{\frac{
-  (V,e) \xrightarrow[]{\text{t}} (V,e^\prime)  \quad (t {\leq} d)
-}{(V, \textbf{deadline}  [d]\ e ) \xrightarrow[]{\text{t}} (V, \textbf{deadline}  [d \text{-}t] \ e^\prime )} [dl_2]} 
+  (\env,e) \xrightarrow[]{\text{t}} (\env,e^\prime)  \quad (t {\leq} d)
+}{(\env, \textbf{deadline}  [d]\ e ) \xrightarrow[]{\text{t}} (\env, \textbf{deadline}  [d \text{-}t] \ e^\prime )} [dl_2]} 
 \end{flalign*}}}
 
 Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as 
@@ -1085,15 +1085,15 @@ Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as
   %%   deadline                 %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \code{\frac{
-    V \not\models  b 
-  }{(V, [b] \ e ) \xrightarrow[]{t} (V, [b] \ e)}\ [gu_1]} 
+    \env \not\models  b 
+  }{(\env, [b] \ e ) \xrightarrow[]{t} (\env, [b] \ e)}\ [gu_1]} 
   \ \ \qquad
   \code{\frac{
-    V \models  b 
-  }{(V, [b] \ e ) \xrightarrow[]{\tau} (V, e)}\ [gu_2]} 
+    \env \models  b 
+  }{(\env, [b] \ e ) \xrightarrow[]{\tau} (\env, e)}\ [gu_2]} 
   \ \ \qquad 
   \code{\frac{
-  }{(V, \alpha ) \xrightarrow[]{\tau} (\alpha(V), ())}\ [assign]} 
+  }{(\env, \alpha ) \xrightarrow[]{\tau} (\alpha(\env), ())}\ [assign]} 
 \end{flalign*}}}
 
 {{\small\begin{flalign*}
@@ -1101,16 +1101,16 @@ Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as
   %%   deadline                 %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \code{\frac{
-    (V,e_1) \xrightarrow[]{\anyevent{A}} (V^\prime,e_1^\prime) 
-  }{(V, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (V^\prime, e_1^\prime || e_2)}\ [pa_1]} 
+    (\env,e_1) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_1^\prime) 
+  }{(\env, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (\env^\prime, e_1^\prime || e_2)}\ [pa_1]} 
   \ \   
   \code{\frac{
-    (V,e_2) \xrightarrow[]{\anyevent{A}} (V^\prime,e_2^\prime) 
-  }{(V, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (V^\prime, e_1 || e_2^\prime)}\ [pa_2]} 
+    (\env,e_2) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_2^\prime) 
+  }{(\env, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (\env^\prime, e_1 || e_2^\prime)}\ [pa_2]} 
 \ \ 
 \code{\frac{
-  (V,e_1) \xrightarrow[]{\anyevent{A}/\tau} (V^\prime,e_1^\prime) 
-}{(V, e_1; e_2 ) \xrightarrow[]{\anyevent{A}/\tau} (V^\prime, e_1^\prime ; e_2)}\ [se]} 
+  (\env,e_1) \xrightarrow[]{\anyevent{A}/\tau} (\env^\prime,e_1^\prime) 
+}{(\env, e_1; e_2 ) \xrightarrow[]{\anyevent{A}/\tau} (\env^\prime, e_1^\prime ; e_2)}\ [se]} 
 \end{flalign*}}}
 
 
@@ -1734,9 +1734,9 @@ the Nullable function \code{\delta_{{\pi}}(\es)} returns a boolean
 value indicating whether \code{{\pi} \wedge \es} contains the empty 
 trace; the First function \code{fst_{{\pi}}( \es)} computes a set of 
  initial \emph{heads}, denoted as \code{h},  of \code{{\pi} \wedge \es}; and the Derivative 
-function \code{D_{h}^{{\pi}}(\es)} computes a next-state 
+function \code{D^{\env}_{h}(\pi \wedge \es)} computes a next-state 
 effects after eliminating the head  \code{h} from the current 
-effects \code{{\pi} \wedge \es}. 
+effects \code{{\pi} \wedge \es}, w.r.t \code{\env}. 
 
 %\subsection{closure of clock constrains}
 %how to eliminate the unobservable transitions. 
@@ -1830,32 +1830,21 @@ A head can be  $t$, denoting a pure time passing;
   }
 \end{definition}
 
-
-
-
-\begin{definition}[Timed Event Subsumption]\label{Subsumption}
-Given two instances \code{I} and \code{J}, we define the subset relation \code{I {\subseteq} J} as: the set of present signals in \code{J} is a subset of the set of present signals in \code{I}, and the set of absent signals in \code{J} is a subset of the set of absent signals in \code{I}\footnote{As in having more constraints refers to a smaller set of satisfying instances.}.
-Formally, 
- \begin{gather*} 
- \code{I {\subseteq} J \Leftrightarrow  \{\textbf{S}\ |\ (\textbf{S} {\mapsto} Present) \in J \}  \subseteq  \{\textbf{S}\ |\ (\textbf{S} {\mapsto} Present) \in I \}} \\
-  \code{ \quad\  and  \ 
- \{\textbf{S}\ |\ (\textbf{S} \mapsto Absent) \in J \}  \subseteq  \{\textbf{S}\ |\ (\textbf{S} \mapsto Absent) \in I \}
- }
-\end{gather*}
-
-\end{definition}
-
-
-\begin{definition}[Time Instances Subsumption]\label{Subsumption1}
+\begin{comment}
+  \begin{definition}[Heads Subsumption]\label{Subsumption1}
 Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we define the subset relation \code{(I, \pi_1, t_1) {\subseteq} (J, \pi_2, t_2)} as:  \code{I {\subseteq} J} and \code{\pi_1[t_2/t_1]  {\Rightarrow}   \pi_2  }.
 
 \end{definition}
+\end{comment}
+
 
 \begin{definition}[Partial Derivative\footnote{Intuitively, the partial derivative refers to the left quotient of a language equation, for example, for REs, \code{x^{{-}1} \llbracket x\cdot y\rrbracket {=} y};  \code{y^{{-}1} \llbracket x\cdot y\rrbracket {=} \bott}; and  \code{y^{{-}1} \llbracket x + y\rrbracket {=} \epsilon}. Here we come up with a new notion of partial derivative for \timedEffects. 
 }]\label{Derivative}
-The partial derivative \code{D^{\pi}_{(I, \Pi_1, t^\prime)}(\effect)} 
-of effects \code{\pi : \effect} 
-w.r.t. a event \code{(I, \Pi_1, t^\prime)} computes the  effects for the left quotient \code{(I, \Pi_1, t^\prime)^{\text{-}1}\llbracket \pi : \effect \rrbracket}. \footnote{For understanding of the derivative rule for \code{\effect\mysharp  t} (cf. \tabref{tab:rewriting_tree_send}  step \textcircled{3}), it is essentially splitting \code{\effect} with a head and a tail, bound with fresh terms \code{t_1} and \code{t_2} respectively. Meanwhile it unifies \code{t_1} with \code{t^\prime} and  adds the constraint \code{t_1 {+} t_2 {=} t}.}
+Given any \code{\effect {=} \pi \wedge \es}, and a variable valuation function \code{\env}, 
+the partial derivative \code{D^{\env}_{h}(\pi \wedge \es)} 
+ computes the  effects for the 
+left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es 
+\rrbracket_{\env}}. 
 %\footnote{As the reader may notice, our First and Derivative function does not handle the timed sequences constructed by \code{||}, as the synchronous parallel is reduced during the normalization phase.}
 \begin{gather*}
 \code{D^{\pi}_{(I, \Pi_1, t^\prime)}(\bott) {=}}  
