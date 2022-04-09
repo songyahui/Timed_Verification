@@ -435,7 +435,7 @@ a set (possibly infinite) of exact transition systems.
 
 
 \begin{comment}
-  we express, the effects of \code{send(d)} as:
+  we express, the effects of \code{addSugar(d)} as:
 \begin{align*}
 &\code{\effect^{send (d)} \defeq \  (0 {<} d {\leq}5 \wedge  0 {\leq} t {<} d),  ({\anyevent{Send} \mysharp  t)} \cdot \anyevent{Done}}.
 \end{align*}  
@@ -680,12 +680,12 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
       \\
        \item 
        \textcolor{darkred}{\code{
-       %\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  \neq 0  \wedge \anyevent{Send}\cdot \effect_{post}^{send(n-1)}) } 
+       %\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  \neq 0  \wedge \anyevent{Send}\cdot \effect_{post}^{addSugar(n-1)}) } 
        \effect_C^\prime \CONTAIN \effect_{pre}^{addSugar(n)} \cdot \effect_{post}^{addSugar(n)} \Leftrightarrow  }}
         \textcolor{mGray}{  \emph{(-- check postcondition --) }}
         \\ 
         \textcolor{darkred}{\code{\code{\code{(n{=}0 \wedge Sugar)\ \vee\ }
-        \code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)}) } \CONTAIN \effect_{post}^{send(n)}}}}\\
+        \code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)}) } \CONTAIN \effect_{post}^{addSugar(n)}}}}\\
     
      
 \end{enumerate}}
@@ -769,39 +769,47 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 
 \begin{prooftree}
 \Hypo{
-\code{\textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
-{\wedge}   t_L^2 {=} t_R
-}  \Rightarrow 
-\textcolor {darkred}{t_R {<}3}
-} \qquad
-\code{emp  \CONTAIN  \_^\star}
+  \code{\siderule{[Prove]}}
 }
-\Infer[dashed]1[{\siderule{\textcircled{8}[PROVE]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
-{\wedge}   t_L^2 {=} t_R
-} :  emp
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \bot \vee \_^\star}}
-\Infer[dashed]1[{\siderule{\textcircled{7}[UNFOLD]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
-{\wedge}   t_L^2 {=} t_R
-} :  \cancel{\{Go\}}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{emp} \vee \cancel{\_} \cdot \_^\star}}
-\Infer[dashed]1[{\siderule{\textcircled{6}[Normalization]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
-{\wedge}   t_L^2 {=} t_R
-} :  \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \bot \vee  \_^\star}}
-\Infer[dashed]1[{\siderule{\textcircled{5}[UNFOLD]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
-{\wedge}   t_L^2 {=} t_R
-} 
-:  \cancel{\{ Ready\}} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{emp} \vee \cancel{\_} \cdot \_^\star}}
-\Infer[dashed]1[{\siderule{\textcircled{4}[UNFOLD{-}UNIFY]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L
- } : \cancel{\{Cook\} \mysharp  t_L^2} \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{\{Cook\}\mysharp  t_R}\cdot\_^\star}  }
-\Infer[dashed]1[{\siderule{\textcircled{3}[UNFOLD]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L } : \cancel{\{Prep\}\mysharp  t_L^1} \cdot \{Cook\} \mysharp  t_L^2 \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} :  \cancel{\_}\cdot\{Cook\}\mysharp  t_R \cdot\_^\star}  }
-\Infer[dashed]1[{\siderule{\textcircled{2}[SPLIT]}}]{\code{ \textcolor {darkred}{t_L {<}3} : (\{Prep\}\cdot \{Cook\})\mysharp  t_L \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \_\cdot\{Cook\}\mysharp  t_R\cdot\_^\star}  }
- \Infer[dashed]1[{\siderule{\textcircled{1}[RENAME]}}]{\code{ \textcolor {darkred}{t {<}3} : (\{Prep\}\cdot \{Cook\})\mysharp  t \cdot \{ Ready\} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t {<}3} : \_\cdot\{Cook\}\mysharp  t\cdot\_^\star}  }
+
+\Infer[dashed]1[]{ \code{ n{=}0 \wedge \epsilon 
+\CONTAIN t_r{\geq}0 \wedge \epsilon \mysharp t_r}}
+
+
+\Infer[dashed]1[]{ \code{ n{=}0 \wedge Sugar
+\CONTAIN t_r{\geq}0 \wedge Sugar \mysharp t_r}}
+
+
+\Hypo{
+  \code{\textcolor {darkred}{  t{>}1 {\wedge} t_l{\geq}(n\text{-}1) 
+   {\wedge}  t_r{=}t_r^1 {+}t {\wedge}  t_l{=}t_r^1  \Rightarrow t_r{\geq}n
+}  } 
+\code{\siderule{[Prove]}}
+ }
+
+ \Infer[dashed]1[]{ \code{ n  {\neq} 0  {\wedge}  t{>}1 {\wedge} t_l{\geq}(n\text{-}1)  \wedge 
+ \epsilon
+\CONTAIN t_r{\geq}n {\wedge}  t_r{=}t_r^1 {+}t {\wedge}  t_l{=}t_r^1 
+\wedge \epsilon}}
+
+ \Infer[dashed]1[]{ \code{ n  {\neq} 0  {\wedge}  t{>}1 {\wedge} t_l{\geq}(n\text{-}1)  \wedge 
+ Sugar \mysharp t_l
+\CONTAIN t_r{\geq}n {\wedge}  t_r{=}t_r^1 {+}t
+\wedge Sugar \mysharp t_r^1}}
+
+ \Infer[dashed]1[]{ \code{ n  {\neq} 0  {\wedge}  t{>}1 {\wedge} t_l{\geq}(n\text{-}1)  \wedge \epsilon \mysharp t \cdot 
+ Sugar \mysharp t_l
+\CONTAIN t_r{\geq}n \wedge Sugar \mysharp t_r}}
+
+
+\Infer[dashed]2[]{\code{(n{=}0 \wedge Sugar)\ \vee\ }
+\code{ (n  {\neq} 0  \wedge  t{>}1 \wedge t_l{\geq}(n\text{-}1)  \wedge \epsilon \mysharp t \cdot 
+ Sugar \mysharp t_l) } 
+\CONTAIN t_r{\geq}n \wedge Sugar \mysharp t_r  }
+
+\Infer[dashed]1[{\siderule{\textcircled{1}[RENAME]}}]{\code{(n{=}0 \wedge Sugar)\ \vee\ }
+\code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)}) } 
+\CONTAIN \effect_{post}^{addSugar(n)}  }
 \end{prooftree}}
 \\~\\
 
