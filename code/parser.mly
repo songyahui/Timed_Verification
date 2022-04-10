@@ -4,7 +4,6 @@
 %token <string> EVENT
 %token <string> VAR
 %token <int> INTE
-%token <int> POSINT
 %token <string> STRING
 %token <bool> TRUEE  
 %token <bool> FALSEE
@@ -169,7 +168,7 @@ es:
 | NEGATION str = EVENT {Event (Absent str)}
 | p=pure GUARD trace = es {Guard(p, trace)}
 | LPAR r = es RPAR { r }
-| a = es CHOICE b = es { ESOr(a, b) }
+| a = es CHOICE b = es { ESOr(None, a, b) }
 | a = es LILOR b = es { Par(a, b) }
 
 | LPAR r = es SHARP t = term RPAR { Ttimes(r, t )}

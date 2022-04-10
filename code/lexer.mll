@@ -14,7 +14,6 @@ let next_line lexbuf =
 
 (* part 1 *)
 let int =  '-'? ['0'-'9'] ['0'-'9']*
-let pint = ['0'-'9'] ['0'-'9']*
 
 (* part 2 *)
 let digit = ['0'-'9']
@@ -50,11 +49,10 @@ rule token = parse
 | "ens:" {ENSURE}
 | "include" {INCLUDE}
 | int      { INTE (int_of_string (Lexing.lexeme lexbuf)) }
-| pint { POSINT (int_of_string (Lexing.lexeme lexbuf))}
 | "true" { TRUEE (bool_of_string (Lexing.lexeme lexbuf))}
 | "false" { FALSEE (bool_of_string (Lexing.lexeme lexbuf))}
 | '"'      { read_string (Buffer.create 17) lexbuf }
-| ['A'-'T' 'V' 'W' 'Y' 'Z'] ['a'-'z' 'A'-'Z' '0'-'9' '_']* as str { EVENT str }
+| ['A'-'Z'] ['a'-'z' 'A'-'Z' '0'-'9' '_']* as str { EVENT str }
 | id as str { VAR str }
 | ">=" {GTEQ}
 | "<=" {LTEQ}
@@ -63,7 +61,6 @@ rule token = parse
 | '=' {EQ}
 
 | '^' { POWER }
-(*| 'w' { OMEGA }*)
 | '+' { CHOICE }
 | '.' { CONCAT }
 | ':' {COLON}
@@ -89,13 +86,6 @@ rule token = parse
 | "==" {EQEQ}
 | ">=" {GTEQ}
 | "<=" {LTEQ}
-(*| "<>" {FUTURE}  
-| "[]" {GLOBAL}
-| "->" {IMPLY}
-| '!' {LTLNOT}
-| 'X' {NEXT}
-| 'U' {UNTIL}
-| "&&" {LILAND}*)
 | "||" {LILOR}
 | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
 | eof { EOF }

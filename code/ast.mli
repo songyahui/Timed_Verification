@@ -24,7 +24,7 @@ and es = Bot
         | Event  of event 
         | Guard  of (pure * es)
         | Cons   of es * es
-        | ESOr   of es * es
+        | ESOr   of (pure option) * es * es
         | Ttimes of es * terms
         | Par    of es * es 
         | Kleene of es

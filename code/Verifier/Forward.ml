@@ -10,12 +10,22 @@ open Sys
 
 let verifier_counter: int ref = ref 0;;
 
-let verifier_getAfreeVar () :string  =
 
-  let x = "f"^string_of_int (!counter) in 
-  let _ = verifier_counter := !verifier_counter + 1 in 
+let verifier_initialise () = 
+  let _ = verifier_counter :=  0 in 
+  ()
+;;
+
+let verifier_getAfreeVar () :string  =
+  let x = "f"^string_of_int (!verifier_counter) in 
+  verifier_counter := !verifier_counter + 1;
   x 
 ;;
+
+
+
+
+
 
 
 
@@ -165,12 +175,11 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
   | Deadline (e, n) -> 
     let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
-    let addABound = List.map (fun (pi, es) -> (PureAnd(Gt(Var x, valueToTerm n) , PureAnd(pi, LtEq(Var x, valueToTerm n))), Ttimes(es, Var x))) eff in 
+    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, LtEq(Var x, valueToTerm n)), Ttimes(es, Var x))) eff in 
     concatanateEffEff current addABound
 
   | Delay n -> 
     let x = verifier_getAfreeVar () in 
-
     List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, valueToTerm n)), Cons (es, Ttimes (Emp, Var x)))) current
 
   | LocalDel (t, v , e) ->   verifier caller e precondition current prog      
@@ -230,7 +239,14 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
       )
     )
     
-  | _ -> current
+    | GuardE (pi, e1) -> 
+      let eff1 = verifier caller e1 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
+      let new_Eff = List.map (fun (pi1, es1) -> (pi1, Guard (pi,  es1))) eff1 in 
+      
+      concatEffEff current new_Eff
+
+
+    | _ -> current
     ;;
 
 let rec extracPureFromPrecondition (eff:effect) :effect = 
@@ -335,11 +351,11 @@ print_string (inputfile ^ "\n" ^ outputfile^"\n");*)
       let prog = getIncludedFiles raw_prog in
 
       
-      let testprintProg = printProg (List.map (fun (_, a) -> a) raw_prog) in 
-      print_string testprintProg; 
+      (*let testprintProg = printProg (List.map (fun (_, a) -> a) raw_prog) in 
+      print_string testprintProg; *)
 
       let evn = List.map (fun (ind, a) -> a) prog in
-      let verification_re = List.fold_right (fun dec acc -> acc ^ (verification dec evn)) prog ""  in
+      let verification_re = List.fold_left (fun acc dec  -> acc ^ (verification dec evn)) "" prog  in
       (*let oc = open_out outputfile in    (* 新建或修改文件,返回通道 *)
       (*      let startTimeStamp = Sys.time() in*)
       (*fprintf oc "%s\n" verification_re;   (* 写一些东西 *)*)
