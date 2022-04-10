@@ -185,18 +185,6 @@ let rec printExpr (expr: expression):string =
   ;;
 
 
-let compareParm (p1:int option ) (p2:int option ) :bool = 
-  match (p1, p2) with 
-    (None, None) -> true 
-  | (Some n1, Some n2) -> n1 == n2
-  | _ -> false 
-  ;;
-
-let compareEvent (ev1:(pure * string * int option * assign list)) (ev2:(pure * string * int option * assign list)):bool =
-  let (_, str1, p1, _) = ev1 in
-  let (_, str2, p2, _) = ev2 in
-  String.compare str1 str2 == 0 && compareParm p1 p2
-  ;;
 
 let rec iter f = function
   | [] -> ()
@@ -519,6 +507,7 @@ let compareEvent ev1 ev2 : bool=
   match (ev1, ev2) with 
   | (Present (str1, _, _), Present (str2, _, _)) -> if String.compare str1 str2 = 0 then true else false 
   | (Absent str1, Absent str2) -> if String.compare str1 str2 = 0 then true else false 
+  | (Tau pi1, Tau pi2) -> comparePure pi1 pi2
   | (Any, Any) -> true 
   | _ -> false 
   ;;
@@ -539,6 +528,7 @@ let rec aCompareES es1 es2 =
   | (Emp, Emp) -> true
   | (Event ev1, Event ev2) -> 
     compareEvent ev1 ev2 
+  | (Guard pi1, Guard pi2) -> comparePure pi1 pi2
   | (Cons (es1L, es1R), Cons (es2L, es2R)) -> 
     if (aCompareES es1L es2L) == false then false
     else (aCompareES es1R es2R)

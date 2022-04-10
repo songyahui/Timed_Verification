@@ -8,13 +8,7 @@ void process (int i)
   [x=-1] 
   deadline (event["Update"(i)]{x := i}, d1);
   delay (d2);
-  if (x==i) {
-    event["Critical"(i)]{ct := (ct + 1)};
-    event["Exit"(i)]{ct := (ct-1); x := -1};
-    process (i);
-  } else {
-    process (i);
-  }
+
 }
 
 void main () 

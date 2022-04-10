@@ -143,19 +143,19 @@ let rec normalES (es:es) (pi:pure) : es =
 let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure) = 
   let es' = normalES es pi in 
   match es' with
-  | Ttimes (Ttimes (es1, t1) , t2 ) -> (Ttimes (es1, t1), PureAnd(pi, Eq(t1, t2))) 
+  | Ttimes (Ttimes (es1, t1) , t2 ) -> (Ttimes (es1, t1), Eq(t1, t2)) 
   | Cons (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
-    (Cons(es1', es2'), PureAnd(pi1, pi2))
+    (Cons(es1', es2'), PureAnd(PureAnd(pi1, pi2), pi))
   | ESOr (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
-    (ESOr(es1', es2'), PureAnd(pi1, pi2))
+    (ESOr(es1', es2'), PureAnd(PureAnd(pi1, pi2), pi))
   | Kleene (es1) ->
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     (Kleene (es1'),  pi1)
-  | _ -> (es', pi)
+  | _ -> (es', TRUE)
   ;;
 
 let globalVToPure (v:globalV) : pure =
@@ -205,7 +205,7 @@ let rec fst (pi :pure) (es:es) : head list =
 
   | Par (es1, es2) -> append (fst pi es1 ) (fst pi es2 )
   | Kleene es1 -> fst pi es1
-  | Guard (pi1) -> [Tauh pi1; Tauh (Neg pi1)]
+  | Guard (pi1) -> [Tauh pi1]
 
 ;;
 
@@ -281,14 +281,16 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
     | Tauh pi1 -> (Bot, TRUE)
 		| Instant ev -> (Bot, TRUE)
 		)
-	(*| Ttimes (Event ev1, tIn) -> 
+	| Ttimes (Event ev1, tIn) -> 
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
       (Ttimes (Event ev1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0)))
 		| Ev (ev, t) ->  if entailEvent ev ev1 then (Emp, Eq(tIn, t)) else (Bot, TRUE)
+    | Tauh pi1 -> (Bot, TRUE)
+
 		| Instant ev ->  if entailEvent ev ev1 then (Ttimes (Emp, tIn), TRUE) else (Bot, TRUE)
 		)
-	*)
+	
 	| Ttimes (es1, tIn) -> 
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
@@ -463,7 +465,7 @@ let rec normalEffect (eff:effect) :effect =
   | _ -> true 
   ) (List.map (fun (p, es) -> 
       let (es', pi') = normalESUnifyTime es p in 
-      (normalPure pi', es')) noPureOr) in 
+      ( pi', es')) noPureOr) in 
   if List.length final == 0 then [(FALSE, Bot)]
   else final 
   ;;
@@ -485,7 +487,7 @@ let valuationRHS: globalV ref=  ref [] ;;
 let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
-  let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side)) in
+  let showEntail  =  showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side)) *) in
   (*  print_string (showEntail^"\n");*)
   if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   (Node (showEntail ^ showRule DISPROVE,[] ), false)
 
@@ -494,14 +496,18 @@ let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) :
       let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
         let (subtreeIn, reIn) = 
           if reoccur (esL) (esR) delta then 
-            if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ showRule REOCCUR,[] ), true)
-            else (Node (showEntail ^ " [PURE ER] ", []), false)
+            if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
+            else 
+              if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ showRule REOCCUR,[] ), true)
+              else (Node (showEntail ^ " [PURE ER] ", []), false)
              
           else 
             let fstSet = fst pL esL  in
             if List.length (fstSet) == 0 then 
-              if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ " [NO FST]", [] ), true)
-              else (Node (showEntail ^ " [PURE ER] ", []), false)
+              if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
+              else 
+                if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ " [NO FST]", [] ), true)
+                else (Node (showEntail ^ " [PURE ER] ", []), false)
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
             let (derL, sideL) = derivitive pL esL f  in 
@@ -572,7 +578,14 @@ let reNameEffect (eff:effect) str: effect =
 ;;
 
 let printReportHelper lhs rhs : (binary_tree * bool) = 
-  (*Leaf , true*)
+  
+  (*
+  let normalFormL = normalEffect lhs in 
+  let normalFormR = normalEffect rhs in
+  let showEntail  =  showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side)) *) in
+  print_string (showEntail ^"\n"); 
+
+  Leaf , true*)
 	containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") []   
   ;;
 
