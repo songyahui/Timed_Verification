@@ -180,7 +180,13 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
     if result == true then current 
     else raise (Foo ("Assertion " ^ showEffect eff ^" does not hold!"))
 
-  
+  | Parallel (e1, e2) -> 
+    let eff1 = verifier caller e1 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
+    let eff2 = verifier caller e2 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
+    let pair = List.combine eff1 eff2 in 
+    let new_Eff = List.map (fun ((pi1, es1), (pi2, es2)) -> (PureAnd (pi1, pi2), Par (es1, es2))) pair in 
+    concatEffEff current new_Eff
+
             
   | Call (name, exprList) -> 
     (match searchMeth prog name with 

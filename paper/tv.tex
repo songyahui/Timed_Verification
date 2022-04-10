@@ -266,15 +266,15 @@ using Implicit Clocks and an Extended Antimirov Algorithm}
 %% The abstract is a short summary of the work to be presented in the
 %% article.
 \begin{abstract} 
-Real-time systems are systems where the correctness does not 
-only depend on their correct functioning but also on meeting 
-realtime constraints.
-Different from existing Timed Automata based techniques, 
+The correctness of real-time systems 
+depends both on the correct functionalities and the realtime constraints.
+To go beyond the existing Timed Automata based techniques, 
 we propose a novel solution that integrates a 
 modular Hoare-style forward verifier with a new term rewriting 
 system (TRS) on \emph{Timed Effects} (\timedEffects).
-The main purpose is to dynamically create clocks  
-and efficiently solve constraints on the clocks, 
+The main purposes are to increase the expressiveness,  
+dynamically create clocks, 
+and efficiently solve constraints on the clocks.  
 We formally define 
 a core language \timedL, generalizing the real-time systems, modeled 
 using mutable variables and timed behavioral patterns, 
@@ -286,7 +286,7 @@ that extends
 values and arithmetic constraints.
 Thirdly,  the forward verifier infers temporal behaviors of given 
 \timedL\ programs, expressed in \timedEffects. 
-Lastly, we present a purely algebraic TRS, i.e., an extended Antimirov algorithm, to 
+Lastly, we present a purely algebraic TRS, i.e., an extended \emph{Antimirov algorithm}, to 
 efficiently prove language inclusions between 
  \timedEffects. 
 To demonstrate the feasibility of our proposals, 
@@ -317,7 +317,7 @@ correctness; report on case studies and the experimental results.
 Dependant Effects,
 Hoare-style Forward Verifier,
 Term Rewriting System,
-Reactive System Design}
+Timed Verification}
 
 
 %%

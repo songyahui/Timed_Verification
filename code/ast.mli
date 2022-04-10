@@ -46,6 +46,8 @@ and pure = TRUE
 (*Effects*)
 and effect = (pure * es) list 
 
+and globalV = (string * int) list
+
 
 and entilment = EE of effect * effect
 
