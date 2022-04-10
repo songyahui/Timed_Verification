@@ -224,20 +224,11 @@ let globalVToPure (v:globalV) : pure =
   helper pureList
 ;;
 
-let rec derivitive (pi :pure) (es:es) (f:head) (v:globalV): (es * pure) =
-  match f with 
-  | Tau  t ->
-    (match es with 
-      Bot -> (Bot, TRUE)
-    | Emp -> (Bot, TRUE)
-    | Event (Any) -> (Emp, TRUE)
-    | Event ev -> (Bot, TRUE)
-    | Ttimes (Emp, tIn) -> (Emp,  Eq(t , tIn))
-    | Ttimes (es1, tIn) -> 
-      let t_new = getAfreeVar () in 
-      (Ttimes (es1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0)))
-
-    | Cons (es1 , es2) ->  
+let rec derivitive (pi :pure) (es:es) (f:head) (v:globalV ref): (es * pure) =
+  match es with 
+  | Bot -> (Bot, TRUE)
+  | Emp -> (Bot, TRUE)
+  | Cons (es1 , es2) ->  
       let (es1_der, side1) = derivitive pi es1 f v in 
       let es1' = Cons (es1_der, es2) in 
       let (es2_der, side2) = derivitive pi es2 f v in    
@@ -245,105 +236,15 @@ let rec derivitive (pi :pure) (es:es) (f:head) (v:globalV): (es * pure) =
         then (ESOr (es1', es2_der), PureAnd(side1, side2))  
         else (es1', side1)
 
-    | ESOr (es1, es2) -> 
+  | ESOr (es1, es2) -> 
       let (es1_der, side1) = derivitive pi es1 f v in 
       let (es2_der, side2) = derivitive pi es2 f v in
       (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
 
-    | Kleene es1 -> 
+  | Kleene es1 -> 
       let (es1_der, side1) = derivitive pi es1 f v in 
       (Cons (es1_der, es), side1)
-    | Par (es1, es2) ->
-      let helper esIn = 
-        let (der, side) = derivitive pi esIn f v in 
-        match normalES der pi with 
-        | Bot -> derivitive pi esIn (Tau t) v
-        | _ -> (der, side)
-      in 
-      let (es1', side1) = helper es1 in 
-      let (es2', side2) = helper es2 in 
-      (Par (es1', es2'), PureAnd(side1, side2))
-    | Guard (pi1, es1) -> 
-      if askZ3 (PureAnd(pi1, globalVToPure v)) then derivitive pi es1 f v 
-      else (es, TRUE)
-      
-    
-    )
-  | Ev (ev, t) -> 
-    (match es with 
-      Bot -> (Bot, TRUE)
-    | Emp -> (Bot, TRUE)
-    | Event ev1 -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
-    | Ttimes (Event ev1, tIn) -> 
-      if entailEvent ev ev1 then (Emp, Eq(tIn, t)) else (Bot, TRUE)
-
-    | Ttimes (es1, tIn) -> 
-
-      let (es1_der, side1) = derivitive pi es1 f v in 
-      let t_new = getAfreeVar () in 
-      let p_new = PureAnd (side1, PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
-      (Ttimes (es1_der, Var t_new), p_new)
-
-    | Cons (es1 , es2) ->  
-      let (es1_der, side1) = derivitive pi es1 f v in 
-      let es1' = Cons (es1_der, es2) in 
-      let (es2_der, side2) = derivitive pi es2 f v in    
-      if nullable pi es1 
-        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
-        else (es1', side1)
-
-    | ESOr (es1, es2) -> 
-      let (es1_der, side1) = derivitive pi es1 f v in 
-      let (es2_der, side2) = derivitive pi es2 f v in
-      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
-
-    | Kleene es1 -> 
-      let (es1_der, side1) = derivitive pi es1 f v in 
-      (Cons (es1_der, es), side1)
-
-    | Par (es1, es2) ->
-      let helper esIn = 
-        let (der, side) = derivitive pi esIn f v in 
-        match normalES der pi with 
-        | Bot -> derivitive pi esIn (Tau t) v
-        | _ -> (der, side)
-      in 
-      let (es1', side1) = helper es1 in 
-      let (es2', side2) = helper es2 in 
-      (Par (es1', es2'), PureAnd(side1, side2))
-    | Guard (pi1, es1) -> 
-      if askZ3 (PureAnd(pi1, globalVToPure v)) then derivitive pi es1 f v 
-      else (es, TRUE)
-    
-    )
-
-  | Instant ev -> 
-    (match es with 
-      Bot -> (Bot, TRUE)
-    | Emp -> (Bot, TRUE)
-    | Event ev1 -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
-    | Ttimes (es1, tIn) -> 
-
-      let (es1_der, side1) = derivitive pi es1 f v in 
-      (Ttimes (es1_der, tIn), pi)
-
-    | Cons (es1 , es2) ->  
-      let (es1_der, side1) = derivitive pi es1 f v in 
-      let es1' = Cons (es1_der, es2) in 
-      let (es2_der, side2) = derivitive pi es2 f v in    
-      if nullable pi es1 
-        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
-        else (es1', side1)
-
-    | ESOr (es1, es2) -> 
-      let (es1_der, side1) = derivitive pi es1 f v in 
-      let (es2_der, side2) = derivitive pi es2 f v in
-      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
-
-    | Kleene es1 -> 
-      let (es1_der, side1) = derivitive pi es1 f v in 
-      (Cons (es1_der, es), side1)
-    | Par (es1, es2) ->
+  | Par (es1, es2) ->
       let helper esIn = 
         let (der, side) = derivitive pi esIn f v in 
         match normalES der pi with 
@@ -353,14 +254,47 @@ let rec derivitive (pi :pure) (es:es) (f:head) (v:globalV): (es * pure) =
       let (es1', side1) = helper es1 in 
       let (es2', side2) = helper es2 in 
       (Par (es1', es2'), PureAnd(side1, side2))
-    | Guard (pi1, es1) -> 
-      if askZ3 (PureAnd(pi1, globalVToPure v)) then derivitive pi es1 f v 
+  | Guard (pi1, es1) -> 
+      if askZ3 (PureAnd(pi1, globalVToPure !v)) then derivitive pi es1 f v 
       else (es, TRUE)
-    )
+  | Event (Any) -> (Emp, TRUE)
 
+  | Event ev1 -> 
+		(match f with 
+		| Tau  t -> (Bot, TRUE)
+		| Ev (ev, t) -> (Bot, TRUE)
+		| Instant ev -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
+		)
+	| Ttimes (Emp, tIn) -> 
+		(match f with 
+		| Tau  t -> (Emp,  Eq(t , tIn))
+		| Ev (ev, t) -> (Bot, TRUE)
+		| Instant ev -> (Bot, TRUE)
+		)
+	(*| Ttimes (Event ev1, tIn) -> 
+		(match f with 
+		| Tau  t ->  let t_new = getAfreeVar () in 
+      (Ttimes (Event ev1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0)))
+		| Ev (ev, t) ->  if entailEvent ev ev1 then (Emp, Eq(tIn, t)) else (Bot, TRUE)
+		| Instant ev ->  if entailEvent ev ev1 then (Ttimes (Emp, tIn), TRUE) else (Bot, TRUE)
+		)
+	*)
+	| Ttimes (es1, tIn) -> 
+		(match f with 
+		| Tau  t ->  let t_new = getAfreeVar () in 
+      (Ttimes (es1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0)))
+		| Ev (ev, t) ->  
+		  let (es1_der, side1) = derivitive pi es1 f v in 
+      let t_new = getAfreeVar () in 
+      let p_new = PureAnd (side1, PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
+      (Ttimes (es1_der, Var t_new), p_new)
 
+		
+		| Instant ev ->  let (es1_der, side1) = derivitive pi es1 f v in 
+      (Ttimes (es1_der, tIn), pi)
 
-  
+		)
+
 ;;
 
 
@@ -418,8 +352,8 @@ let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) :
               else (Node (showEntail ^ " [PURE ER] ", []), false)
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
-            let (derL, sideL) = derivitive pL esL f !valuationLHS in 
-            let (derR, sideR) = derivitive pR esR f !valuationRHS in 
+            let (derL, sideL) = derivitive pL esL f valuationLHS in 
+            let (derR, sideR) = derivitive pR esR f valuationRHS in 
             let side' = PureAnd(side, PureAnd(sideL, sideR)) in 
             let (subtree, result) = containment side' [(pL, derL)] [(pR, derR)] ((esL, esR) :: delta) in 
             (List.append accT [subtree], accR && result) 
