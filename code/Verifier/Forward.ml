@@ -152,18 +152,51 @@ let valueToTerm v : terms =
   | _ -> raise (Foo "not yet in valueToTerm ")
   ;;
 
+let condToString (expr :expression) : string = 
+  match expr with 
+    Cond (Variable v, Integer n, "==")  -> v
+  | Cond (Variable v, Variable n, "==")  -> v
+  | Cond (Variable v, Integer n, "<=")  -> v
+  | Cond (Variable v, Integer n, ">=")  -> v
+  | Cond (Variable v, Integer n, ">")  -> v
+  | Cond (Variable v, Integer n, "<")  -> v
+  | _ -> raise (Foo ("exception in condToString"^ printExpr expr))
+  ;;
+
+let relatedToGlobalV (condIf:expression) (prog:program) : bool = 
+  let listAssign = List.flatten (List.map (fun a -> 
+    match a with 
+    | Global (ops, _) ->   [ops]
+    | _ -> [] 
+  ) prog) in 
+  List.exists (fun a -> String.compare a (condToString condIf) == 0 ) listAssign 
+  ;;
+  
+
 let rec verifier (caller:string) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
   | EventRaise (ev, p, ops) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present (ev, p, ops) )))) current
   | Seq (e1, e2) -> 
     let eff1 = verifier caller e1 precondition current prog in 
     verifier caller e2 precondition eff1 prog
+
   | IfElse (e1, e2, e3) -> 
     let condIf = condToPure e1 in 
-    let condElse = Neg condIf in 
-    let state_C_IF  = addConstrain current condIf in 
-    let state_C_ELSE  = addConstrain current condElse in 
-    List.append (verifier caller e2 precondition state_C_IF prog) (verifier caller e3 precondition state_C_ELSE prog)
+    if relatedToGlobalV e1 prog
+    then
+      let eff1 = verifier caller e2 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
+      let eff2 = verifier caller e3 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
+      let eff_new = List.map (fun ((pi1, es1), (pi2, es2)) -> 
+        PureAnd(pi1, pi2), ESOr (Some condIf, es1, es2 )) 
+        (List.combine eff1 eff2) in 
+      concatEffEff current eff_new
+
+
+    else  
+      let condElse = Neg condIf in 
+      let state_C_IF  = addConstrain current condIf in 
+      let state_C_ELSE  = addConstrain current condElse in 
+      List.append (verifier caller e2 precondition state_C_IF prog) (verifier caller e3 precondition state_C_ELSE prog)
 
   (*| Assign (v, e) -> verifier caller e precondition current prog  *)
   | Timeout (e, n) -> 

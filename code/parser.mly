@@ -161,13 +161,13 @@ pure:
 
 
 
-
 es:
 | EMPTY { Emp }
 | str = EVENT p=parm  ops= maybe_assign_list { Event (Present (str, p, ops)) }
 | NEGATION str = EVENT {Event (Absent str)}
-| p=pure GUARD trace = es {Guard(p, trace)}
+| GUARD LBrackets p=pure RBrackets trace = es {Guard(p, trace)}
 | LPAR r = es RPAR { r }
+| LBrackets p=pure RBrackets LPAR a = es CHOICE b = es RPAR { ESOr(Some p, a, b) }
 | a = es CHOICE b = es { ESOr(None, a, b) }
 | a = es LILOR b = es { Par(a, b) }
 
