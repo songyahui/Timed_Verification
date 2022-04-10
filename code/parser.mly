@@ -52,6 +52,7 @@ real_param:
 
 value:  
 | {Unit}
+| LPAR RPAR {UnitPAR}
 | t = INTE {Integer t}
 | b =  TRUEE {Bool b }
 | b =  FALSEE {Bool b }
@@ -79,7 +80,7 @@ expres_help :
 | v= value {Value v }
 | t = type_ name = VAR EQ e = expres_help {LocalDel (t, name, e)}
 | name = VAR LPAR vlist = real_param RPAR {Call (name, vlist)}
-| EVENTKEY LBrackets ev = STRING p=parm RBrackets ops = maybe_assign_list {EventRaise (ev, p, ops)}
+| EVENTKEY LBrackets ev = STRING p=parm RBrackets ops = maybe_assign_list {EventRaise (ev,  p,  ops)}
 | TimeoutKEY LPAR e = expres_help COMMA t = value  RPAR  {Timeout(e, t)}
 | DeadlineKEY LPAR e = expres_help COMMA t = value  RPAR {Deadline(e, t)}
 | DelayKEY LPAR t = value RPAR {Delay t}
@@ -131,19 +132,7 @@ term:
 | LPAR a = term CHOICE b = term RPAR {Plus (a, b)}
 
 
-(*
-| a = term c = binTERM 
-{ let (op, b) = c in 
-  if String.compare op "-" == 0 then Minus (a, b ) else Plus (a, b)
 
-}
-
-binTERM:
-| MINUS b = term {("-",   b) }
-| PLUS  b = term {("+",  b)}
-
-
-*)
 
 pure:
 | TRUE {TRUE}
@@ -163,12 +152,12 @@ pure:
 
 es:
 | EMPTY { Emp }
-| str = EVENT p=parm  ops= maybe_assign_list { Event (Present (str, p, ops)) }
+| LBrackets op=pure RBrackets {Event (Tau op)}
+| str = EVENT p=parm ops= maybe_assign_list { Event (Present (str, p, ops)) }
 | NEGATION str = EVENT {Event (Absent str)}
 | GUARD LBrackets p=pure RBrackets trace = es {Guard(p, trace)}
 | LPAR r = es RPAR { r }
-| LBrackets p=pure RBrackets LPAR a = es CHOICE b = es RPAR { ESOr(Some p, a, b) }
-| a = es CHOICE b = es { ESOr(None, a, b) }
+| a = es CHOICE b = es { ESOr(a, b) }
 | a = es LILOR b = es { Par(a, b) }
 
 | LPAR r = es SHARP t = term RPAR { Ttimes(r, t )}

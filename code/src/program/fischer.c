@@ -21,5 +21,5 @@ void process (int i)
 void main () 
 /* req: TRUE /\ emp 
    ens: TRUE /\ (_^*)  */
-{ process(0) || process(1) || process(2); }
+{ process(0) || process(1); }
 

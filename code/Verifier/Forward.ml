@@ -187,7 +187,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
       let eff1 = verifier caller e2 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
       let eff2 = verifier caller e3 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
       let eff_new = List.map (fun ((pi1, es1), (pi2, es2)) -> 
-        PureAnd(pi1, pi2), ESOr (Some condIf, es1, es2 )) 
+        PureAnd(pi1, pi2), ESOr (Cons(Event(Tau condIf), es1), Cons(Event(Tau (Neg condIf)),es2) )) 
         (List.combine eff1 eff2) in 
       concatEffEff current eff_new
 

@@ -1,35 +1,35 @@
 #include "primitives.c"
 
 void oneSugar() 
-    /*
-    req: TRUE/\(_^*).emp
-    ens: TRUE/\emp
-    */
+/*
+req: TRUE/\(_^*).emp
+ens: (t1>1)/\ (emp # t1)
+*/
 {
-    1
+    timeout (() , 1);
 }
 
 void addSugar (int n) 
-    /*
-    req: TRUE/\(_^*)
-    ens:  (t>=n)/\ (Sugar #t)
-    */
+/*
+req: TRUE/\(_^*)
+ens:  (t>=n)/\ (Sugar #t)
+*/
 {
 
     if (n == 0) { 
         event ["Sugar"];
     }
     else {
-        timeout (oneSugar() , 1);
+        oneSugar();
         addSugar (n - 1);
     }
 } 
 
 void makeCoffee (int n)
-    /*
-    req: TRUE/\emp
-    ens: (t<=5/\t>=n/\t1<=3)/\Cup.(Sugar#t).(Coffee#t1).Done
-    */
+/*
+req: TRUE/\emp
+ens: (t<=5/\t>=n/\t1<=3)/\Cup.(Sugar#t).(Coffee#t1).Done
+*/
 {
     event["Cup"];
     deadline (addSugar(n), 5);

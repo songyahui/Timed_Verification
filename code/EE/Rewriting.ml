@@ -96,20 +96,18 @@ let rec normalES (es:es) (pi:pure) : es =
         Cons (normal_es1, normal_es2)
         
       )
-  | ESOr (Some piOr, es1, es2) -> 
-			ESOr (Some (normalPure piOr), normalES es1 pi, normalES es2 pi)
 
-	| ESOr (None, es1, es2) -> 
+	| ESOr (es1, es2) -> 
       (match (normalES es1 pi , normalES es2 pi ) with 
         (Bot, Bot) -> Bot
       | (Bot, norml_es2) -> norml_es2
       | (norml_es1, Bot) -> norml_es1
-      | (ESOr(None, es1In, es2In), norml_es2 ) ->
-        if aCompareES norml_es2 es1In || aCompareES norml_es2 es2In then ESOr(None, es1In, es2In)
-        else ESOr (None, ESOr(None, es1In, es2In), norml_es2 )
-      | (norml_es2, ESOr(None, es1In, es2In) ) ->
-        if aCompareES norml_es2 es1In || aCompareES norml_es2 es2In then ESOr(None, es1In, es2In)
-        else ESOr (None, norml_es2, ESOr(None, es1In, es2In))
+      | (ESOr(es1In, es2In), norml_es2 ) ->
+        if aCompareES norml_es2 es1In || aCompareES norml_es2 es2In then ESOr(es1In, es2In)
+        else ESOr (ESOr(es1In, es2In), norml_es2 )
+      | (norml_es2, ESOr(es1In, es2In) ) ->
+        if aCompareES norml_es2 es1In || aCompareES norml_es2 es2In then ESOr(es1In, es2In)
+        else ESOr (norml_es2, ESOr(es1In, es2In))
       | (Emp, Kleene norml_es2) ->  Kleene norml_es2
       | (Kleene norml_es2, Emp) ->  Kleene norml_es2
 
@@ -119,11 +117,11 @@ let rec normalES (es:es) (pi:pure) : es =
         (match (norml_es1, norml_es2) with
           (norml_es1, Kleene norml_es2) ->  
           if aCompareES norml_es1 norml_es2 == true then Kleene norml_es2
-          else ESOr (None, norml_es1, Kleene norml_es2)
+          else ESOr (norml_es1, Kleene norml_es2)
         | (Kleene norml_es2, norml_es1) ->  
           if aCompareES norml_es1 norml_es2 == true then Kleene norml_es2
-          else ESOr (None, Kleene norml_es2, norml_es1)
-        |  _-> ESOr (None, norml_es1, norml_es2)
+          else ESOr (Kleene norml_es2, norml_es1)
+        |  _-> ESOr (norml_es1, norml_es2)
         )
       ;)
 
@@ -137,7 +135,7 @@ let rec normalES (es:es) (pi:pure) : es =
       (match normalInside with
         Emp -> Emp
       | Kleene esIn1 ->  Kleene (normalES esIn1 pi )
-      | ESOr(None, Emp, aa) -> Kleene aa 
+      | ESOr(Emp, aa) -> Kleene aa 
       | _ ->  Kleene normalInside)
 
 ;;
@@ -150,10 +148,10 @@ let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure) =
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
     (Cons(es1', es2'), PureAnd(pi1, pi2))
-  | ESOr (piOr, es1, es2) -> 
+  | ESOr (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
-    (ESOr(piOr, es1', es2'), PureAnd(pi1, pi2))
+    (ESOr(es1', es2'), PureAnd(pi1, pi2))
   | Kleene (es1) ->
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     (Kleene (es1'),  pi1)
@@ -180,8 +178,7 @@ let rec nullable (pi :pure) (es:es) (v:globalV ref) : bool=
   | Emp -> true
   | Event _ -> false 
   | Cons (es1 , es2) -> (nullable pi es1 v) && (nullable pi es2 v)
-	| ESOr (None, es1 , es2) -> (nullable pi es1 v) || (nullable pi es2 v)
-  | ESOr (Some piOr, es1 , es2) -> if askZ3 (PureAnd(piOr, globalVToPure !v)) then (nullable pi es1 v) else (nullable pi es2 v)
+	| ESOr (es1 , es2) -> (nullable pi es1 v) || (nullable pi es2 v)
   | Ttimes (es1, t) ->  askZ3 (PureAnd(pi, Eq(t, Number 0))) 
   | Kleene es1 -> true
   | Par (es1 , es2) -> (nullable pi es1 v) && (nullable pi es2 v)
@@ -207,8 +204,7 @@ let rec fst (pi :pure) (es:es) (v:globalV ref): head list =
     | Event (ev) ->  [Ev(ev, t)]
     | _ -> fst pi es1' v)
   | Cons (es1 , es2) ->  if nullable pi es1 v then append (fst pi es1 v) (fst pi es2 v) else fst pi es1 v
-  | ESOr (None, es1, es2) -> append (fst pi es1 v) (fst pi es2 v)
-	| ESOr (Some piOr, es1, es2) -> if askZ3 (PureAnd(piOr, globalVToPure !v)) then (fst pi es1 v) else (fst pi es2 v)
+  | ESOr (es1, es2) -> append (fst pi es1 v) (fst pi es2 v)
 
   | Par (es1, es2) -> append (fst pi es1 v) (fst pi es2 v)
   | Kleene es1 -> fst pi es1 v
@@ -240,19 +236,15 @@ let rec derivitive (pi :pure) (es:es) (f:head) (v:globalV ref): (es * pure) =
       let es1' = Cons (es1_der, es2) in 
       let (es2_der, side2) = derivitive pi es2 f v in    
       if nullable pi es1 v
-        then (ESOr (None, es1', es2_der), PureAnd(side1, side2))  
+        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
         else (es1', side1)
 
-	| ESOr (Some piOr, es1, es2) -> 
-			if askZ3 (PureAnd(piOr, globalVToPure !v)) then 
-      derivitive pi es1 f v else 
-      derivitive pi es2 f v 
 
 
-  | ESOr (None, es1, es2) -> 
+  | ESOr (es1, es2) -> 
       let (es1_der, side1) = derivitive pi es1 f v in 
       let (es2_der, side2) = derivitive pi es2 f v in
-      (ESOr (None, es1_der, es2_der), PureAnd(side1, side2)) 
+      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
 
   | Kleene es1 -> 
       let (es1_der, side1) = derivitive pi es1 f v in 
@@ -559,9 +551,8 @@ let rec reNamePure p str : pure =
 let rec reNameEs es str =
   match es with
 | Cons (es1, es2) -> Cons (reNameEs es1 str, reNameEs es2 str)
-| ESOr (Some piOr, es1, es2) -> ESOr (Some (reNamePure piOr str),reNameEs es1 str, reNameEs es2 str)
 
-| ESOr (None, es1, es2) -> ESOr (None, reNameEs es1 str, reNameEs es2 str)
+| ESOr (es1, es2) -> ESOr (reNameEs es1 str, reNameEs es2 str)
 | Ttimes (es1, t) -> Ttimes (reNameEs es1 str, reNameTerms t str) 
 | Kleene es1 -> Kleene (reNameEs es1 str )
 | Par (es1, es2) -> Par (reNameEs es1 str, reNameEs es2 str)
@@ -573,8 +564,7 @@ let reNameEffect (eff:effect) str: effect =
 ;;
 
 let printReportHelper lhs rhs : (binary_tree * bool) = 
-	(Leaf, true )
-  (*containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") []  *)
+	containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") []  
   ;;
 
 

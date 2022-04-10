@@ -56,12 +56,13 @@ let rec showTerms (t:terms):string =
 
 let string_of_value v : string = 
   match v with 
-  | Unit  -> "unit"
+  | Unit  -> ""
   | Integer num -> string_of_int num
   | Bool b -> string_of_bool b 
   | Float f -> string_of_float f
   | Variable v -> v 
   | String str -> str
+  | UnitPAR -> "()"
 ;;
 
 let rec string_of_assigns li : string =
@@ -102,6 +103,7 @@ let rec showES (es:es):string =
       str ^ print_param ^ print_ops
     | Absent str -> "!" ^ str
     | Any -> "_"
+    | Tau p -> "[" ^ showPure p^"]"
   in 
   match es with
     Bot -> "_|_"
@@ -109,8 +111,7 @@ let rec showES (es:es):string =
   | Event (ev) -> string_of_event ev 
   | Guard (pi, es1) ->  "[" ^ showPure pi ^ "]" ^(showES es1)
   | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
-  | ESOr (None, es1, es2) ->  "("^(showES es1) ^ " + " ^ (showES es2)^")"
-  | ESOr (Some pi, es1, es2) -> "[" ^ showPure pi ^ "]"^ "("^(showES es1) ^ " + " ^ (showES es2)^")"
+  | ESOr (es1, es2) ->  "("^(showES es1) ^ " + " ^ (showES es2)^")"
   | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
   | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
   | Par (es1, es2) -> "("^(showES es1) ^ " || " ^ (showES es2)^")"
@@ -327,7 +328,7 @@ let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es =
   | Event _  -> es
   | Guard (p, es1) -> Guard (p, substituteESWithAgr es1 realArg formalArg)
   | Cons (es1, es2) ->  Cons (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
-  | ESOr (pi, es1, es2) ->  ESOr (pi, substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
+  | ESOr (es1, es2) ->  ESOr (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | Ttimes (esIn, t) -> Ttimes (substituteESWithAgr esIn realArg formalArg, substituteTermWithAgr t realArg formalArg)
   | Kleene esIn -> Kleene (substituteESWithAgr esIn realArg formalArg)
   | Par (es1, es2) ->  Par (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
@@ -545,17 +546,10 @@ let rec aCompareES es1 es2 =
     if (aCompareES es1L es2L) == false then false
     else (aCompareES es1R es2R)
 
-  | (ESOr (pi1, es1L, es1R), ESOr (pi2, es2L, es2R)) -> 
-     (match (pi1, pi2) with 
-      | (None, Some _) 
-      | (Some _ , None) -> false 
-      | (None, None) -> 
+  | (ESOr (es1L, es1R), ESOr (es2L, es2R)) -> 
       if ((aCompareES es1L es2L) && (aCompareES es1R es2R)) then true 
       else ((aCompareES es1L es2R) && (aCompareES es1R es2L))
-      | (Some pi1', Some pi2') -> 
-      if ((comparePure pi1' pi2') &&(aCompareES es1L es2L) && (aCompareES es1R es2R)) then true 
-      else ((aCompareES es1L es2R) && (aCompareES es1R es2L))
-     )
+     
 
 
   | (Kleene esL, Kleene esR) -> aCompareES esL esR

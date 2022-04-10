@@ -8,7 +8,12 @@ type terms = Var of string
            | Minus of terms * terms 
 
 (* We use a string to represent an single event *)
-type event =  Present of (string * value option * assign list) | Absent of string | Any 
+type event =  
+      | Present of (string * value option * assign list) 
+      | Tau of pure 
+      | Absent of string 
+      | Any 
+      
 and mn = string
 and var = string 
 and includ = string 
@@ -24,7 +29,7 @@ and es = Bot
         | Event  of event 
         | Guard  of (pure * es)
         | Cons   of es * es
-        | ESOr   of (pure option) * es * es
+        | ESOr   of es * es
         | Ttimes of es * terms
         | Par    of es * es 
         | Kleene of es
@@ -58,6 +63,7 @@ and _type = INT | FLOAT | BOOL | VOID
 and globelV = assign list 
 
 and value = Unit 
+| UnitPAR
 | Integer of int 
 | Bool of bool
 | Float of float
