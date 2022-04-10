@@ -13,21 +13,22 @@ type event =
       | Tau of pure 
       | Absent of string 
       | Any 
-      
+
 and mn = string
 and var = string 
 and includ = string 
 
 and head = 
       | Instant of event
+      | Tauh of pure 
       | Ev    of (event * terms) 
-      | Tau   of terms 
+      | T     of terms 
 
 (*E vent sequence *)
 and es = Bot 
         | Emp 
         | Event  of event 
-        | Guard  of (pure * es)
+        | Guard  of pure 
         | Cons   of es * es
         | ESOr   of es * es
         | Ttimes of es * terms

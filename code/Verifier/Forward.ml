@@ -274,7 +274,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
     
     | GuardE (pi, e1) -> 
       let eff1 = verifier caller e1 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
-      let new_Eff = List.map (fun (pi1, es1) -> (pi1, Guard (pi,  es1))) eff1 in 
+      let new_Eff = List.map (fun (pi1, es1) -> (pi1, Cons (Guard pi,  es1))) eff1 in 
       
       concatEffEff current new_Eff
 

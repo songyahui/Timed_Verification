@@ -109,7 +109,7 @@ let rec showES (es:es):string =
     Bot -> "_|_"
   | Emp -> "emp"
   | Event (ev) -> string_of_event ev 
-  | Guard (pi, es1) ->  "[" ^ showPure pi ^ "]" ^(showES es1)
+  | Guard (pi) ->  "[" ^ showPure pi ^ "]?" 
   | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
   | ESOr (es1, es2) ->  "("^(showES es1) ^ " + " ^ (showES es2)^")"
   | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
@@ -326,7 +326,7 @@ let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es =
   | Emp  -> es
   | Event (Present (str, Some i, ops))  -> Event (Present (str, Some (substituteValueWithAgr i realArg formalArg),  ops))
   | Event _  -> es
-  | Guard (p, es1) -> Guard (p, substituteESWithAgr es1 realArg formalArg)
+  | Guard (p) -> Guard (p)
   | Cons (es1, es2) ->  Cons (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | ESOr (es1, es2) ->  ESOr (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | Ttimes (esIn, t) -> Ttimes (substituteESWithAgr esIn realArg formalArg, substituteTermWithAgr t realArg formalArg)

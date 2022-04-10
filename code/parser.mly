@@ -148,14 +148,19 @@ pure:
 | a = pure DISJ b = pure {PureOr (a, b)}
 
 
-
+maybeGuard :
+| {None}
+| GUARD {Some "a"}
 
 es:
 | EMPTY { Emp }
-| LBrackets op=pure RBrackets {Event (Tau op)}
+| LBrackets op=pure RBrackets m = maybeGuard {
+  match m with 
+  | None -> Event (Tau op)
+  | Some _ -> Guard(op)
+}
 | str = EVENT p=parm ops= maybe_assign_list { Event (Present (str, p, ops)) }
 | NEGATION str = EVENT {Event (Absent str)}
-| GUARD LBrackets p=pure RBrackets trace = es {Guard(p, trace)}
 | LPAR r = es RPAR { r }
 | a = es CHOICE b = es { ESOr(a, b) }
 | a = es LILOR b = es { Par(a, b) }
