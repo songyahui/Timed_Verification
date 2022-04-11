@@ -44,7 +44,7 @@ let rec input_lines file =
 
 
 let rec concatEffEs (eff:effect) p es : effect = 
-  List.map (fun (p1, e1) -> (PureAnd(p1,p), Cons (e1, es))) eff
+  List.map (fun (p1, e1) -> ( (PureAnd(p1,p)), Cons (e1, es))) eff
 ;; 
  
 
@@ -139,11 +139,12 @@ let condToPure (expr :expression) :pure =
   | _ -> raise (Foo ("exception in condToPure"^ printExpr expr))
   ;;
 
-let concatanateEffEff eff1 eff2 : effect = 
+(*let concatanateEffEff eff1 eff2 : effect = 
   List.flatten (List.map (fun (p1, es1) -> List.map (fun (p2, es2) -> 
     (PureAnd(p1, p2), Cons (es1, es2))
   ) eff2) eff1)
   ;;
+*)
 
 let valueToTerm v : terms =
   match v with 
@@ -173,6 +174,7 @@ let relatedToGlobalV (condIf:expression) (prog:program) : bool =
   ;;
   
 
+
 let rec verifier (caller:string) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
   | EventRaise (ev, p, ops) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present (ev, p, ops) )))) current
@@ -187,7 +189,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
       let eff1 = verifier caller e2 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
       let eff2 = verifier caller e3 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
       let eff_new = List.map (fun ((pi1, es1), (pi2, es2)) -> 
-        PureAnd(pi1, pi2), ESOr (Cons(Event(Tau condIf), es1), Cons(Event(Tau (Neg condIf)),es2) )) 
+        PureAnd(pi1, pi2) , ESOr (Cons(Event(Tau condIf), es1), Cons(Event(Tau (Neg condIf)),es2) )) 
         (List.combine eff1 eff2) in 
       concatEffEff current eff_new
 
@@ -202,14 +204,14 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
   | Timeout (e, n) -> 
     let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
-    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, valueToTerm n)), Ttimes(es, Var x))) eff in 
-    concatanateEffEff current addABound
+    let addABound = List.map (fun (pi, es) -> (Gt(Var x, valueToTerm n), Ttimes(es, Var x))) eff in 
+    concatEffEff current addABound
 
   | Deadline (e, n) -> 
     let eff = verifier caller e (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let x = verifier_getAfreeVar () in 
-    let addABound = List.map (fun (pi, es) -> (PureAnd(pi, LtEq(Var x, valueToTerm n)), Ttimes(es, Var x))) eff in 
-    concatanateEffEff current addABound
+    let addABound = List.map (fun (pi, es) -> (LtEq(Var x, valueToTerm n), Ttimes(es, Var x))) eff in 
+    concatEffEff current addABound
 
   | Delay n -> 
     let x = verifier_getAfreeVar () in 
@@ -299,13 +301,14 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
     let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
     let acc =  (verifier mn expression (pre) [(TRUE, Emp)] prog) in 
+    let acc' = (normalEffect acc) in 
     
-    let accumulated = "[Real Effect: " ^(showEffect (normalEffect acc)) ^ "]\n" in 
+    let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
     (*print_string((showEntailmentEff acc post) ^ "\n") ;*)
     
     (*let varList = (*append*) (getAllVarFromEff acc) (*(getAllVarFromEff post)*) in  
     *)
-    let (result_tree, result) =  Rewriting.printReportHelper  (normalEffect acc) post in 
+    let (result_tree, result) =  Rewriting.printReportHelper  (acc') post in 
     let result = "[Result: "^ (if result then "Succeed" else "Fail") ^"]\n" in 
     let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
     let printTree = printTree ~line_prefix:"* " ~get_name ~get_children result_tree in

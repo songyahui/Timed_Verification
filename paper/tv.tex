@@ -275,6 +275,7 @@ system (TRS) on \emph{Timed Effects} (\timedEffects).
 The main purposes are to increase the expressiveness,  
 dynamically create clocks, 
 and efficiently solve constraints on the clocks.  
+
 We formally define 
 a core language \timedL, generalizing the real-time systems, modeled 
 using mutable variables and timed behavioral patterns, 
@@ -289,6 +290,7 @@ Thirdly,  the forward verifier infers temporal behaviors of given
 Lastly, we present a purely algebraic TRS, i.e., an extended \emph{Antimirov algorithm}, to 
 efficiently prove language inclusions between 
  \timedEffects. 
+
 To demonstrate the feasibility of our proposals, 
 we prototype the verification system; prove its 
 correctness; report on case studies and the experimental results. 
@@ -395,7 +397,7 @@ using keywords \code{\emph{require}} and \code{\emph{ensure}} respectively.
   \vspace{-2mm}
 \begin{lstlisting}
 void oneSugar() 
-/*req: TRUE/\ (_^*).emp
+/*req: TRUE/\ (_^*)
   ens: t>1 /\ emp#t */ 
 { timeout ((), 1); }
 

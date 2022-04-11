@@ -147,11 +147,11 @@ let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure) =
   | Cons (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
-    (Cons(es1', es2'), PureAnd(PureAnd(pi1, pi2), pi))
+    (Cons(es1', es2'), PureAnd(pi1, pi2))
   | ESOr (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
-    (ESOr(es1', es2'), PureAnd(PureAnd(pi1, pi2), pi))
+    (ESOr(es1', es2'), PureAnd(pi1, pi2))
   | Kleene (es1) ->
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     (Kleene (es1'),  pi1)
@@ -457,7 +457,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) (v:globalV): (es * pure) =
 
 
 let rec normalEffect (eff:effect) :effect =
-  let noPureOr:effect  = deletePureOrInEff eff in 
+  let noPureOr:effect  = (* deletePureOrInEff *) eff in 
   let final = List.filter (fun (p, es) -> 
   match (p,  es ) with 
   | (_,  Bot) -> false 
@@ -465,7 +465,7 @@ let rec normalEffect (eff:effect) :effect =
   | _ -> true 
   ) (List.map (fun (p, es) -> 
       let (es', pi') = normalESUnifyTime es p in 
-      ( pi', es')) noPureOr) in 
+      ( normalPure  (PureAnd (p, pi')), es')) noPureOr) in 
   if List.length final == 0 then [(FALSE, Bot)]
   else final 
   ;;
@@ -495,6 +495,8 @@ let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) :
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
       let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
         let (subtreeIn, reIn) = 
+          if askZ3 pL == false then (Node (showEntail ^ " [PURE ER] ", []), false) else 
+
           if reoccur (esL) (esR) delta then 
             if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
             else 
@@ -584,9 +586,13 @@ let printReportHelper lhs rhs : (binary_tree * bool) =
   let normalFormR = normalEffect rhs in
   let showEntail  =  showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side)) *) in
   print_string (showEntail ^"\n"); 
+    (Leaf , true)
 
-  Leaf , true*)
-	containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") []   
+
+  *)
+
+  containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") []   
+
   ;;
 
 

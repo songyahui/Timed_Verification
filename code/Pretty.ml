@@ -560,6 +560,19 @@ let entailConstrains pi1 pi2 =
   sat;;
 
 let rec normalPure (pi:pure):pure = 
+  match pi with 
+  | PureAnd (pi1, pi2) -> 
+    let pi1' = normalPure pi1 in 
+    let pi2' = normalPure pi2 in 
+    (match (pi1', pi2') with
+    | (TRUE, _) ->  pi2'
+    | (_, TRUE) ->  pi1'
+    | _ -> PureAnd( pi1',  pi2'))
+  | _ ->  pi 
+;;
+
+(*
+let rec normalPure (pi:pure):pure = 
   let allPi = getAllPi pi [] in
   let rec clear_Pi pi li = 
     (match li with 
@@ -576,6 +589,7 @@ let rec normalPure (pi:pure):pure =
   if length filte_true == 0 then  TRUE
   else connectPi (tl filte_true) (hd filte_true)
   ;;
+*)
 
 
 
