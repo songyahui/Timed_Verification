@@ -140,24 +140,39 @@ let rec normalES (es:es) (pi:pure) : es =
 
 ;;
 
-let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure) = 
+let optionPureAnd pi1 pi2 : pure option  = 
+  match (pi1, pi2) with 
+  | (None, None) -> None 
+  | (Some pi1', Some pi2') -> Some (PureAnd (pi1', pi2'))
+  | (None, _) -> pi2
+  | ( _ , None) -> pi2
+;;
+
+let optionPureAndHalf pi1 pi2 : pure   = 
+  match pi1 with 
+  | None -> pi2 
+  | Some pi1' ->  PureAnd (pi1', pi2)
+;;
+
+let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure option ) = 
   let es' = normalES es pi in 
   match es' with
-  | Ttimes (Ttimes (es1, t1) , t2 ) -> (Ttimes (es1, t1), Eq(t1, t2)) 
+  | Ttimes (Ttimes (es1, t1) , t2 ) -> (Ttimes (es1, t1), Some (Eq(t1, t2))) 
   | Cons (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
-    (Cons(es1', es2'), PureAnd(pi1, pi2))
+    (Cons(es1', es2'), optionPureAnd pi1 pi2)
   | ESOr (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
-    (ESOr(es1', es2'), PureAnd(pi1, pi2))
+    (ESOr(es1', es2'), optionPureAnd pi1 pi2)
   | Kleene (es1) ->
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     (Kleene (es1'),  pi1)
-  | _ -> (es', TRUE)
+  | _ -> (es', None)
   ;;
 
+(*
 let globalVToPure (v:globalV) : pure =
   let pureList = List.map (fun (str, n) -> Eq(Var str, Number n)) v in 
   let rec helper li: pure = 
@@ -167,6 +182,7 @@ let globalVToPure (v:globalV) : pure =
   in 
   helper pureList
 ;;
+*)
 
 
 let rec nullable (pi :pure) (es:es) : bool=
@@ -205,7 +221,7 @@ let rec fst (pi :pure) (es:es) : head list =
 
   | Par (es1, es2) -> append (fst pi es1 ) (fst pi es2 )
   | Kleene es1 -> fst pi es1
-  | Guard (pi1) -> [Tauh pi1]
+  | Guard (pi1) -> [Instant(Tau pi1); Instant (Tau (Neg pi1))]
 
 ;;
 
@@ -216,6 +232,7 @@ let appendEff_ES eff es: effect = List.map (fun (pi, es1) -> (pi, Cons (es1, es)
 let entailEvent ev1 ev2 : bool =
   match (ev1, ev2) with 
   | (_, Any) -> true 
+  | (Tau pi1, Tau pi2) -> entailConstrains pi1 pi2
   | (Present (str1, _, _), Present (str2, _, _)) -> String.compare str1 str2 == 0 
   | (Present (str1, _, _), Absent str2) -> String.compare str1 str2 != 0 
   | (Absent str1, Absent str2) ->  String.compare str1 str2 == 0
@@ -224,16 +241,16 @@ let entailEvent ev1 ev2 : bool =
 
 
 
-let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
+let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
   match es with 
-  | Bot -> (Bot, TRUE)
-  | Emp -> (Bot, TRUE)
+  | Bot -> (Bot, None)
+  | Emp -> (Bot, None)
   | Cons (es1 , es2) ->  
       let (es1_der, side1) = derivitive pi es1 f in 
       let es1' = Cons (es1_der, es2) in 
       let (es2_der, side2) = derivitive pi es2 f in    
       if nullable pi es1
-        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
+        then (ESOr (es1', es2_der), optionPureAnd side1 side2)  
         else (es1', side1)
 
 
@@ -241,7 +258,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
   | ESOr (es1, es2) -> 
       let (es1_der, side1) = derivitive pi es1 f in 
       let (es2_der, side2) = derivitive pi es2 f in
-      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
+      (ESOr (es1_der, es2_der), optionPureAnd side1 side2) 
 
   | Kleene es1 -> 
       let (es1_der, side1) = derivitive pi es1 f in 
@@ -250,62 +267,54 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure) =
       let helper esIn = 
         let (der, side) = derivitive pi esIn f in 
         match normalES der pi with 
-        | Bot -> (esIn, Ast.TRUE)
+        | Bot -> (esIn, None)
         | _ -> (der, side)
       in 
       let (es1', side1) = helper es1 in 
       let (es2', side2) = helper es2 in 
-      (Par (es1', es2'), PureAnd(side1, side2))
+      (Par (es1', es2'), optionPureAnd side1 side2)
   | Guard (pi1) -> 
     (match f with 
-    | Tauh pi2 -> if entailConstrains pi2 pi1 then (Emp, TRUE) else (es, TRUE)
-    | _ -> (es, TRUE)
+    | Instant (Tau pi2) -> if entailConstrains pi2 pi1 then (Emp, None) else (es, None)
+    | _ -> (es, None)
     )
       
-  | Event (Any) -> (Emp, TRUE)
+  | Event (Any) -> (Emp, None)
 
   | Event ev1 -> 
 		(match f with 
-		| T  t -> (Bot, TRUE)
-    | Tauh pi1 ->  (match ev1 with 
-                  | Tau pi2 -> if entailConstrains pi1 pi2 then (Emp, TRUE) else (Bot, TRUE)
-                  | _ -> (Bot, TRUE)
-                  )
-		| Ev (ev, t) -> (Bot, TRUE)
-		| Instant ev -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
+		| T  t -> (Bot, None)
+		| Ev (ev, t) -> (Bot, None)
+		| Instant ev -> if entailEvent ev ev1 then (Emp, None) else (Bot, None)
 		)
 	| Ttimes (Emp, tIn) -> 
 		(match f with 
-		| T  t -> (Emp,  Eq(t , tIn))
-		| Ev (ev, t) -> (Bot, TRUE)
-    | Tauh pi1 -> (Bot, TRUE)
-		| Instant ev -> (Bot, TRUE)
+		| T  t -> (Emp,  Some (Eq(t , tIn)))
+		| Ev (ev, t) -> (Bot, None)
+		| Instant ev -> (Bot, None)
 		)
 	| Ttimes (Event ev1, tIn) -> 
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
-      (Ttimes (Event ev1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0)))
-		| Ev (ev, t) ->  if entailEvent ev ev1 then (Emp, Eq(tIn, t)) else (Bot, TRUE)
-    | Tauh pi1 -> (Bot, TRUE)
+      (Ttimes (Event ev1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
+		| Ev (ev, t) ->  if entailEvent ev ev1 then (Emp,Some ( Eq(tIn, t))) else (Bot, None)
 
-		| Instant ev ->  if entailEvent ev ev1 then (Ttimes (Emp, tIn), TRUE) else (Bot, TRUE)
+		| Instant ev ->  if entailEvent ev ev1 then (Ttimes (Emp, tIn), None) else (Bot, None)
 		)
 	
 	| Ttimes (es1, tIn) -> 
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
-      (Ttimes (es1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0)))
+      (Ttimes (es1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
 		| Ev (ev, t) ->  
 		  let (es1_der, side1) = derivitive pi es1 f in 
       let t_new = getAfreeVar () in 
-      let p_new = PureAnd (side1, PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
-      (Ttimes (es1_der, Var t_new), p_new)
-    | Tauh pi1 -> (Bot, TRUE)
-
+      let p_new = optionPureAndHalf side1 (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
+      (Ttimes (es1_der, Var t_new), Some p_new)
 
 		
 		| Instant ev ->  let (es1_der, side1) = derivitive pi es1 f in 
-      (Ttimes (es1_der, tIn), pi)
+      (Ttimes (es1_der, tIn), side1)
 
 		)
 
@@ -465,7 +474,7 @@ let rec normalEffect (eff:effect) :effect =
   | _ -> true 
   ) (List.map (fun (p, es) -> 
       let (es', pi') = normalESUnifyTime es p in 
-      ( normalPure  (PureAnd (p, pi')), es')) noPureOr) in 
+      (  (* normalPure *)    (optionPureAndHalf  pi' p), es')) noPureOr) in 
   if List.length final == 0 then [(FALSE, Bot)]
   else final 
   ;;
@@ -473,18 +482,29 @@ let rec normalEffect (eff:effect) :effect =
 
 
 let reoccur lhs rhs delta : bool =  
-  List.fold_left (fun acc (lhspy, rhshy) -> 
-  let result = aCompareES lhs lhspy && aCompareES rhs rhshy in 
-  acc || result
-  ) false delta 
+
+  let rec helper li = 
+    match li with
+    | [] -> false 
+    | (lhspy, rhshy):: rest -> 
+      if aCompareES lhs lhspy then 
+        if aCompareES rhs rhshy 
+        then true 
+        else helper rest 
+      else helper rest
+  in helper delta
+
+
   ;;
+
+let delta : hypotheses ref = ref []
 
 (*
 let valuationLHS: globalV ref=  ref [] ;;
 let valuationRHS: globalV ref=  ref [] ;;
 *)
 
-let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) : (binary_tree * bool) = 
+let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
   let showEntail  =  showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side)) *) in
@@ -497,7 +517,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) :
         let (subtreeIn, reIn) = 
           if askZ3 pL == false then (Node (showEntail ^ " [PURE ER] ", []), false) else 
 
-          if reoccur (esL) (esR) delta then 
+          if reoccur (esL) (esR) !delta then 
             if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
             else 
               if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ showRule REOCCUR,[] ), true)
@@ -506,7 +526,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) :
           else 
             let fstSet = fst pL esL  in
             if List.length (fstSet) == 0 then 
-              if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
+              if comparePure pR TRUE then (Node (showEntail ^ " [NO FST]",[] ), true)
               else 
                 if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ " [NO FST]", [] ), true)
                 else (Node (showEntail ^ " [PURE ER] ", []), false)
@@ -514,8 +534,9 @@ let rec containment (side:pure) (effL:effect) (effR:effect) (delta:hypotheses) :
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
             let (derL, sideL) = derivitive pL esL f  in 
             let (derR, sideR) = derivitive pR esR f  in 
-            let side' = PureAnd(side, PureAnd(sideL, sideR)) in 
-            let (subtree, result) = containment side' [(pL, derL)] [(pR, derR)] ((esL, esR) :: delta) in 
+            let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
+            let _ = delta := ((esL, esR) :: !delta) in 
+            let (subtree, result) = containment side' [(pL, derL)] [(pR, derR)]  in 
             (List.append accT [subtree], accR && result) 
             ) ([], true) fstSet in 
             (Node (showEntail ^ showRule UNFOLD, subtrees ), re)
@@ -590,8 +611,10 @@ let printReportHelper lhs rhs : (binary_tree * bool) =
 
 
   *)
+  let a : hypotheses ref = ref [] in 
 
-  containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r") []   
+  let _ = (delta: hypotheses ref) := !a in 
+  containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r")    
 
   ;;
 

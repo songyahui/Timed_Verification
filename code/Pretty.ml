@@ -99,8 +99,9 @@ let rec showES (es:es):string =
         | None -> ""
         | Some v -> "(" ^ string_of_value v ^ ")"
       )in 
+      str ^ print_param (*^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
-      str ^ print_param ^ print_ops
+      print_ops *)
     | Absent str -> "!" ^ str
     | Any -> "_"
     | Tau p -> "[" ^ showPure p^"]"

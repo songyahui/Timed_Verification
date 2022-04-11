@@ -20,7 +20,6 @@ and includ = string
 
 and head = 
       | Instant of event
-      | Tauh of pure 
       | Ev    of (event * terms) 
       | T     of terms 
 

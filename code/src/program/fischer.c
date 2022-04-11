@@ -11,9 +11,9 @@ void process (int i)
   if (x==i) {
     event["Critical"(i)]{ct := (ct + 1)};
     event["Exit"(i)]{ct := (ct-1); x := -1};
-    process (i);
+
   } else {
-    process (i);
+    1
   }
 }
 
