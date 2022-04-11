@@ -3,7 +3,8 @@ ct := 0;
 
 void process (int i)
 /* req: TRUE /\ (_^*) 
-   ens: TRUE /\ (_^*) */
+   ens: (t0<=d1/\t1=d2) /\ ([x=-1]? . (Update(i)#t0) . (emp#t1) . (([x=i] . Critical(i) . Exit(i) ) + [(~(x=i))]) ^*) */
+
 {
   [x=-1] 
   deadline (event["Update"(i)]{x := i}, d1);
@@ -11,9 +12,9 @@ void process (int i)
   if (x==i) {
     event["Critical"(i)]{ct := (ct + 1)};
     event["Exit"(i)]{ct := (ct-1); x := -1};
-
+    process (i);
   } else {
-    1
+    process (i);
   }
 }
 

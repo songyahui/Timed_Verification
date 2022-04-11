@@ -474,7 +474,7 @@ let rec normalEffect (eff:effect) :effect =
   | _ -> true 
   ) (List.map (fun (p, es) -> 
       let (es', pi') = normalESUnifyTime es p in 
-      (  (* normalPure *)    (optionPureAndHalf  pi' p), es')) noPureOr) in 
+      (  normalPure    (optionPureAndHalf  pi' p), es')) noPureOr) in 
   if List.length final == 0 then [(FALSE, Bot)]
   else final 
   ;;

@@ -71,6 +71,7 @@
 
 \newcommand{\es}{\theta}
 \newcommand{\ev}{ev}
+\newcommand{\codem}[1]{{\lstinline[basicstyle=\small\ttfamily]|#1|}}
 
 
 \newcommand{\timedEffects}{\emph{TimEffs}}
@@ -275,7 +276,6 @@ system (TRS) on \emph{Timed Effects} (\timedEffects).
 The main purposes are to increase the expressiveness,  
 dynamically create clocks, 
 and efficiently solve constraints on the clocks.  
-
 We formally define 
 a core language \timedL, generalizing the real-time systems, modeled 
 using mutable variables and timed behavioral patterns, 
@@ -290,7 +290,6 @@ Thirdly,  the forward verifier infers temporal behaviors of given
 Lastly, we present a purely algebraic TRS, i.e., an extended \emph{Antimirov algorithm}, to 
 efficiently prove language inclusions between 
  \timedEffects. 
-
 To demonstrate the feasibility of our proposals, 
 we prototype the verification system; prove its 
 correctness; report on case studies and the experimental results. 
@@ -331,18 +330,18 @@ Timed Verification}
 \label{Introduction}
 
 
-Specification and verification of real-time systems are important 
-research topics which have practical implications. During the last 
-more than two decades, a popular approach for specifying real-time systems is 
+Specification and verification of real-time systems are essential 
+to research topics with practical implications. During the last 
+more than two decades, a popular approach for specifying real-time systems has been 
 based on Timed Automata \cite{DBLP:journals/tcs/AlurD94}. 
 Timed Automata are powerful 
 in designing real-time models with explicit clock variables. Real-time 
-constraints are captured by explicitly setting/reseting clock variables. 
+constraints are captured by explicitly setting/resetting clock variables. 
 A number of automatic verification support for Timed Automata have proven 
-to be successful \cite{DBLP:journals/sttt/LarsenPY97,yovine1997kronos,wang2005verifying}.
+to be successful \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,wang2005verifying}.
 
 
-Models based on Timed Automata often adapt a simple structure, e.g. a 
+Models based on Timed Automata often adopt a simple structure, e.g., a 
 network with no hierarchy. The benefit is that 
 efficient model checking is made feasible. Nonetheless, designing and 
 verifying compositional real-time systems is becoming an increasingly 
@@ -362,8 +361,9 @@ compositional real-time systems. In this work,
 we propose a novel temporal specification language, 
 which enables a compositional verification via a  Hoare-style 
 forward verifier and a term rewriting system (TRS). 
-More specifically, we specify system behaviours in the form of 
-{Timed Effects} (\timedEffects), which integrates the Kleene Algebra with dependent values and arithmetic constraints, 
+More specifically, we specify system behaviors in the form of 
+{Timed Effects} (\timedEffects), which integrates the Kleene Algebra 
+with dependent values and arithmetic constraints, 
 %gaining the expressive power beyond finite-state machines; and (ii) introduces a new parallel operator 
 to 
 %capture the parallelism between event-triggered (sync) and  time-triggered (async) execution traces, 
@@ -372,43 +372,44 @@ provide real-time abstractions into traditional linear temporal logics.
 For example, one safety property, \textit{"The event \anyevent{Done} 
 will be triggered no later than one time unit"}\footnote{Without loss of generality, 
 we use integer values to represent time units in this 
-paper, while it can bes extended to real numbers and other 
-time measurement units.}, is expressed in \timedEffects\ as: 
-\code{\effect \defeq \  0 {\leq} t {<}1, ({\_^\star} \cdot \anyevent{Done} ) \mysharp  t}.
-%\begin{align*}
-%&\end{align*}  
+paper.% while it can bes extended to real numbers and other 
+%time measurement units.
+}, is expressed in \timedEffects\ as: 
+\begin{align*}
+  \code{\effect \defeq \  0 {\leq} t {<}1 \wedge ({\_^\star} \cdot \anyevent{Done} ) \mysharp  t}
+\end{align*}  
 %The timed effects incorporates different kinds of existing temporal logics, such as linear-time temporal logic (LTL)
 %and .
 %which replaces temporal operators by time-constrained versions from 
-Here, \code{\mysharp } is a novel operator specifying the \emph{real-time} 
+Here, \code{\wedge} connects the arithmetic formula and the timed trace, \code{\mysharp } is a novel operator specifying the \emph{real-time} 
 constraints for the \emph{logical-time} sequences \cite{von2017real}; 
 \code{\_} is a wildcard matching to any event; 
 Kleene star \code{\star} denotes trace repetition.
 The above formula \code{\effect} corresponds to `\code{\Diamond_{[0, 1)}\ }\anyevent{Done}' 
 in metric temporal logic (MTL), reads \textit{"within one second, 
-\anyevent{Done} finally happens"}. Moreover, the time bounds 
-can be dependent on the program inputs. For example, as the program 
-shown in \autoref{fig:Value_dependent_intro}, we mark the precondition and postcondition
-using keywords \code{\emph{require}} and \code{\emph{ensure}} respectively. 
+\anyevent{Done} finally happens"}. 
 
-\newcommand{\codem}[1]{{\code{\emph{#1}}}}
+Moreover, the time bounds 
+can be dependent on the program inputs, demonstrated in \autoref{fig:Value_dependent_intro}, we mark the precondition and postcondition
+using keywords {\color{darklavender}\code{\emph{req:}}} and {\color{darklavender}\code{\emph{ens:}}} respectively. 
+
 
 \begin{wrapfigure}{L}{0.39\columnwidth}
   \vspace{-2mm}
 \begin{lstlisting}
-void oneSugar() 
-/*req: TRUE/\ (_^*)
+void addOneSugar() 
+/*req: TRUE/\ _^*
   ens: t>1 /\ emp#t */ 
 { timeout ((), 1); }
 
-void addSugar (int n) 
+void addNSugar (int n) 
 /*req: n>=0 /\ _^*
-  ens: t>=n /\ Sugar#t */
+  ens: d>=n /\ Sugar#d */
 { if (n == 0) { 
       event ["Sugar"];} 
   else {
-      oneSugar();
-      addSugar (n-1);}} 
+      addOneSugar();
+      addNSugar (n-1);}} 
 \end{lstlisting}
 \vspace{-1mm}
 \caption{Value-dependent specification.} 
@@ -416,22 +417,27 @@ void addSugar (int n)
 \vspace{-1mm}
 \end{wrapfigure}
 
-The function 
-\code{\emph{addSugar}} is intended to takes a parameter \codem{n}, representing 
-the portion of the sugar we need to add. When \codem{n} decreases to \codem{0}, 
-it simply raises an event Sugar to mark the end of the process. 
-Otherwise, it adds one portion of the sugar then recursively calls \code{\emph{addSugar}} with parameter \codem{n-1}. 
-The use of statement \codem{timeout(e, d)} is standard, 
-which sets a timer which executes code \codem{e} once the timer 
-expires at time \codem{d}. 
+The function \codem{addNSugar} takes a parameter \codem{n}, representing 
+the portion of the sugar we need to add. When \codem{n} 
+equals to \codem{0}, 
+it simply raises an event \anyevent{Sugar} to mark the end of the process. 
+Otherwise, it adds one portion of the sugar by calling
+\codem{addOneSugar()}, then recursively calls 
+\codem{addNSugar} with parameter \codem{n-1}. 
+The use of statement \lstinline|timeout(e, d)| is standard \cite{JSTO}, 
+which executes a block of code \codem{e} after the specified time \codem{d}.
 Therefore, the time spent on adding one portion of the sugar is 
-no less than 1 time unit. 
+no less than one time unit. Note that {\color{darklavender}\code{\emph{emp\#t}}} 
+refers to an empty trace which takes time \codem{t}. 
 
+Both preconditions of \codem{addNSugar(n)} requies the 
+input  \codem{n} is non-negative, and has no temporal constrains upon 
+the history traces. 
+The postcondition of \codem{addNSugar(n)} indicates that  the method 
+generates a finite trace where \anyevent{Sugar} takes a no 
+less 
+than \codem{d} time-units delay to finish. 
 
-The specifications of  \codem{addSugar(n)} indicates that the 
-input  \code{n} is non-negative; the method 
-generates a finite trace where Sugar takes a no less 
-than \code{d} time units delay to finish. 
 Although these examples are simple, they show the benefits of deploying 
 value-dependent 
 time bounds, which is beyond the capability of Timed Automata. Intuitively, if traditional Timed Automata define an 
@@ -442,11 +448,11 @@ a set (possibly infinite) of exact transition systems.
 
 
 \begin{comment}
-  we express, the effects of \code{addSugar(d)} as:
+  we express, the effects of \code{addNSugar(d)} as:
 \begin{align*}
 &\code{\effect^{send (d)} \defeq \  (0 {<} d {\leq}5 \wedge  0 {\leq} t {<} d),  ({\anyevent{Send} \mysharp  t)} \cdot \anyevent{Done}}.
 \end{align*}  
-effects of \code{addSugar(n)} as:
+effects of \code{addNSugar(n)} as:
 \code{(n{>}0  \wedge  t {\geq} n) : ({Sugar \mysharp  t)}}
 
 \end{comment}
@@ -512,7 +518,7 @@ the authors' knowledge, it proposes the first algebraic TRS
 \item \textbf{The Timed Effects:} We define the syntax 
 ({\secref{subsec:Specification_language}}) and semantics 
 ({\secref{subsec:Specification_Semantics}}) of \timedEffects, to be the 
-specification language, which captures the target programs' behaviours 
+specification language, which captures the target programs' behaviors 
 and non-trivial temporal properties.
 
 \item \textbf{Automated Forward Verifier:} Targeting a core language 
@@ -589,20 +595,20 @@ As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specificatio
 \begin{figure}[ht]
       \vspace{0mm}
 \begin{lstlisting}[columns=fullflexible]
-void addSugar(int n)
+void addNSugar(int n)
 /* req n>0,  _^*.Cup 
    ens  t>=n, Sugar # t */
 { if n == 0 then event[Sugar] 
   else {
-    timeout (oneSugar(), 1);
-    addSugar (n-1);}}
+    timeout ( addOneSugar(), 1);
+    addNSugar (n-1);}}
   
 void makeCoffee (int n)
 /* req n>0, emp 
  ens  t<5/\t>=n/\t1<3, 
  Cup.(Sugar#t).(Coffee#t1).Done */
 { event[Cup];
-  deadline (addSugar(n), 5);
+  deadline (addNSugar(n), 5);
   deadline (event[Coffee], 3);
   event[Done];}
   
@@ -662,8 +668,8 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
          \centering
          {\small
          \begin{enumerate}
-\item \lstinline|void addSugar (int n) {| \textcolor{mGray}{\footnotesize \emph{(-- initialize the current effects state --)}} \\
-     \textcolor{darklavender}{\{\code{\effect_C {=}\effect_{pre}^{addSugar(n)} =  n{\geq}0 \wedge  \_^\star \} }} 
+\item \lstinline|void addNSugar (int n) {| \textcolor{mGray}{\footnotesize \emph{(-- initialize the current effects state --)}} \\
+     \textcolor{darklavender}{\{\code{\effect_C {=}\effect_{pre}^{addNSugar(n)} =  n{\geq}0 \wedge  \_^\star \} }} 
       \siderule{\scriptsize[FV\text{-}Meth] } \\
      \item ~\qquad \lstinline|if (n == 0) {| \\
      \textcolor{darklavender}{\code{\{ n{=}0 \wedge  \_^\star \}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
@@ -673,26 +679,26 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
      ~\qquad \lstinline|else {| \\
      \textcolor{darklavender}{\code{\{ n  {\neq} 0\}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
     \item 
-     ~\qquad~\qquad \lstinline|timeout (oneSugar() , 1);| \\
+     ~\qquad~\qquad \lstinline|timeout ( addOneSugar() , 1);| \\
      \textcolor{darklavender}{\code{\{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t  }\}} \siderule {\scriptsize [FV\text{-}Event]}
      \item 
-     ~\qquad~\qquad \lstinline|addSugar (n-1);}}|  \\
-     \textcolor{huntergreen}{\code{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t   \CONTAIN \effect_{pre}^{addSugar(n\text{-}1)} }}
+     ~\qquad~\qquad \lstinline|addNSugar (n-1);}}|  \\
+     \textcolor{huntergreen}{\code{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t   \CONTAIN \effect_{pre}^{addNSugar(n\text{-}1)} }}
       \textcolor{mGray}{  \emph{(-check precondition-) }}\\
      \textcolor{darklavender}{\code{\{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star 
-     \cdot \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)} }\}} 
+     \cdot \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)} }\}} 
      \siderule {\scriptsize [FV\text{-}Call]}
       \item \textcolor{darklavender}{\code{\effect_C^\prime {=} (n{=}0 \wedge  \_^\star \cdot Sugar)\ \vee\ }
-      \code{ (n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)} ) }}
+      \code{ (n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)} ) }}
       \\
        \item 
        \textcolor{darkred}{\code{
-       %\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  \neq 0  \wedge \anyevent{Send}\cdot \effect_{post}^{addSugar(n-1)}) } 
-       \effect_C^\prime \CONTAIN \effect_{pre}^{addSugar(n)} \cdot \effect_{post}^{addSugar(n)} \Leftrightarrow  }}
+       %\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  \neq 0  \wedge \anyevent{Send}\cdot \effect_{post}^{addNSugar(n-1)}) } 
+       \effect_C^\prime \CONTAIN \effect_{pre}^{addNSugar(n)} \cdot \effect_{post}^{addNSugar(n)} \Leftrightarrow  }}
         \textcolor{mGray}{  \emph{(-- check postcondition --) }}
         \\ 
         \textcolor{darkred}{\code{\code{\code{(n{=}0 \wedge Sugar)\ \vee\ }
-        \code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)}) } \CONTAIN \effect_{post}^{addSugar(n)}}}}\\
+        \code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)}) } \CONTAIN \effect_{post}^{addNSugar(n)}}}}\\
     
      
 \end{enumerate}}
@@ -815,8 +821,8 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 \CONTAIN t_r{\geq}n \wedge Sugar \mysharp t_r  }
 
 \Infer[dashed]1[{\siderule{\textcircled{1}[RENAME]}}]{\code{(n{=}0 \wedge Sugar)\ \vee\ }
-\code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addSugar(n\text{-}1)}) } 
-\CONTAIN \effect_{post}^{addSugar(n)}  }
+\code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)}) } 
+\CONTAIN \effect_{post}^{addNSugar(n)}  }
 \end{prooftree}}
 \\~\\
 
@@ -2451,7 +2457,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 
 \subsection{Discussion}
 
-As the examples show, our proposed effects logic and the abstract semantics for \code{\timedL} not only tightly capture the behaviours of a mixed synchronous and asynchronous concurrency model but also help to mitigate the programming challenges in each paradigm. Meanwhile, the inferred temporal traces from a given reactive program enable a compositional timed temporal verification at the source level, which is not yet supported by existing temporal verification techniques. 
+As the examples show, our proposed effects logic and the abstract semantics for \code{\timedL} not only tightly capture the behaviors of a mixed synchronous and asynchronous concurrency model but also help to mitigate the programming challenges in each paradigm. Meanwhile, the inferred temporal traces from a given reactive program enable a compositional timed temporal verification at the source level, which is not yet supported by existing temporal verification techniques. 
 
 
 
@@ -2545,7 +2551,7 @@ More related to our work, prior research has been extending Hoare logic with eve
 More recent works \cite{bubel2015dynamic,song2020automated} proposed dynamic logics and unified operators to reason about possibly finite and infinite traces at the same time. 
 
 Moreover, this paper draws similarities to \textit{contextual effects} \cite{neamtiu2008contextual}, which computes the effects that have already occurred as the prior effects. The effects of the computation yet to take place as the future effects. 
-Besides, prior work \cite{nielson1998behaviour} proposes an annotated type and effect system and infers behaviours from CML \cite{reppy1993concurrent} programs for channel-based communications, though it did not provide any inclusion solving process. 
+Besides, prior work \cite{nielson1998behaviour} proposes an annotated type and effect system and infers behaviors from CML \cite{reppy1993concurrent} programs for channel-based communications, though it did not provide any inclusion solving process. 
 
 
 
@@ -2593,7 +2599,7 @@ However, none of the previous works have considered adding real-time abstraction
 \section{Conclusion}
 \label{sec:conclusion}
 %HipHop.js
-We define the syntax and semantics of the novel \timedEffects, to capture reactive program behaviours and  temporal properties. We demonstrate how to give a rather axiomatic semantics to \code{\timedL} by timed-trace processing functions. We use this semantic model to enable  a Hoare-style forward verifier,  which computes the program effects constructively.
+We define the syntax and semantics of the novel \timedEffects, to capture reactive program behaviors and  temporal properties. We demonstrate how to give a rather axiomatic semantics to \code{\timedL} by timed-trace processing functions. We use this semantic model to enable  a Hoare-style forward verifier,  which computes the program effects constructively.
 We present an effects inclusion checker (the TRS) to prove the annotated temporal properties efficiently. We prototype the verification system and show its feasibility.
 To the best of our knowledge, our work is the first that formulates semantics of a mixed Sync-Async concurrency paradigm; and that automates modular timed verification for reactive programs using an expressive effects logic. 
 
