@@ -28,7 +28,6 @@
 
 
 
-
 %% Some recommended packages.
 \usepackage{booktabs}   %% For formal tables:
                         %% http://ctan.org/pkg/booktabs
@@ -136,7 +135,7 @@
 \usepackage{listings}  
 
 \lstdefinelanguage{JavaScript}{
-  keywords={typeof, void, const, new, int, true, false, catch, function, return, null, catch, switch, var,async, await, if, setTimeout, this, then, while, post, else, case, break, return},
+  keywords={typeof, void, const, new, int, catch, function, return, null, catch, switch, var,async, await, if, setTimeout, this, then, while, post, else, case, break, return},
   keywordstyle=\color{blue}\bfseries,
   ndkeywords={class, export, boolean,event, timeout, deadline, delay,  throw, implements, import, this},
   ndkeywordstyle=\color{darkgray}\bfseries,
@@ -367,13 +366,13 @@ in metric temporal logic (MTL), reads \textit{"within one second,
 \anyevent{Done} finally happens"}. 
 
 Moreover, the time bounds 
-can be dependent on the program inputs, demonstrated in \autoref{fig:Value_dependent_intro}, we mark the precondition and postcondition
+can be dependent on the program inputs, demonstrated in \figref{fig:Value_dependent_intro}, we mark the precondition and postcondition
 using keywords {\color{darklavender}\code{\emph{req:}}} and {\color{darklavender}\code{\emph{ens:}}} respectively. 
 
 
 \begin{wrapfigure}{L}{0.39\columnwidth}
   \vspace{-2mm}
-\begin{lstlisting}
+\begin{lstlisting}[name=coffee]
 void addOneSugar() 
 /*req: true/\ _^*
   ens: t>1 /\ emp#t */ 
@@ -557,62 +556,89 @@ prove the correctness, report on case studies and experimental results.
 
 
 \section{Overview}\label{sec:Overview}
-%We now give a summary of our techniques using running examples. 
+
+We now highlight our main methodologies, using the example shown 
+in \figref{fig:overview_coffee}. This example simulate a 
+coffee machine which dynamically adds sugar based on the user's input number.  
 
 
 %\subsection{HipHop.js and Dependent Effects}
 \subsection{\timedEffects}
-As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specifications (enclosed in \textcolor{darklavender}{\ttfamily{{/*@ ... @*/}}}) for each program, which leads to a compositional verification strategy, where static checking and timed temporal verification can be done locally. %The set of signals to be present in one logical event are represented within one \code{\_}.
+As shown in \figref{fig:overview_coffee}, we define Hoare-triple 
+style specifications (enclosed in 
+\textcolor{darklavender}{\ttfamily{{/* ... */}}}) for each function, 
+which leads to a compositional verification strategy, where static 
+checking and timed temporal verification can be done locally. 
 
-\begin{figure}[ht]
-      \vspace{0mm}
-\begin{lstlisting}[columns=fullflexible]
+
+
+%columns=fullflexible
+\begin{wrapfigure}{L}{0.45\columnwidth}
+  \vspace{-2mm}
+\begin{lstlisting}[name=coffee]
 void makeCoffee (int n)
-/*req: n>0 /\ emp 
-  ens: t<5/\t>=n/\t1<3 /\
-Cup.(Sugar#t).(Coffee#t1).Done */
-{ event[Cup];
-  deadline (addNSugar(n), 5);
-  deadline (event[Coffee], 3);
-  event[Done];}
-  
-void main () 
-/*req: true/\ emp 
-  ens: t<8 /\ (_^*.Done)#t */
-{ makeCoffee(3);}
-// make coffee with 3 lumps of sugar
+/*req: n>=0 /\ _^* . Cup
+  ens: (n<=t<=5 /\ t1<=3) /\
+       (Sugar#t).(Coffee#t1) */
+{ deadline (addNSugar(n), 5);
+  deadline (event["Coffee"], 3);}  
+
+int main ()
+/*req: true/\emp
+  ens: t<=8/\((!Done)^*)#t.Done */ 
+{ event["Cup"];
+  makeCoffee (3);
+  event["Done"];}
 \end{lstlisting}  
-      \vspace{0mm}
-      \caption{Dependent Values for Time Bounds (the program is from  \cite{berry2020hiphop}).}\label{fig:overview_eg1}
-         \vspace{0mm}
-\end{figure}
+      \vspace{-1mm}
+\caption{To make coffee with three portions of sugar 
+within eight time units.}\label{fig:overview_coffee}
+         \vspace{-1mm}
+\end{wrapfigure}
+
+
+
+The precondition of \codem{makeCoffee} 
+function says that the input value \codem{n} is a non-negative 
+integer, and it requires that before entering into this 
+function, this history trace must contain the event  
+\anyevent{Cup} in the tail. \codem{makeCoffee} sets a 
+5 time-units deadline while calling 
+\codem{addNSugar} (defined in \figref{fig:Value_dependent_intro}),
+ with argument \codem{n}; then emits event \anyevent{Coffee} with
+ a 3 time-units deadline. 
+
+
+The preconidtion of \codem{main} requies no arithmetic constraints 
+on its inputs (expressed as \codem{true}) and 
+an empty history trace (denoted using \codem{emp} or \code{\epsilon}).
+The postcondition of \codem{main} specifies 
+that before the final \anyevent{Done} happens, there is no 
+occurrence of \anyevent{Done} (\codem{!A} refers to the 
+negation of the event \codem{A}). Moreover, the whole process takes 
+no more than eight time-units to hit the final event. 
+
+
+\timedEffects\ supports more features such as \emph{disjunctions}, 
+\emph{guards} and \emph{parallelism}, etc, which can be found in 
+\secref{subsec:Specification_language} and 
+\secref{subsec:Specification_Semantics}.  
+Directly from the specifications, we are aware of:  
+(i) branching properties: different arithmetic conditions on the input parameters lead to different temporal effects;
+and (ii) required history traces: by defining the prior effects 
+in precondition. 
+The examples 
+already show that our  effects provide more detail information than 
+traditional timed verification, and in fact, it cannot be fully 
+captured by any prior works \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,wang2005verifying}.
+
+Nevertheless, the gain in expressive power comes at the efforts 
+of a more dedicated verification process, namely handled by our forward verifier and TRS.
 
 
 
 
 
-
-
-
-
-The {\ttfamily{authenticate}} module checks the validity of the identity at each click on login button. The operations of requesting the server are wrapped in an {\textbf{\color{purple}\ttfamily{abort}}} statement, which preempts the execution when the responding time goes beyond \code{\m{d}} (given signal \code{\anyevent{Tick}} is present every second).
-
-
-After emitting the signal \anyevent{Connecting}, it emits  \anyevent{Connected} if the connection succeeds before the  preemptive deadline; otherwise, no signal is emitted. 
-The precondition \code{d{>}3 : \{
-\}^\star \cdot\{\m{Login}\} } requires that the input variable \code{d} is greater than 3, and before entering into this module, the signal \anyevent{Login} should be emitted at the last event, indicating that a login request has been sent. 
-The postcondition contains two parts and connected using the disjunction mark \code{{\vee}}: when \code{3{<}t{<}d}, the effects contains two time instances, \code{\{\m{Connecting}\}} and \code{\{\m{Connected}\}}, while the first  event finishes at time \code{t}, %(assuming to reset the clock when executing the module), 
-which is no later than \code{\m{d}} time units; otherwise, the effects contains one event \code{\{Connecting\}} which finishes at time \code{d}. \emph{(See a demo from \cite{CODE1})}
-
-
-
-As for another example, shown in \figref{fig:overview_eg2}, the module {\ttfamily{main}} %contains a \code{\m{fork/par}   } statement, which 
-spawns two threads running in  parallel.
-The first thread firstly waits for the signal \anyevent{Ready}, then emits  \anyevent{Go}. 
-The second thread firstly emits  \anyevent{Prep}, then calls the function {\ttfamily{cook}} asynchronously. 
-The precondition of {\ttfamily{main}} requires no arithmetic constraints on its input values (expressed as \code{\m{true}}), neither any pre-traces  (expressed as \code{\m{emp}} or \code{\epsilon}, indicating an empty trace). The postcondition ensures a trace, where the second event contains at least one signal \code{\anyevent{Cook}} and finishes within 3 time units after the completion of the first event. Then we do not care about the rest of the trace (\code{\_} is similar to a wildcard). 
-%We omit the implementation of \code{cook} here, while provide the specifications of it. 
-Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is presented in the following sub-section. \emph{(See a demo from \cite{CODE2})}
 
 
 
@@ -1491,7 +1517,7 @@ $\lappend$ to represent the append operation of two traces;
 \end{wrapfigure}
 
 An overview of our automated verification system is given in \figref{fig:Verification_oberview} It consists of a Hoare-style forward verifier and a TRS. 
-The inputs of the forward verifier are HipHop.js programs annotated with temporal specifications written in \timedEffects (cf. \figref{fig:overview_eg1}). 
+The inputs of the forward verifier are HipHop.js programs annotated with temporal specifications written in \timedEffects (cf. \figref{fig:overview_coffee}). 
 
 The input of the TRS is a pair of effects LHS and RHS, referring to the inclusion LHS \code{\CONTAIN} RHS to be checked 
 \textit{(LHS refers to left-hand side effects, and RHS refers to right-hand side effects.)}. Besides, the verifier calls the TRS to prove produced inclusions, i.e., between the effects states and pre/post conditions or assertions (cf. \figref{fig:forward_example}). The TRS will be explained in \secref{sec:Entailment_Prover}. 
