@@ -166,7 +166,7 @@ xleftmargin=1.5em,
    showtabs=false,
    captionpos=b,
    keywordstyle=[2]\color{purple}\bfseries, %
-   morekeywords=[2]{do, hiphop,every, loop,suspend, when, signal, end, present, nothing, emit,in, out, yield, module,abort, fork, par, run},
+   morekeywords=[2]{do, hiphop,every, loop,suspend, when, signal, end, present, nothing, emit,in, out, yield,abort, fork, par, run},
 }
 
 
@@ -371,7 +371,6 @@ using keywords {\color{darklavender}\code{\emph{req:}}} and {\color{darklavender
 
 
 \begin{wrapfigure}{L}{0.39\columnwidth}
-  \vspace{-2mm}
 \begin{lstlisting}[name=coffee]
 void addOneSugar() 
 /*req: true/\ _^*
@@ -379,7 +378,7 @@ void addOneSugar()
 { timeout ((), 1); }
 
 void addNSugar (int n) 
-/*req: n>=0 /\ _^*
+/*req: true /\ _^*
   ens: d>=n /\ Sugar#d */
 { if (n == 0) { 
       event ["Sugar"];} 
@@ -387,10 +386,9 @@ void addNSugar (int n)
       addOneSugar();
       addNSugar (n-1);}} 
 \end{lstlisting}
-\vspace{-1mm}
 \caption{Value-dependent specification.} 
 \label{fig:Value_dependent_intro}
-\vspace{-1mm}
+\vspace{0mm}
 \end{wrapfigure}
 
 The function \codem{addNSugar} takes a parameter \codem{n}, representing 
@@ -406,8 +404,8 @@ Therefore, the time spent on adding one portion of the sugar is
 no less than one time unit. Note that {\color{darklavender}\code{\emph{emp\#t}}} 
 refers to an empty trace which takes time \codem{t}. 
 
-Both preconditions of \codem{addNSugar(n)} requires the 
-input  \codem{n} is non-negative, and has no temporal constrains upon 
+Both preconditions require no arithmetic constrains,   
+and  have no temporal constrains upon 
 the history traces. 
 The postcondition of \codem{addNSugar(n)} indicates that  the method 
 generates a finite trace where \anyevent{Sugar} takes a no 
@@ -522,7 +520,7 @@ behavioral patterns. %, such as \emph{delay}, \emph{timeout}, \emph{deadline}.
 \item \textbf{Specification Language:} we propose \timedEffects, 
 by defining its 
 syntax and semantics, gaining the expressive power beyond 
-traditional modelling languages for real-time systems.
+traditional modeling languages for real-time systems.
 
 
  
@@ -533,19 +531,15 @@ temporal behaviors of given target programs.  The verifier triggers the back-end
 solver TRS. 
 
 
-%which tightly The semantics model closely captures the temporal behavior of the program, 
-
 \item \textbf{An Efficient TRS:}
-we present the rewriting rules, to prove the inclusion relations between the inferred 
+we present the rewriting rules to prove the inclusion relations between the inferred 
 behaviors and the given temporal specifications, both in  \timedEffects. 
 
 
 
 \item \textbf{Implementation and Evaluation:} we prototype the novel 
-effects logic and the automated verification system, %on top of the HIP/SLEEK system\cite{chin2012automated}, 
-%which is available online\cite{Demo}, 
+effects logic and the automated verification system, 
 prove the correctness, report on case studies and experimental results. 
-%investigating how it can help to debug errors related to both synchronous and asynchronous programs (\secref{subsec:Case_Studies}).
 
 
 
@@ -558,8 +552,8 @@ prove the correctness, report on case studies and experimental results.
 \section{Overview}\label{sec:Overview}
 
 We now highlight our main methodologies, using the example shown 
-in \figref{fig:overview_coffee}. This example simulate a 
-coffee machine which dynamically adds sugar based on the user's input number.  
+in \figref{fig:overview_coffee} This example simulates a 
+coffee machine, which dynamically adds sugar based on the user's input number.  
 
 
 %\subsection{HipHop.js and Dependent Effects}
@@ -573,8 +567,8 @@ checking and timed temporal verification can be done locally.
 
 
 %columns=fullflexible
-\begin{wrapfigure}{L}{0.45\columnwidth}
-  \vspace{-2mm}
+\begin{wrapfigure}{L}{0.47\columnwidth}
+  %\vspace{-1mm}
 \begin{lstlisting}[name=coffee]
 void makeCoffee (int n)
 /*req: n>=0 /\ _^* . Cup
@@ -585,28 +579,29 @@ void makeCoffee (int n)
 
 int main ()
 /*req: true/\emp
-  ens: t<=8/\((!Done)^*)#t.Done */ 
+  ens: t<=8/\(((!Done)^*)#t).Done */ 
 { event["Cup"];
   makeCoffee (3);
   event["Done"];}
 \end{lstlisting}  
-      \vspace{-1mm}
+   %   \vspace{-1mm}
 \caption{To make coffee with three portions of sugar 
 within eight time units.}\label{fig:overview_coffee}
-         \vspace{-1mm}
+ %        \vspace{0mm}
 \end{wrapfigure}
 
 
 
 The precondition of \codem{makeCoffee} 
-function says that the input value \codem{n} is a non-negative 
-integer, and it requires that before entering into this 
+ specifies that the input integer value \codem{n} is non-negative, and it requires that before entering into this 
 function, this history trace must contain the event  
-\anyevent{Cup} in the tail. \codem{makeCoffee} sets a 
-5 time-units deadline while calling 
+\anyevent{Cup} on the tail. Therefore, function calls to \codem{makeCoffee} which 
+do not satisfy the precondition lead to a failure of the verification. 
+\codem{makeCoffee} sets a 
+five time-units deadline while calling 
 \codem{addNSugar} (defined in \figref{fig:Value_dependent_intro}),
  with argument \codem{n}; then emits event \anyevent{Coffee} with
- a 3 time-units deadline. 
+ a three time-units deadline. 
 
 
 The preconidtion of \codem{main} requies no arithmetic constraints 
@@ -623,17 +618,16 @@ no more than eight time-units to hit the final event.
 \emph{guards} and \emph{parallelism}, etc, which can be found in 
 \secref{subsec:Specification_language} and 
 \secref{subsec:Specification_Semantics}.  
-Directly from the specifications, we are aware of:  
-(i) branching properties: different arithmetic conditions on the input parameters lead to different temporal effects;
-and (ii) required history traces: by defining the prior effects 
+Note that directly from the specifications, we are aware of:  
+(i) the branching properties: different arithmetic conditions on the input parameters lead to different temporal effects;
+and (ii) the required history traces: by defining the prior effects 
 in precondition. 
 The examples 
-already show that our  effects provide more detail information than 
+already show that our  effects provide more detailed information than 
 traditional timed verification, and in fact, it cannot be fully 
 captured by any prior works \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,wang2005verifying}.
-
-Nevertheless, the gain in expressive power comes at the efforts 
-of a more dedicated verification process, namely handled by our forward verifier and TRS.
+Nevertheless, the gain in expressive power comes from the efforts 
+of a more dedicated verification process, handled by our forward verifier and TRS.
 
 
 
@@ -643,7 +637,15 @@ of a more dedicated verification process, namely handled by our forward verifier
 
 
 \subsection{Forward Verification}
-As shown in \figref{fig:forward_example}, we demonstrate the forward verification process of the module  {\ttfamily{main}}. The program effects states  are captured in the form of \code{\langle \textcolor{huntergreen}{\effect} \rangle}. To facilitate the illustration, we label the verification steps by (1), ..., (9), and mark the deployed inference rules (cf. \secref{Forward_Rules}) in \textcolor{mGray}{[gray]}.
+As shown in \figref{fig:forward_example}, we demonstrate the 
+forward verification process of the functions \codem{addOneSugar} and   {\codem{addNSugar}}.
+The current effects states are captured 
+in the form of 
+\code{\{ \textcolor{darklavender}{\effect_C} \}}. 
+To facilitate the illustration, we label the verification 
+steps by (1), ..., (11), and mark the deployed inference 
+rules (cf. \secref{Forward_Rules}) in \textcolor{mGray}{[gray]}.
+The verifier invokes the TRS to check language inclusions along the way.
 
 
 \begin{comment}
@@ -664,34 +666,63 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
          \centering
          {\small
          \begin{enumerate}
-\item \lstinline|void addNSugar (int n) {| \textcolor{mGray}{\footnotesize \emph{(-- initialize the current effects state --)}} \\
-     \textcolor{darklavender}{\{\code{\effect_C {=}\effect_{pre}^{addNSugar(n)} =  n{\geq}0 \wedge  \_^\star \} }} 
-      \siderule{\scriptsize[FV\text{-}Meth] } \\
+\item \lstinline|void addOneSugar() {| \textcolor{mGray}{\footnotesize 
+\quad \emph{// initialize the effects state using the function precondition \code{\effect_{pre}^{addOneSugar(n)}}}} \\
+\textcolor{darklavender}{\{\code{\effect_C {=}\effect_{pre}^{addOneSugar(n)} =  true \wedge  \_^\star \} }} 
+\quad \siderule{\scriptsize[FV\text{-}Meth] } \\
+
+\item ~\qquad \lstinline|timeout ((), 1);}| \\
+\textcolor{darklavender}{\code{\effect_C^\prime {=} t_0{>}1   \wedge \_^\star \cdot \epsilon \mysharp t_0  }} 
+\quad \siderule {\scriptsize [FV\text{-}Timeout]}
+\item 
+\textcolor{darkred}{\code{
+%\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  \neq 0  \wedge \anyevent{Send}\cdot \effect_{post}^{addNSugar(n-1)}) } 
+\effect_C^\prime \CONTAIN \effect_{pre}^{addOneSugar(n)} \cdot \effect_{post}^{addOneSugar(n)} \Leftrightarrow  }} 
+ %\textcolor{mGray}{  \emph{(-- check postcondition --) }}
+ \textcolor{darkred}{\code{\code{\code{t_0{>}1   \wedge \epsilon \mysharp t_0}
+ \CONTAIN t{>}1   \wedge \epsilon \mysharp t }}}
+ \quad \textcolor{mGray}{\footnotesize  \emph{// TRS: postcondition checked }}
+ \\ 
+%ens: t>1 /\ emp#t */ { 
+  \noindent\rule{0.9\columnwidth}{0.4pt}
+~\\
+\item \lstinline|void addNSugar (int n) {| \textcolor{mGray}{\footnotesize 
+\quad \emph{// initialize the effects state using the function precondition \code{\effect_{pre}^{addNSugar(n)}}.}} \\
+     \textcolor{darklavender}{\{\code{\effect_C {=}\effect_{pre}^{addNSugar(n)} =  true \wedge  \_^\star \} }} 
+      \quad \siderule{\scriptsize[FV\text{-}Meth] } \\
      \item ~\qquad \lstinline|if (n == 0) {| \\
-     \textcolor{darklavender}{\code{\{ n{=}0 \wedge  \_^\star \}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
+     \textcolor{darklavender}{\code{\{ n{=}0 \wedge  \_^\star \}  }} 
+     \quad \siderule{\scriptsize [FV\text{-}If\text{-}Else]}
       \item ~\qquad~\qquad \lstinline|event ["Sugar"];} |  \\
-     \textcolor{darklavender}{\code{\{n{=}0 \wedge  \_^\star \cdot Sugar\} }} \siderule{\scriptsize [FV\text{-}Event]}
+     \textcolor{darklavender}{\code{\{n{=}0 \wedge   \_^\star \cdot Sugar\} }} 
+     \quad \siderule{\scriptsize [FV\text{-}Event]}
      \item 
      ~\qquad \lstinline|else {| \\
-     \textcolor{darklavender}{\code{\{ n  {\neq} 0\}  }} \siderule{\scriptsize [FV\text{-}If-Else]}
+     \textcolor{darklavender}{\code{\{ n  {\neq} 0 \wedge   \_^\star \}  }} 
+     \quad \siderule{\scriptsize [FV\text{-}If\text{-}Else]}
     \item 
-     ~\qquad~\qquad \lstinline|timeout ( addOneSugar() , 1);| \\
-     \textcolor{darklavender}{\code{\{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t  }\}} \siderule {\scriptsize [FV\text{-}Event]}
+     ~\qquad~\qquad \lstinline|addOneSugar();| \\
+     \textcolor{darklavender}{\code{\{n  {\neq} 0 \wedge  t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t  }\}} 
+     \quad \siderule {\scriptsize [FV\text{-}Call]}
      \item 
      ~\qquad~\qquad \lstinline|addNSugar (n-1);}}|  \\
-     \textcolor{huntergreen}{\code{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t   \CONTAIN \effect_{pre}^{addNSugar(n\text{-}1)} }}
-      \textcolor{mGray}{  \emph{(-check precondition-) }}\\
+     \textcolor{huntergreen}{\code{n  {\neq} 0   \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t   \CONTAIN \effect_{pre}^{addNSugar(n\text{-}1)} }}
+      \quad \textcolor{mGray}{\footnotesize  \emph{// TRS: precondition checked.}}
+\\
      \textcolor{darklavender}{\code{\{n  {\neq} 0  \wedge t{>}1  \wedge \_^\star 
      \cdot \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)} }\}} 
-     \siderule {\scriptsize [FV\text{-}Call]}
+     \quad \siderule {\scriptsize [FV\text{-}Call]}
       \item \textcolor{darklavender}{\code{\effect_C^\prime {=} (n{=}0 \wedge  \_^\star \cdot Sugar)\ \vee\ }
-      \code{ (n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)} ) }}
+      \code{ (n  {\neq} 0  \wedge t{>}1  \wedge \_^\star \cdot \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)} ) }} 
+      \quad \siderule{\scriptsize [FV\text{-}If\text{-}Else]}
+      %\quad \siderule {\scriptsize [Normalization]}
       \\
        \item 
+       %\textcolor{mGray}{  \emph{(-TRS: check the  postcondition; Succeed, cf. \autoref{tab:rewriting_tree_send}-) }}\\
        \textcolor{darkred}{\code{
        %\code{(n{=}0 \wedge \anyevent{Done})\ \vee\ }\code{ (n  \neq 0  \wedge \anyevent{Send}\cdot \effect_{post}^{addNSugar(n-1)}) } 
-       \effect_C^\prime \CONTAIN \effect_{pre}^{addNSugar(n)} \cdot \effect_{post}^{addNSugar(n)} \Leftrightarrow  }}
-        \textcolor{mGray}{  \emph{(-- check postcondition --) }}
+       \effect_C^\prime \CONTAIN \effect_{pre}^{addNSugar(n)} \cdot \effect_{post}^{addNSugar(n)} \Leftrightarrow  }}  
+       \quad \textcolor{mGray}{\footnotesize  \emph{// TRS: postcondition checked, cf. \autoref{tab:rewriting_tree_send}. }}
         \\ 
         \textcolor{darkred}{\code{\code{\code{(n{=}0 \wedge Sugar)\ \vee\ }
         \code{ (n  {\neq} 0  \wedge  t{>}1  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)}) } \CONTAIN \effect_{post}^{addNSugar(n)}}}}\\
@@ -702,21 +733,39 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
      \end{minipage}
 
       \caption{The forward verification example for method \code{send}. }\label{fig:forward_example}
-      \vspace{-4mm}
+     % \vspace{-4mm}
 \end{figure}
 }
 
 
 
-The effects states (1) and (4) are initial effects entering into the \code{fork/par} statement. The effects state (2) is obtained by [FV-Await], which concatenates a blocking signal 
-%(with a question mark) 
-%followed by a new empty event
- to the current effects. 
-%The effects state (3) is obtained by [FV-Emit], which simply adds  %concatenates an empty event to the current effects. %to be the new current state. 
-The effects states (3) and (5) are obtained by [FV-Emit], which simply adds the emitted  signal to the current event. The intermediate effects state of (7) is obtained by [FV-Call]. 
-Before each function call, it invokes the TRS to check whether the current effects state satisfies the precondition of the callee module. If it is not satisfied, the verification fails, otherwise it concatenates the callee's postcondition to the current effects state. The final effects state of (7) is obtained by [FV-Async], which adds a new event \code{\{Ready\}} to the current effects state, indicating that the asynchronous program has been resolved. 
-In step (8), we parallel compose the effects from both of the branches, and normalize the final effects. 
-After these states transformations, step (9) checks the satisfiability of the inferred effects against the declared postcondition by invoking the TRS.
+The effects states (1) and (4) are obtained by initializing 
+\code{\effect_C} from the precondition, by the \code{[FV\text{-}Meth]} rule. 
+The effects states (5), (7), and (10) are obtained by  
+\code{[FV\text{-}If\text{-}Else]}, which adds the constraints 
+from the conditionals into the current effects state, 
+and unions the effects accumulated from two branches in the end. 
+The effects states (6) is obtained by \code{[FV\text{-}Event]}, 
+which concatenates the triggered singleton event to the 
+end of the current effects state. 
+The intermediate effects states of (8) and (9) are obtained by \code{[FV\text{-}Call]}. 
+Before each function call, it invokes the TRS to check whether the current effects state 
+satisfies the precondition of the callee function. 
+If it is not satisfied, the verification fails; otherwise, 
+it concatenates the callee's postcondition to the current 
+effects state. (We omitted the precondition check for (8) here.)
+The effects state (2) is obtained by \code{[FV\text{-}Timeout]}, 
+which adds a lower time-bound to the trace. 
+After these states transformations, steps (3) and (11) check the 
+satisfiability of the inferred effects against the declared 
+postcondition by invoking the TRS. 
+
+Note that the prior effects in precondition is new regarding 
+the existing real-time verification. 
+
+
+
+
 
 
 \subsection{The TRS}
@@ -757,7 +806,7 @@ For \timedEffects \code{\effect_1 } and \code{\effect_2},
 
 Next, we continue with the step (9) in \figref{fig:forward_example}, to 
 demonstrate how the TRS handles arithmetic constraints and dependent values. 
-%We use the postcondition proving for module \code{main} as an example to briefly demonstrate the rewriting process. 
+%We use the postcondition proving for function \code{main} as an example to briefly demonstrate the rewriting process. 
 As shown in \tabref{tab:rewriting_tree_send}, it automatically proves that the inferred effects of {\ttfamily{main}}
  satisfy the declared postcondition. 
 %property \code{\effect_1  {=} 0{\leq} t {<}3 : \_\cdot(\{Cook\}\mysharp  t)\cdot\_^\star}, 
@@ -767,10 +816,10 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 {
 \begin{table*}[ht]
 \centering
-      \vspace{0mm}
+     % \vspace{0mm}
 \caption{\label{tab:rewriting_tree_send} The inclusion proving example. }
       
-\vspace{-1mm}
+%\vspace{-1mm}
 \begin{adjustbox}{width=1\textwidth}
  \Large\begin{tabular}[t]{l}
   \hline\\
@@ -826,7 +875,7 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
     
 \end{tabular}
 \end{adjustbox}
-            \vspace{0mm}
+      %      \vspace{0mm}
 \end{table*}
 }
 
@@ -850,10 +899,14 @@ At the end of the rewriting, we manage to prove that \code{(t_L {<}3 {\wedge} t_
 Termination is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using \emph{memorization} \cite{brotherston2005cyclic} (cf. \tabref{tab:rewriting_tree_case_study_finit_infinit}). 
 
 
+\subsection{The Fischer's mutual exclusion algorithm}
 
-\begin{figure}[ht]
+
+
+
+\begin{wrapfigure}{L}{0.47\columnwidth}
   \vspace{0mm}
-\begin{lstlisting}[columns=fullflexible]
+\begin{lstlisting}
 var x := -1; 
 var ct := 0;
 
@@ -882,9 +935,20 @@ void main ()
   \vspace{0mm}
   \caption{Fischer's mutual exclusion algorithm.}\label{fig:overview_ficher}
      \vspace{0mm}
-\end{figure}
+\end{wrapfigure}
 
-
+The following models Fischer's mutual exclusion algorithm. 
+where d1 and d2 are two integer constants with d1 < d2; 
+x and ct are global variables. The protocol is modeled as 
+process Protocol, which is the parallel composition of three 
+processes. Each of the three processes attempts to enter 
+the critical section when x is -1, i.e. no other process is 
+currently attempting. Once the process is active, it sets x 
+to its identity i within d1 time units (captured by deadline[d1]). 
+Then it idles for d2 time units (captured by Wait[d2]) and then 
+checks whether x is still i. If so, it enters the critical 
+section and leaves later. Otherwise, it restarts from the 
+beginning. 
 
 \section{Language and Specifications}
 \label{sec:LanguageSpecifications}
@@ -1738,7 +1802,7 @@ then parallel merges the effects from these two branches.
 \label{sec:Entailment_Prover}
 
 
-The TRS  is an automated entailment checker to prove language inclusions among \timedEffects (cf. \defref{Inclusion} and \tabref{tab:rewriting_tree_send}). It is triggered i) prior to temporal property assertions; ii) prior to module calls for the precondition checking; and iii) at the end of verifying a module for the post condition checking. Given two effects \code{\effect_1,\ \effect_2}, TRS decides if the inclusion \code{\effect_1 \CONTAIN  \effect_2 } is valid. 
+The TRS  is an automated entailment checker to prove language inclusions among \timedEffects (cf. \defref{Inclusion} and \tabref{tab:rewriting_tree_send}). It is triggered i) prior to temporal property assertions; ii) prior to function calls for the precondition checking; and iii) at the end of verifying a function for the post condition checking. Given two effects \code{\effect_1,\ \effect_2}, TRS decides if the inclusion \code{\effect_1 \CONTAIN  \effect_2 } is valid. 
 
 During the effects rewriting process, the inclusions are in the form of \code{\Gamma \vdash  \effect_1 \CONTAIN^{\effect}  \effect_2 }, a shorthand for: \code{\Gamma \vdash  \effect \cdot \effect_1 \CONTAIN   \effect \cdot  \effect_2}. To prove such inclusions is to check whether all the possible timed traces in the antecedent \code{\effect_1} are legitimately allowed  in the possible timed traces from the consequent \code{\effect_2}.
 \code{\Gamma} is the proof context, i.e., a set of effects inclusion hypothesis, \code{\effect} is the history effects from the antecedent that have been used to match the effects from the consequent.
@@ -2519,8 +2583,8 @@ TA are finite state automata equipped with clock variables. Models based on TA o
 
 %Given the well-established TA techniques, 
 
-In practice, system requirements are often structured into phases, which are then composed in many different ways, while TA is deficiency in modelling complex compositional systems. Users often need to manually cast high-level requirements into a set of clock variables with carefully calculated clock constraints, which is tedious and error-prone \cite{sun2013modeling}. 
-%Also real-time system modelling based on timed process algebras often suffers from lack of language features or automated tool support. 
+In practice, system requirements are often structured into phases, which are then composed in many different ways, while TA is deficiency in modeling complex compositional systems. Users often need to manually cast high-level requirements into a set of clock variables with carefully calculated clock constraints, which is tedious and error-prone \cite{sun2013modeling}. 
+%Also real-time system modeling based on timed process algebras often suffers from lack of language features or automated tool support. 
 On the other hand, all the translation-based approaches share the common problem: 
 %i) the worst-case complexity of any efficient  equivalences/inclusion checking algorithm \cite{de2006antichains} %based on such translation 
 %goes  exponential in the number of automata states; and ii) 
@@ -2540,7 +2604,7 @@ Moreover, our \timedEffects also draws similarities to Synchronous Kleene Algebr
 Kleene algebra (KA) is a decades-old sound and complete equational theory of regular expressions. Among many extensions of KA,
  %timed synchronous 
   SKA is KA extended with a synchrony combinator for actions. In particularly, SKA's \emph{demanding relation} can be reflected by our \emph{instances subsumption} (\defref{Subsumption}), which contributes to the inductive unfolding process. 
-Yet our timed effects further capture the time bounds constraints by adding the operator \code{\mysharp }, adapting to real-time system modelling and verification, which is not covered by any existing KA variants/extensions. 
+Yet our timed effects further capture the time bounds constraints by adding the operator \code{\mysharp }, adapting to real-time system modeling and verification, which is not covered by any existing KA variants/extensions. 
 
 
 
@@ -2582,7 +2646,7 @@ Besides, prior work \cite{nielson1998behaviour} proposes an annotated type and e
 
 
 
-However, none of the previous works have considered adding real-time abstractions into the modelling for a more extensive timed verification, which is our work's main contribution.
+However, none of the previous works have considered adding real-time abstractions into the modeling for a more extensive timed verification, which is our work's main contribution.
  %The purely algebraic TRS is flexible to accommodate possibly extended expressiveness for the effects logics. Furthermore, as an extension of prior work \cite{song2020automated}, this work is able to reason about both finite and infinite traces, using cyclic proof techniques established  from \cite{brotherston2005cyclic}.
 
 
