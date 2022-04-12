@@ -28,17 +28,11 @@
 
 
 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% Note: Authors migrating a paper from PACMPL format to traditional
-%% SIGPLAN proceedings format must update the '\documentclass' and
-%% topmatter commands above; see 'acmart-sigplanproc-template.tex'.
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 
 %% Some recommended packages.
 \usepackage{booktabs}   %% For formal tables:
                         %% http://ctan.org/pkg/booktabs
-\usepackage{subcaption} %% For complex figures with subfigures/subcaptions
+\usepackage{subcaption} 
                         %% http://ctan.org/pkg/subcaption
 
 \newcommand{\wbigcup}{\mathop{\widetilde{\bigcup}}\displaylimits}
@@ -79,7 +73,7 @@
 \definecolor{javablue}{rgb}{0.25,0,1} % for strings
 \definecolor{javagreen}{rgb}{0.25,0.5,0.35} % comments
 \definecolor{javapurple}{rgb}{0.5,0,0.35} % keywords
-\definecolor{javadocblue}{rgb}{0.25,0.35,0.75} % javadoc
+\definecolor{javadocblue}{rgb}{0.25,0.35,0.75} 
 \definecolor{mGray}{rgb}{0.4,0.4,0.4}
 \definecolor{mPurple}{rgb}{0.58,0,0.82}
 \definecolor{huntergreen}{rgb}{0.33, 0.42, 0.18}
@@ -189,19 +183,7 @@ xleftmargin=1.5em,
 %  escapeinside={*'}{'*},
 %  language=JavaScript,
 %  tabsize=2,
-%  emphstyle={\bf},
-%  stringstyle=\mdseries\rmfamily,
-%  showspaces=false,
-%  keywordstyle=\bfseries\rmfamily\color{deepcerise},
-%  columns=flexible,
-%  basicstyle=\small\sffamily,
-%  showstringspaces=false,
-%  morecomment=[l]\%,
-%  keywordstyle=[2]\color{darklavender}, %
-%  keywords={},
-%    morekeywords=[2]{hiphop,emit, abour,async,Cmd,MorePlease,Sub,Success,Failure, Roll, Html, Random, NewFace, Int, String},
-%  commentstyle=\color{black}\it %mypink
-%}
+
 
 %%
 %% Submission ID.
@@ -214,10 +196,6 @@ xleftmargin=1.5em,
 %% The majority of ACM publications use numbered citations and
 %% references.  The command \citestyle{authoryear} switches to the
 %% "author year" style.
-%%
-%% If you are preparing content for an event
-%% sponsored by ACM SIGGRAPH, you must use the "author year" style of
-%% citations and references.
 %% Uncommenting
 %% the next command will enable that style.
 %%\citestyle{acmauthoryear}
@@ -240,7 +218,6 @@ using Implicit Clocks and an Extended Antimirov Algorithm}
 %% The "author" command and its associated commands are used to define
 %% the authors and their affiliations.
 %% Of note is the shared affiliation of the first two authors, and the
-%% "authornote" and "authornotemark" commands
 %% used to denote shared contribution to the research.
 
 \author{(Anonymous Authors)}
@@ -430,7 +407,7 @@ Therefore, the time spent on adding one portion of the sugar is
 no less than one time unit. Note that {\color{darklavender}\code{\emph{emp\#t}}} 
 refers to an empty trace which takes time \codem{t}. 
 
-Both preconditions of \codem{addNSugar(n)} requies the 
+Both preconditions of \codem{addNSugar(n)} requires the 
 input  \codem{n} is non-negative, and has no temporal constrains upon 
 the history traces. 
 The postcondition of \codem{addNSugar(n)} indicates that  the method 
@@ -443,7 +420,21 @@ value-dependent
 time bounds, which is beyond the capability of Timed Automata. Intuitively, if traditional Timed Automata define an 
 \emph{exact} transition system, \timedEffects\ define 
 a set (possibly infinite) of exact transition systems. 
- 
+
+
+Moreover, we deploy a Hoare-style forward verifier to 
+soundly infer the actual behaviors of given programs 
+concerning the well-defined operational semantics. 
+This approach provides a 
+\emph{direct} (opposite to the techniques which require 
+ manual and remote modeling processes), 
+  and modular compositional 
+verification for real-time systems, which are not possible
+by existing techniques. 
+
+
+
+
    
 
 
@@ -467,15 +458,21 @@ effects of \code{addNSugar(n)} as:
 
 
 
-Having \timedEffects\ to be  the specification language, we are interested in the following verification problem: 
+Having \timedEffects\ to be  the specification language, 
+and the forward verifier to infer the program behaviors, 
+we are interested 
+in the following verification problem: 
 Given a program \code{\mathcal{P}},
-% with the concrete temporal behavior \code{\effect^{\mathcal{P}}}, 
-and a temporal specification \code{\effect^{\prime}}, does 
+and a temporal specification \code{\effect^{\prime}}, does the inclusions 
 \code{\effect^{\mathcal{P}} \CONTAIN \effect^{\prime}} holds? Typically, 
 checking the inclusion/entailment between the concrete program effects \code{\effect^{\mathcal{P}}} and the valid traces \code{\effect^{\prime}} proves that: the program \code{\mathcal{P}} will never lead to unsafe traces which violate \code{\effect^{\prime}}.
 
-To efficiently solve the inclusions, i.e., without any translation into
-finite state automata, we develop a TRS
+Since the expressiveness of \timedEffects\ goes beyond 
+finite-state automata, it is neither sufficient nor efficient to 
+ translation them 
+into Timed Automata and reply on the solving engines of Timed Automata.
+Therefore we 
+develop a novel TRS, 
 which  is inspired by Antimirov and Mosses’ algorithm 
 \cite{antimirov1995rewriting}\footnote{Antimirov and Mosses' 
 algorithm was designed for deciding the inequalities of regular 
@@ -504,42 +501,54 @@ that checking their inclusion corresponds to an iterated process of
 checking the inclusion of their \emph{partial derivatives} 
 \cite{antimirov1995partial}. 
 Works based on such a TRS \cite{song2020automated,antimirov1995rewriting,almeida2009antimirov,keil2014symbolic,hovland2012inclusion}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
-\end{comment}
-
 
 This work targets timed temporal verification, and to the best of 
 the authors' knowledge, it proposes the first algebraic TRS 
  for the real-time verification. 
-  Our main contributions are:% as follows:
+\end{comment}
+
+
+
+ In short, the main contributions of this work are:
+
 
 
 
 \begin{enumerate}
-\item \textbf{The Timed Effects:} We define the syntax 
-({\secref{subsec:Specification_language}}) and semantics 
-({\secref{subsec:Specification_Semantics}}) of \timedEffects, to be the 
-specification language, which captures the target programs' behaviors 
-and non-trivial temporal properties.
+\item \textbf{Language Abstraction:} we formally define 
+a core language \timedL, by defining its syntax and operational semantics, 
+generalizing the real-time systems with mutable variables and timed 
+behavioral patterns. %, such as \emph{delay}, \emph{timeout}, \emph{deadline}.
 
-\item \textbf{Automated Forward Verifier:} Targeting a core language 
-\code{\timedL} ({\secref{subsec:Targetlanguage}}), we 
-establish its axiomatic semantics via a set of constructive rules 
-(\secref{sec:Verification}), enabling a compositional verifier to 
-infer the program's effects. The verifier triggers the back-end 
+\item \textbf{Specification Language:} we propose \timedEffects, 
+by defining its 
+syntax and semantics, gaining the expressive power beyond 
+traditional modelling languages for real-time systems.
+
+
+ 
+
+\item \textbf{Automated Forward Verifier:} we establish a sound axiomatic 
+semantics to infer the 
+temporal behaviors of given target programs.  The verifier triggers the back-end 
 solver TRS. 
 
-%which tightly The semantics model closely captures the temporal behaviour of the program, 
+
+%which tightly The semantics model closely captures the temporal behavior of the program, 
 
 \item \textbf{An Efficient TRS:}
-We present the rewriting rules, to prove 
-the inferred effects against given temporal properties. %, both expressed by \timedEffects (\secref{sec:Entailment_Prover}). 
+we present the rewriting rules, to prove the inclusion relations between the inferred 
+behaviors and the given temporal specifications, both in  \timedEffects. 
 
 
-\item \textbf{Implementation and Evaluation:} We prototype the novel 
+
+\item \textbf{Implementation and Evaluation:} we prototype the novel 
 effects logic and the automated verification system, %on top of the HIP/SLEEK system\cite{chin2012automated}, 
 %which is available online\cite{Demo}, 
 prove the correctness, report on case studies and experimental results. 
 %investigating how it can help to debug errors related to both synchronous and asynchronous programs (\secref{subsec:Case_Studies}).
+
+
 
 
 \end{enumerate} 
@@ -846,7 +855,7 @@ In step \code{\textcircled{2}}, we design a new rule \code{[SPLIT]} to accommoda
 extends the previous constraint \code{t_L {<} 3} with constraints  \code{t_L^1 {+} t_L^2 {=} t_L}. Then \code{t_L^1} and \code{t_L^2} mark the real-time constraints for time instances  \code{\{Prep\}} and \code{\{Cook\}} respectively. 
 Then in step \code{\textcircled{3}}, we eliminate \code{\{Prep\}} from the LHS and \code{\_} from the RHS, as the instances entailment  \code{\{Prep\} \subseteq \_} holds.  
 In step \code{\textcircled{4}}, in order to conduct a further unfolding, we unify time variables \code{t_L^2} and \code{t_R} by adding the constraint \code{t_L^2 {=} t_R}. 
-In step \code{\textcircled{5}}, from the RHS, since \code{\_^\star {=} emp \vee \_ \cdot \_^\star}, eliminating one event \code{\{Ready\}} from it will lead to \code{\bot \vee \_^\star}, which can be normalised into \code{\_^\star} in step \code{\textcircled{6}}.
+In step \code{\textcircled{5}}, from the RHS, since \code{\_^\star {=} emp \vee \_ \cdot \_^\star}, eliminating one event \code{\{Ready\}} from it will lead to \code{\bot \vee \_^\star}, which can be normalized into \code{\_^\star} in step \code{\textcircled{6}}.
 At the end of the rewriting, we manage to prove that \code{(t_L {<}3 {\wedge} t_L^1 {+} t_L^2 {=}t_L {\wedge}t_L^2 {=} t_R)  \Rightarrow  t_R {<} 3} \footnote{The proof obligations generated by the verifier are discharged using constraint solver Z3 \cite{de2008z3}.}; therefore, the proof succeed.
 
 %(\code{\{Go\} \Rightarrow \_})
@@ -893,7 +902,6 @@ to the caller.
 %The technique of translating away iterative loops is standard
 %\citeref{insa2015automatic} 
 %and is helpful
-%in further minimising our core language. 
 
 Expressions comprise simple values \code{v};
 a guarded process is written as \code{[b]e} where if b is true, 
@@ -1268,7 +1276,7 @@ qual to  0.
 To define the model, 
 \code{var} is the set of program variables, 
 \code{val} is the set of primitive values, 
-\code{es} is the set of event sequences (or event multi-trees, per se), indicating the sequencing constraints on temporal behaviour.
+\code{es} is the set of event sequences (or event multi-trees, per se), indicating the sequencing constraints on temporal behavior.
 Let \code{d, s, \varphi \models es} denote the model relation, i.e., 
 the effects \code{es} take exactly \code{d} time units to complete; 
 the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
@@ -1403,7 +1411,7 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 \varphi {=} \code{[ev]}
   \\[0.2em]
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%                            CONCATE                            %%
+%%                            CONCATENATE                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &\code{d, \varphi \models  \pi : (\es_1{\cdot}\es_2)}  
 &\m{iff}\quad 
@@ -1452,7 +1460,7 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 To define the semantic model, 
 we use \code{\varphi} (\emph{a trace of events}) to represent 
 the computation execution (or events multi-trees, per se), indicating 
-the sequential constraint of the temporal behaviour; and we use \code{d} 
+the sequential constraint of the temporal behavior; and we use \code{d} 
 to record the computation duration of given effects. 
 Let \code{d, \varphi \models es} denote the model relation, i.e., 
 the effects \code{es} take exactly \code{d} time units to complete; and 
@@ -1539,7 +1547,6 @@ where
 and \s{\Pi_1, \Theta_1}  
 is the resulting state by executing \code{e}. 
 The program state is initialized using \s{\epsilon, True}. 
-  In this section, we give an axiomatic semantics model\footnote{Based on the operational semantics of Esterel and JavaScript's asynchrony formally defined in \cite{berry1992esterel} and  \cite{madsen2017model} respectively.} for the core language \code{\timedL}, by formalising a set of forward inductive rules. 
 These rules transfer program states and systematically accumulate the effects syntactically. 
 
 To define the model, we introduce a stack \env\ and describe 
@@ -1961,7 +1968,6 @@ in the proof context $\m{\Gamma}$, which are able to soundly prove the current g
 \label{unfolding}
 This is the inductive step of unfolding the inclusions. Firstly, we make use of the auxiliary function \code{fst} to get a set of instances \code{F}, which are all the possible initial time instances from the antecedent. 
 Secondly, we obtain a new proof context \code{\Gamma^\prime} by adding the current inclusion, as an inductive hypothesis, into the current proof context \code{\Gamma}. 
-%(The soundness condition is guaranteed by rule \code{[REOCCUR]} to avoid the possible cyclicity evident in the proof context) 
 Thirdly, we iterate each element \code{(I, \pi, t) \in F}, and compute the partial derivatives (\emph{next-state} effects) of both the antecedent and consequent w.r.t \code{(I, \pi, t)}. The proof of the original inclusion succeeds if all the derivative inclusions succeeds.
 \input{rules/rule4}
 
@@ -2183,7 +2189,6 @@ CEC is an open-source compiler designed for research in both hardware and softwa
 
 
 %The core implementation is less than 3500 LOC, roughly, 1{+} LOC for the verifier, and 2{+} LOC for the TRS. We prove the soundness of the TRS. 
-%Next, we show case studies to demonstrate the feasibilities of our \timedEffects comparing to Timed Automata. 
 
 %We summarize the underlying reasons which lead to the improvement: (1)When the transition states of the models are small, the average execution time spent by the T.r.s is even less than the automata construction time, which means it is not necessary to construct the automata when a TRS solves it faster; (2)When the total states become larger, on average, the TRS outperforms automata-based algorithms, due to the significantly reduced search branches provided by the normalization lemmas; and (3)For the invalid cases, the TRS disproves them earlier without constructing the whole automata.
 
@@ -2539,7 +2544,7 @@ Improvement came from the avoidance of the more expensive automata construction 
 
 Combining program events with a temporal program logic for asserting properties of event traces yields a powerful and general engine for enforcing program properties. Results in \cite{skalka2008types,skalka2004history,marriott2003resource} have demonstrated that static approximations of program event traces can be generated by type and effect analyses \cite{talpin1994type,amtoft1999type}, in a form amenable to existing model-checking techniques for verification. We call these approximations trace-based effects.
 
-Trace-based analyses have been shown capable of statically enforcing flow-sensitive security properties such as safe locking behaviour \cite{foster2002flow} and resource usage policies such as file usage protocols and memory management \cite{marriott2003resource}. In \cite{bartoletti2005enforcing}, a trace effect analysis is used to enforce secure service composition. 
+Trace-based analyses have been shown capable of statically enforcing flow-sensitive security properties such as safe locking behavior \cite{foster2002flow} and resource usage policies such as file usage protocols and memory management \cite{marriott2003resource}. In \cite{bartoletti2005enforcing}, a trace effect analysis is used to enforce secure service composition. 
  Stack-based security policies are also amenable to this form of analysis, as shown in \cite{skalka2004history}. 
  
 
@@ -2605,12 +2610,10 @@ To the best of our knowledge, our work is the first that formulates semantics of
 
 
 %%
-%% The acknowledgments section is defined using the "acks" environment
 %% (and NOT an unnumbered section). This ensures the proper
 %% identification of the section in the article metadata, and the
 %% consistent spelling of the heading.
 %\begin{acks}
-%To Robert, for the bagels and explaining CMYK and color spaces.
 %\end{acks}
 
 %%
@@ -2661,46 +2664,46 @@ And each rule either increases \code{|H|} (Unfolding) or, otherwise, reduces \co
  
 
 \begin{proof}
-For each inference rules, if inclusions in their premises are valid, and their side conditions are satisfied, then goal inclusions in their conclusions are valid.
-
-\begin{enumerate}
-\item \textbf{Axiom Rules:} 
-\input{rules/rule1}
-- It is easy to verify that antecedent of goal entailments in the rule \codeme{[Bot\text{-}LHS]} is unsatisfiable. Therefore, these entailments are evidently valid.\\
-- It is easy to verify that consequent of goal entailments in the rule \codeme{[Bot\text{-}RHS]} is unsatisfiable. Therefore, these entailments are evidently invalid.\\
-
-
-\item \textbf{Disprove Rules:} 
-\input{rules/rule2}
-- It's straightforward to prove soundness of the rule \codeme{[DISPROVE]}, Given that \codeme{ \effect1} is nullable, while \codeme{ \effect_2} is not nullable, thus clearly the antecedent contains more event traces than the consequent.  Therefore, these entailments are evidently invalid.\\
-
-
-\item \textbf{Prove Rules:} 
-\input{rules/rule3}
-- To prove soundness of the rule \code{[PROVE]}, we consider an arbitrary model, \codeme{d,  \varphi} such that:  \codeme{d,  \varphi \models  {\pi_1 : \effect_1}}. Given the side conditions from the promises, we get \codeme{d,  \varphi \models {\pi_2 : \effect_1}}. When the \code{\m{fst}} set of \code{\effect_1} is empty, \code{\effect_1} is possible \code{\bot} or \code{\epsilon}; and \code{\effect_2} is nullable. For both cases, the inclusion is valid. 
-
-- To prove soundness of the rule \codeme{[REOCCUR]}, we consider an arbitrary model, \codeme{d,  \varphi} such that:  \codeme{d,  \varphi \models  {\pi_1 : \effect_1}}. Given the promises that  \codeme{\pi_1 : \effect_1 \CONTAIN \pi_3 : \effect_3}, we get \codeme{d,  \varphi \models {\pi_3 : \effect_3}}; Given the promise that there exists a hypothesis \codeme{\pi_3 : \effect_3 \CONTAIN  \pi_4 : \effect_4}, we get \codeme{d,  \varphi \models {\pi_4 : \effect_4}}; Given the promises that  \codeme{\pi_4 : \effect_4 \CONTAIN \pi_2 : \effect_2}, we get \codeme{d,  \varphi \models {\pi_2 : \effect_2}}. Therefore,  the inclusion is valid. 
-\\
-
-
-\item \textbf{Unfolding Rule:} 
-\input{rules/rule4}
-
-
-- To prove soundness of the rule \codeme{[UNFOLD]}, we consider an arbitrary model, \codeme{d_1,  \varphi_1} and \codeme{d_2,  \varphi_2}  such that:  \codeme{d_1,  \varphi_1 \models {\pi_1 : \effect_1}} and \codeme{d_2,  \varphi_2 \models  {\pi_2 : \effect_2}}. For an arbitrary event \codeme{(I, \pi, t)}, let \codeme{d_1^\prime, {\varphi_1}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket  \pi_1: \effect_1 \rrbracket}; and 
-\codeme{d_2^\prime, {\varphi_2}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket \pi_2 : \effect_2 \rrbracket}. 
-
-Case 1), \codeme{\codeme{(I, \pi, t)} \notin F}, \codeme{d_1^\prime, {\varphi_1}^\prime \models \bott}, thus automatically \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \effect_2)};
-
-Case 2), \codeme{\codeme{(I, \pi, t)} \in F}, given that inclusions in the rule's premise is valid, then \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \effect_2)}. 
-
-By \defref{Inclusion}, since for all \codeme{(I, \pi, t)}, \codeme{D^{\pi_1}_{\codeme{(I, \pi, t)}} (\effect_1) \CONTAIN    D^{\pi_2}_{\codeme{(I, \pi, t)}}( \effect_2)}, the conclusion is valid. 
-\\
-
-\end{enumerate}
-All the inference rules used in the TRS are sound, therefore the TRS is sound.
-\end{proof}
-
+  For each inference rules, if inclusions in their premises are valid, and their side conditions are satisfied, then goal inclusions in their conclusions are valid.
+  
+  \begin{enumerate}
+  \item \textbf{Axiom Rules:} 
+  \input{rules/rule1}
+  - It is easy to verify that antecedent of goal entailments in the rule \codeme{[Bot\text{-}LHS]} is unsatisfiable. Therefore, these entailments are evidently valid.\\
+  - It is easy to verify that consequent of goal entailments in the rule \codeme{[Bot\text{-}RHS]} is unsatisfiable. Therefore, these entailments are evidently invalid.\\
+  
+  
+  \item \textbf{Disprove Rules:} 
+  \input{rules/rule2}
+  - It's straightforward to prove soundness of the rule \codeme{[DISPROVE]}, Given that \codeme{ \es1} is nullable, while \codeme{ \es_2} is not nullable, thus clearly the antecedent contains more event traces than the consequent.  Therefore, these entailments are evidently invalid.\\
+  
+  
+  \item \textbf{Prove Rules:} 
+  \input{rules/rule3}
+  - To prove soundness of the rule \code{[PROVE]}, we consider an arbitrary model, \codeme{d,  \varphi} such that:  \codeme{d,  \varphi \models  {\pi_1 : \es_1}}. Given the side conditions from the promises, we get \codeme{d,  \varphi \models {\pi_2 : \es_1}}. When the \code{\m{fst}} set of \code{\es_1} is empty, \code{\es_1} is possible \code{\bot} or \code{\epsilon}; and \code{\es_2} is nullable. For both cases, the inclusion is valid. 
+  
+  - To prove soundness of the rule \codeme{[REOCCUR]}, we consider an arbitrary model, \codeme{d,  \varphi} such that:  \codeme{d,  \varphi \models  {\pi_1 : \es_1}}. Given the promises that  \codeme{\pi_1 : \es_1 \CONTAIN \pi_3 : \es_3}, we get \codeme{d,  \varphi \models {\pi_3 : \es_3}}; Given the promise that there exists a hypothesis \codeme{\pi_3 : \es_3 \CONTAIN  \pi_4 : \es_4}, we get \codeme{d,  \varphi \models {\pi_4 : \es_4}}; Given the promises that  \codeme{\pi_4 : \es_4 \CONTAIN \pi_2 : \es_2}, we get \codeme{d,  \varphi \models {\pi_2 : \es_2}}. Therefore,  the inclusion is valid. 
+  \\
+  
+  
+  \item \textbf{Unfolding Rule:} 
+  \input{rules/rule4}
+  
+  
+  - To prove soundness of the rule \codeme{[UNFOLD]}, we consider an arbitrary model, \codeme{d_1,  \varphi_1} and \codeme{d_2,  \varphi_2}  such that:  \codeme{d_1,  \varphi_1 \models {\pi_1 : \es_1}} and \codeme{d_2,  \varphi_2 \models  {\pi_2 : \es_2}}. For an arbitrary event \codeme{(I, \pi, t)}, let \codeme{d_1^\prime, {\varphi_1}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket  \pi_1: \es_1 \rrbracket}; and 
+  \codeme{d_2^\prime, {\varphi_2}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket \pi_2 : \es_2 \rrbracket}. 
+  
+  Case 1), \codeme{\codeme{(I, \pi, t)} \notin F}, \codeme{d_1^\prime, {\varphi_1}^\prime \models \bott}, thus automatically \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)};
+  
+  Case 2), \codeme{\codeme{(I, \pi, t)} \in F}, given that inclusions in the rule's premise is valid, then \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)}. 
+  
+  By \defref{Inclusion}, since for all \codeme{(I, \pi, t)}, \codeme{D^{\pi_1}_{\codeme{(I, \pi, t)}} (\es_1) \CONTAIN    D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)}, the conclusion is valid. 
+  \\
+  
+  \end{enumerate}
+  All the inference rules used in the TRS are sound, therefore the TRS is sound.
+  \end{proof}
+  
 % \section{Completeness Proof} 
 % \label{proof:Completeness}
  
