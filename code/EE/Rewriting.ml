@@ -145,7 +145,7 @@ let optionPureAnd pi1 pi2 : pure option  =
   | (None, None) -> None 
   | (Some pi1', Some pi2') -> Some (PureAnd (pi1', pi2'))
   | (None, _) -> pi2
-  | ( _ , None) -> pi2
+  | ( _ , None) -> pi1
 ;;
 
 let optionPureAndHalf pi1 pi2 : pure   = 
@@ -157,7 +157,9 @@ let optionPureAndHalf pi1 pi2 : pure   =
 let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure option ) = 
   let es' = normalES es pi in 
   match es' with
-  | Ttimes (Ttimes (es1, t1) , t2 ) -> (Ttimes (es1, t1), Some (Eq(t1, t2))) 
+  | Ttimes (Ttimes (es1, t1) , t2 ) -> 
+    (*print_string (showES es ^"\n"); *)
+    (Ttimes (es1, t1), Some (Eq(t1, t2))) 
   | Cons (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
@@ -254,6 +256,13 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
         else (es1', side1)
 
 
+        (*
+        let t_new = getAfreeVar () in 
+          (ESOr (es1', Cons(Ttimes(es1, Var t_new), es2_der)), Some (optionPureAndHalf (optionPureAnd side1 side2) (Ast.Eq(Var t_new, Number 0)))  )
+       
+        *)
+
+
 
   | ESOr (es1, es2) -> 
       let (es1_der, side1) = derivitive pi es1 f in 
@@ -287,6 +296,10 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 		| Ev (ev, t) -> (Bot, None)
 		| Instant ev -> if entailEvent ev ev1 then (Emp, None) else (Bot, None)
 		)
+  | Ttimes (Ttimes (es1, t1) , t2 ) -> 
+    let (es1_der, side1) = derivitive pi (Ttimes (es1, t1)) f in 
+    (es1_der, Some (optionPureAndHalf side1 (Eq(t1, t2))))
+
 	| Ttimes (Emp, tIn) -> 
 		(match f with 
 		| T  t -> (Emp,  Some (Eq(t , tIn)))
@@ -307,13 +320,19 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 		| T  t ->  let t_new = getAfreeVar () in 
       (Ttimes (es1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
 		| Ev (ev, t) ->  
-		  let (es1_der, side1) = derivitive pi es1 f in 
-      let t_new = getAfreeVar () in 
-      let p_new = optionPureAndHalf side1 (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
-      (Ttimes (es1_der, Var t_new), Some p_new)
-
+		  let (es1_der, side1) = derivitive pi es1 (Instant ev) in 
+      (match normalES es1_der pi with 
+      | Emp -> (Emp, side1)
+      | _ -> 
+        let t_new = getAfreeVar () in 
+        let p_new = optionPureAndHalf side1 (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
+        (Ttimes (es1_der, Var t_new), Some p_new)
+      )
 		
 		| Instant ev ->  let (es1_der, side1) = derivitive pi es1 f in 
+        match normalES es1_der pi with 
+        | Bot -> (Bot, Some (Eq (tIn, Number 0)))
+        | _ -> 
       (Ttimes (es1_der, tIn), side1)
 
 		)
@@ -473,9 +492,14 @@ let rec normalEffect (eff:effect) :effect =
   | (Ast.FALSE,  _) -> false  
   | _ -> true 
   ) (List.map (fun (p, es) -> 
-      let (es', pi') = normalESUnifyTime es p in 
+      (*let (es', pi') = normalESUnifyTime es p in 
       (  normalPure    (optionPureAndHalf  pi' p), es')) noPureOr) in 
-  if List.length final == 0 then [(FALSE, Bot)]
+      *)
+      normalPure p, normalES es p) noPureOr )in 
+  if List.length final == 0 then (
+    (*print_string (showEffect eff ^ "\n");raise (Foo ("lallalal")); *)
+    [(FALSE, Bot)]
+  )
   else final 
   ;;
 
@@ -507,29 +531,30 @@ let valuationRHS: globalV ref=  ref [] ;;
 let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
-  let showEntail  =  showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side)) *) in
+  let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side))  in
   (*  print_string (showEntail^"\n");*)
-  if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   (Node (showEntail ^ showRule DISPROVE,[] ), false)
+  if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
+    (Node (showEntail ^ showRule DISPROVE,[] ), false)
 
   else 
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
       let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
         let (subtreeIn, reIn) = 
-          if askZ3 pL == false then (Node (showEntail ^ " [PURE ER] ", []), false) else 
+          if askZ3 pL == false then (Node (showEntail ^ " [PURE ER LHS] ", []), false) else 
 
           if reoccur (esL) (esR) !delta then 
             if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
             else 
               if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ showRule REOCCUR,[] ), true)
-              else (Node (showEntail ^ " [PURE ER] ", []), false)
+              else (Node (showEntail ^ " [PURE ER2] ", []), false)
              
           else 
             let fstSet = fst pL esL  in
             if List.length (fstSet) == 0 then 
-              if comparePure pR TRUE then (Node (showEntail ^ " [NO FST]",[] ), true)
+              if comparePure pR TRUE then (Node (showEntail ^ " [NO FST1]",[] ), true)
               else 
-                if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ " [NO FST]", [] ), true)
-                else (Node (showEntail ^ " [PURE ER] ", []), false)
+                if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ " [NO FST2]", [] ), true)
+                else (Node (showEntail ^ " [PURE ER3] ", []), false)
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
             let (derL, sideL) = derivitive pL esL f  in 
@@ -600,6 +625,28 @@ let reNameEffect (eff:effect) str: effect =
   List.map (fun (p, es) -> (reNamePure p str, reNameEs es str )) eff
 ;;
 
+
+
+let rec gatherTTermsFromES (es:es) : terms list = 
+  match es with
+    Bot -> [] 
+  | Emp -> []
+  | Event _ -> [] 
+  | Cons (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
+	| ESOr (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
+  | Ttimes (es1, t) ->  [t]
+  | Kleene es1 -> (gatherTTermsFromES es1)
+  | Par (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
+  | Guard (pi1) -> [] 
+  ;;
+
+let gatherTTerms (eff:effect) : terms list =
+  List.flatten (List.map (fun (_, es) -> 
+    gatherTTermsFromES es 
+  ) eff) ;;
+
+let addPureToEff p eff = List.map (fun (pi, es) ->(PureAnd (pi, p), es)) eff ;;
+
 let printReportHelper lhs rhs : (binary_tree * bool) = 
   
   (*
@@ -614,7 +661,14 @@ let printReportHelper lhs rhs : (binary_tree * bool) =
   let a : hypotheses ref = ref [] in 
 
   let _ = (delta: hypotheses ref) := !a in 
-  containment TRUE (normalEffect (reNameEffect lhs "l") ) (reNameEffect rhs "r")    
+  let renamedLHS = reNameEffect lhs "l"  in  
+  let renamedRHS = reNameEffect rhs "r"  in 
+  let alltheTVar = (gatherTTerms renamedRHS) in 
+
+
+  let side = if List.length alltheTVar == 0 then Ast.TRUE else
+    List.fold_left (fun acc a -> Ast.PureAnd (acc , Ast.GtEq( a, Number 0))) (Ast.GtEq(List.hd alltheTVar, Number 0)) (List.tl alltheTVar) in 
+  containment (normalPure side) (renamedLHS) (renamedRHS)    
 
   ;;
 

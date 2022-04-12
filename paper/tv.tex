@@ -375,7 +375,7 @@ using keywords {\color{darklavender}\code{\emph{req:}}} and {\color{darklavender
   \vspace{-2mm}
 \begin{lstlisting}
 void addOneSugar() 
-/*req: TRUE/\ _^*
+/*req: true/\ _^*
   ens: t>1 /\ emp#t */ 
 { timeout ((), 1); }
 
@@ -560,43 +560,6 @@ prove the correctness, report on case studies and experimental results.
 %We now give a summary of our techniques using running examples. 
 
 
-\begin{figure}[ht]
-  \vspace{0mm}
-\begin{lstlisting}[columns=fullflexible]
-var x := -1; 
-var ct := 0;
-
-void process (int i)
-/* req  d1<d2,  emp 
-   ens  true, [x=-1](Update(i)#d1.emp#d2.
-   ([x=i]Critical(i).Exit(i) \/ [x!=i]emp))^* */
-{
-  [x=-1] 
-  deadline (event[Update(i)]{x := i}, d1);
-  delay (d2);
-  if (x=i) {
-    event[Critical(i)]{ct := ct +1};
-    event[Exit(i)]{ct := ct-1; x := -1};
-    process (i);
-  } else {
-    process (i);
-}
-
-void main () 
-/* req true /\ emp 
-   ens  true, (!Critical \/ (Critical(i) /\ i=x))^* */
-// ens  true, (ct <= 1)^*
-{ process(0) || process(1) || process(2); }
-\end{lstlisting}  
-  \vspace{0mm}
-  \caption{Fischer's mutual exclusion algorithm.}\label{fig:overview_ficher}
-     \vspace{0mm}
-\end{figure}
-
-
-
-
-
 %\subsection{HipHop.js and Dependent Effects}
 \subsection{\timedEffects}
 As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specifications (enclosed in \textcolor{darklavender}{\ttfamily{{/*@ ... @*/}}}) for each program, which leads to a compositional verification strategy, where static checking and timed temporal verification can be done locally. %The set of signals to be present in one logical event are represented within one \code{\_}.
@@ -604,34 +567,32 @@ As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specificatio
 \begin{figure}[ht]
       \vspace{0mm}
 \begin{lstlisting}[columns=fullflexible]
-void addNSugar(int n)
-/* req n>0,  _^*.Cup 
-   ens  t>=n, Sugar # t */
-{ if n == 0 then event[Sugar] 
-  else {
-    timeout ( addOneSugar(), 1);
-    addNSugar (n-1);}}
-  
 void makeCoffee (int n)
-/* req n>0, emp 
- ens  t<5/\t>=n/\t1<3, 
- Cup.(Sugar#t).(Coffee#t1).Done */
+/*req: n>0 /\ emp 
+  ens: t<5/\t>=n/\t1<3 /\
+Cup.(Sugar#t).(Coffee#t1).Done */
 { event[Cup];
   deadline (addNSugar(n), 5);
   deadline (event[Coffee], 3);
   event[Done];}
   
 void main () 
-/* req true, emp 
- ens  t<8, (_^*.Done)#t */
+/*req: true/\ emp 
+  ens: t<8 /\ (_^*.Done)#t */
 { makeCoffee(3);}
 // make coffee with 3 lumps of sugar
-
 \end{lstlisting}  
       \vspace{0mm}
       \caption{Dependent Values for Time Bounds (the program is from  \cite{berry2020hiphop}).}\label{fig:overview_eg1}
          \vspace{0mm}
 \end{figure}
+
+
+
+
+
+
+
 
 
 The {\ttfamily{authenticate}} module checks the validity of the identity at each click on login button. The operations of requesting the server are wrapped in an {\textbf{\color{purple}\ttfamily{abort}}} statement, which preempts the execution when the responding time goes beyond \code{\m{d}} (given signal \code{\anyevent{Tick}} is present every second).
@@ -861,6 +822,41 @@ At the end of the rewriting, we manage to prove that \code{(t_L {<}3 {\wedge} t_
 %(\code{\{Go\} \Rightarrow \_})
 %(\code{\{Ready\} \Rightarrow \_}, \code{t_L^2 \Rightarrow true})
 Termination is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using \emph{memorization} \cite{brotherston2005cyclic} (cf. \tabref{tab:rewriting_tree_case_study_finit_infinit}). 
+
+
+
+\begin{figure}[ht]
+  \vspace{0mm}
+\begin{lstlisting}[columns=fullflexible]
+var x := -1; 
+var ct := 0;
+
+void process (int i)
+/* req  d1<d2,  emp 
+   ens  true, [x=-1](Update(i)#d1.emp#d2.
+   ([x=i]Critical(i).Exit(i) \/ [x!=i]emp))^* */
+{
+  [x=-1] 
+  deadline (event["Update"(i)]{x := i}, d1);
+  delay (d2);
+  if (x=i) {
+    event["Critical"(i)]{ct := ct +1};
+    event["Exit"(i)]{ct := ct-1; x := -1};
+    process (i);
+  } else {
+    process (i);
+}
+
+void main () 
+/* req true /\ emp 
+   ens  true, (!Critical \/ (Critical(i) /\ i=x))^* */
+// ens  true, (ct <= 1)^*
+{ process(0) || process(1) || process(2); }
+\end{lstlisting}  
+  \vspace{0mm}
+  \caption{Fischer's mutual exclusion algorithm.}\label{fig:overview_ficher}
+     \vspace{0mm}
+\end{figure}
 
 
 

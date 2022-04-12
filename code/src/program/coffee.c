@@ -27,22 +27,23 @@ ens:  (t>=n)/\ (Sugar #t)
 
 void makeCoffee (int n)
 /*
-req: TRUE/\emp
-ens: (t<=5/\t>=n/\t1<=3)/\Cup.(Sugar#t).(Coffee#t1).Done
+req: TRUE/\(_^*) . Cup
+ens: (t<=5/\t>=n/\t1<=3/\t1>0)/\(Sugar#t).(Coffee#t1)
 */
 {
-    event["Cup"];
     deadline (addSugar(n), 5);
     deadline (event["Coffee"], 3);
-    event["Done"];
 }
 
 
 int main ()
 /*
     req: TRUE /\emp
-    ens: (t<8)/\ (((_^*).Done)#t)
+    ens: (t<=10)/\ ((((~Done)^*))#t).Done 
     */
 {
+    event["Cup"];
     makeCoffee (3);
+    event["Done"];
+
 }

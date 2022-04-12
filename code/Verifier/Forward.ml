@@ -223,7 +223,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
       List.map ( fun (pi_c, es_c) -> 
         let eff = verifier caller e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
         let x = verifier_getAfreeVar () in 
-        let addABound = List.map (fun (pi, es) -> (Gt(Var x, valueToTerm n), Ttimes(es, Var x))) eff in 
+        let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, valueToTerm n)), Ttimes(es, Var x))) eff in 
         prependESToEFF es_c addABound
  
 
@@ -237,10 +237,9 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
       List.map ( fun (pi_c, es_c) -> 
         let eff = verifier caller e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
         let x = verifier_getAfreeVar () in 
-        let addABound = List.map (fun (pi, es) -> (LtEq(Var x, valueToTerm n), Ttimes(es, Var x))) eff in 
+        let addABound = List.map (fun (pi, es) -> (PureAnd(pi, PureAnd (Gt(Var x, Number 0), LtEq(Var x, valueToTerm n))), Ttimes(es, Var x))) eff in 
+        
         prependESToEFF es_c addABound
- 
-
 
       ) current
     )
