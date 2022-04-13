@@ -1091,7 +1091,7 @@ to the caller.
 %and is helpful
 
 Expressions comprise simple values \code{v};
-a guarded process is written as \code{[b]e} where if b is true, 
+a guarded process is written as \code{[b]e} where if \code{b} is true, 
 then it behaves as \code{e}, else it idles until \code{b} becomes true; 
 %one-level field access \code{v.f} (rather than \code{v.f1.f2...} for the sake of simplicity), 
 %data structure allocation \code{\textbf{new}\ d({v^*})},  
@@ -1229,37 +1229,43 @@ Intuitively, $\textbf{deadline}\  [d] \ e$ behaves exactly as
   %%   deadline                 %%
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \code{\frac{
-    \env \not\models  b 
-  }{(\env, [b] \ e ) \xrightarrow[]{t} (\env, [b] \ e)}\ [guard_1]} 
-  \ \ \qquad
-  \code{\frac{
     \env \models  b 
-  }{(\env, [b] \ e ) \xrightarrow[]{\tau} (\env, e)}\ [guard_2]} 
+  }{(\env, [b] \ e ) \xrightarrow[]{\tau} (\env, e)}\ [guard_1]} 
+  \ \ \qquad\qquad 
+  \code{\frac{
+    \env \not\models  b 
+  }{(\env, [b] \ e ) \xrightarrow[]{t} (\env, [b] \ e)}\ [guard_2]} 
 \end{flalign*}}}
-
-
+The guarded process \code{[b]e} behaves as \code{e} when \code{b} is true, 
+otherwise it idles until \code{b} becomes true. 
 {{\small\begin{flalign*}
 \code{\frac{
-  (\env,e_1) \xrightarrow[]{\anyevent{A}/\tau} (\env^\prime,e_1^\prime) 
-}{(\env, e_1; e_2 ) \xrightarrow[]{\anyevent{A}/\tau} (\env^\prime, e_1^\prime ; e_2)}\ [se]} 
-  \ \ \qquad 
+  (\env,e_1) \xrightarrow[]{l} (\env^\prime,e_1^\prime) 
+}{(\env, e_1; e_2 ) \xrightarrow[]{l} (\env^\prime, e_1^\prime ; e_2)}\ [seq_1]} 
+\qquad
+\code{\frac{
+}{(\env, (); e_2 ) \xrightarrow[]{\tau} (\env, e_2)}\ [seq_2]} 
+\qquad
+\code{\frac{
+  (\env,e_1) \xrightarrow[]{l} (\env^\prime,e_1^\prime) 
+}{(\env, e_1 || e_2 ) \xrightarrow[]{l} (\env^\prime, e_1^\prime || e_2)}\ [par_1]} 
+\\ 
   \code{\frac{
-  }{(\env, \alpha ) \xrightarrow[]{\tau} (\alpha(\env), ())}\ [assign]} 
+    (\env,e_2) \xrightarrow[]{l} (\env^\prime,e_2^\prime) 
+  }{(\env, e_1 || e_2 ) \xrightarrow[]{l} (\env^\prime, e_1 || e_2^\prime)}\ [par_2]} 
+  \qquad \qquad 
+  \code{\frac{
+    (\env,e_1) \xrightarrow[]{t} (\env,e_1^\prime) 
+    \qquad 
+    (\env,e_2) \xrightarrow[]{t} (\env,e_2^\prime) 
+  }{(\env, e_1 || e_2 ) \xrightarrow[]{t} (\env, e_1^\prime || e_2^\prime)}\ [par_3]} 
 \end{flalign*}}}
+Rules \code{[seq_1]} and \code{[seq_2]} state that \code{e_1} takes the control 
+when it still can behave; then the control transfers to \code{e_2} when \code{e_1}
+terminates. Rules \code{[par_1]} and \code{[par_2]} state that in a parallel composition, 
+if any of \code{e_1} or \code{e_2} can proceed, they proceed on their own. Rule 
+\code{[par_3]} states that if both of the branches idle, they idle together. 
 
-
-{{\small\begin{flalign*}
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%   deadline                 %%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \code{\frac{
-    (\env,e_1) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_1^\prime) 
-  }{(\env, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (\env^\prime, e_1^\prime || e_2)}\ [pa_1]} 
-  \ \   
-  \code{\frac{
-    (\env,e_2) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_2^\prime) 
-  }{(\env, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (\env^\prime, e_1 || e_2^\prime)}\ [pa_2]} 
-\end{flalign*}}}
 
 
 
@@ -1289,8 +1295,8 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
    \code{ \bott
    \  | \ \empt 
     \ | \ \ev
-   \  | \ \es_1 {\seq} \es_2
-    \ | \ \es_1 {\vee} \es_2
+   \  | \ \es_1 \seq \es_2
+    \ | \ \es_1 \vee \es_2
     \ | \ \es_1 {||} \es_2
     \ | \ \pi ? 
       %    \  | \ \es_1 \times \es_2
@@ -1360,14 +1366,10 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
 }
 
 
-
-
-
-
-
-The  syntax of the \timedEffects is formally defined in 
+The  syntax of the \timedEffects\ is formally defined in 
 \figref{fig:Syntax_of_Types_and_Effects} Effects is 
- a conditioned time  event sequence \code{{\pi},  es} or a disjunction of two effects $\es_1 \vee \es_2$.
+ a conditioned event sequence \code{{\pi}\wedge es} or a disjunction of 
+ two effects $\effect_1 \vee \effect_2$.
 Timed sequences comprise \textit{nil} ($\bott$);
  an empty trace $\empt$;
 a single event \code{ev};
@@ -1377,14 +1379,22 @@ a single event \code{ev};
  sequences concatenation \code{\es_1\cdot \es_2};
 disjunction  \code{\es_1\vee \es_2};
 parallel composition of two processes is written as \code{\es_1 || \es_2}, where \code{\es_1} and \code{\es_2} 
-may communicate via multi-party event synchronization or shared variables. 
-We introduce a new operator \code{\mysharp }, and the effects \code{es \mysharp  t } represents that a trace takes real-time \code{t} to complete, where \code{t} is a \emph{term}. 
-A time sequence can be constructed by \code{\star}, representing zero or more times repetition of a trace.
+may communicate via multi-party event synchronization or shared variables;
+a blocking waiting for a certain of constraint to be satisfied \code{\pi ?}; 
+We introduce a new operator \code{\mysharp }, and the effects 
+\code{\es \mysharp t} represents that a trace takes real-time 
+\code{t} to complete, where \code{t} is a \emph{term}. 
+A timed sequence can be constructed by \code{\es^\star}, representing zero or 
+more times repetition of the trace \code{\es}.
 
-\code{\anyevent{A}(v, \pi, \alpha^*)} stands for an event labeled 
-as \anyevent{A} with parameter \code{v}, guard \code{\pi} and assignment operations \code{\alpha^*}. 
+\anyevent{A}\code{(v, \alpha^*)} stands for an observable event with label 
+\anyevent{A}, parameterized by \code{v}, and the assignment operations \code{\alpha^*}. 
+\code{\tau(\pi)} is an invisible event, which can be parameterized with a pure formula 
+\code{\pi}\footnote{The difference between 
+\code{\tau(\pi)} and \code{\pi?} is \code{\tau(\pi)} leads to false (\code{\bot}) if 
+\code{\pi} is not satisfied, whereas  \code{\pi?} waits until \code{\pi} is satisfied.}. 
 To make the specification more expressive, events can also be 
-\code{\anynotevent{A}}, representing  events which are not 
+{\anynotevent{A}}, referring to those events which are not 
 labeled using \anyevent{A}; and a wildcard \code{\_}, which matches to all the events.
 
 
@@ -1407,20 +1417,18 @@ qual to  0.
 To define the model, 
 \code{var} is the set of program variables, 
 \code{val} is the set of primitive values, 
-\code{es} is the set of event sequences (or event multi-trees, per se), indicating the sequencing constraints on temporal behavior.
-Let \code{d, s, \varphi \models es} denote the model relation, i.e., 
-the effects \code{es} take exactly \code{d} time units to complete; 
+\code{\es} is the set of event sequences (or event multi-trees, per se), 
+indicating the sequencing constraints on temporal behaviors.
+Let \code{d, s, \varphi \models \effect} denote the model relation, i.e., 
+the effects \code{\effect} take \code{d} time units to complete; 
 the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
-temporal effects \code{es}, with \code{d}, \code{s}, \code{\varphi} 
+temporal effects \code{\effect}, with \code{d}, \code{s}, \code{\varphi} 
 from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}}, 
-\code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{ev^*} \ .
+\code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{\es} \ .
 
-As shown in \figref{fig:Sementic}, we define the semantics of our effects. 
-We use $\lappend$ to represent the append operation of two event sequences. 
-We use $[]$ to represent the empty sequence, \code{[ev]} to represent 
-the sequence only contains a singleton event. 
 
-\begin{figure}[]
+
+\begin{figure}[!ht]
   \vspace{-1mm}
   \renewcommand{\arraystretch}{1.2}
 \small\begin{align*}
@@ -1455,7 +1463,7 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    disjunction         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models {\pi} \wedge \es_1{\vee}\es_2}  
+&\code{d, s, \varphi \models {\pi} \wedge (\es_1{\vee}\es_2)}  
 &\m{iff}\quad & 
 \code{d, s, \varphi \models {\pi}  \wedge \es_1 } 
 \ or\  
@@ -1463,15 +1471,15 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    parallel         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models {\pi} \wedge (\ev_1{\cdot}\es_1)||(\ev_2{\cdot}\es_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models {\pi}  \wedge \ev_1{\cdot} (\es_1||(\ev_2{\cdot}\es_2)) } 
-\ or\ \code{d, s, \varphi \models {\pi}  \wedge \ev_2{\cdot}((\ev_1{\cdot}\es_1)||\es_2)  } \\
+&\code{d, s, \varphi \models {\pi} \wedge (\ev_1 \cdot \es_1)||(\ev_2 \cdot \es_2)}  
+&\m{iff}\quad & \code{d, s, \varphi \models {\pi}  \wedge \ev_1 \cdot  (\es_1||(\ev_2 \cdot \es_2)) } 
+\ or\ \code{d, s, \varphi \models {\pi}  \wedge \ev_2 \cdot ((\ev_1 \cdot \es_1)||\es_2)  } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    parallel  2        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &\code{d, s, \varphi \models {\pi} \wedge (\ev\mysharp t_1) || (\epsilon \mysharp  t_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models {(\pi{\wedge}t_1 {\geq}t_2)}, (\ev\mysharp t_1) } 
-\ or\ \code{d, s, \varphi \models {(\pi{\wedge}t_1 {<}t_2)}  , (\ev\mysharp t_1){\cdot}(\epsilon \mysharp  (t_2\text{-}t_1))  } \\
+&\m{iff}\quad & \code{d, s, \varphi \models {(\pi{\wedge}t_1 {\geq}t_2)} \wedge (\ev\mysharp t_1) } 
+\ or\ \code{d, s, \varphi \models {(\pi{\wedge}t_1 {<}t_2)}  \wedge (\ev\mysharp t_1) \cdot (\epsilon \mysharp  (t_2\text{-}t_1))  } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    block         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1489,16 +1497,16 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
  {True} }, \ \code{d, s, \varphi \models {\pi}  \wedge \empt}\ or  \\
 & & &  \code{\llbracket {\pi}\wedge t {>} 0 \rrbracket_{s} {=}  
 {True} }, 
-\  \exists \code{\es_1,\es_2}. \  \code{\es_1 {\cdot} \es_2 {=} es}\\
+\  \exists \code{\es_1,\es_2}. \  \code{\es_1  \cdot  \es_2 {=} es}, \  \m{fresh}\ t_1, t_2,\\
 &&& \qquad  s.t. \ \code{d, s, \varphi {\models} {(\pi 
-{\wedge} t_1{\geq}0{\wedge}t_2{\geq}0 {\wedge} t_1{+} t_2{=}t)}  , 
-(\es_1\mysharp t_1) {\cdot} (\es_2\mysharp t_2) } \\
+{\wedge} t_1{\geq}0{\wedge}t_2{\geq}0 {\wedge} t_1{+} t_2{=}t)} \wedge 
+(\es_1\mysharp t_1)  \cdot  (\es_2\mysharp t_2) } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    star         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &\code{d, s, \varphi \models {\pi}\wedge es^\star}  &\m{iff}\quad & 
 \code{d, s, \varphi \models {\pi}  \wedge \empt}\ or \ 
-\code{d, s, \varphi \models {\pi}  \wedge es {\cdot} es^\star}\\
+\code{d, s, \varphi \models {\pi}  \wedge es  \cdot  es^\star}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    FALSE         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1512,6 +1520,12 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 \end{figure}
 
 
+As shown in \figref{fig:Sementic}, we define the semantics of our effects. 
+We use $\lappend$ to represent the append operation of two event sequences. 
+We use $[]$ to describe the empty sequence, \code{[\ev]} to represent 
+the sequence that only contains one singleton event. 
+Notice that, except for the traces constructed by \code{\mysharp}, simple events 
+are taken to be happening in instant time. 
 
 
 \begin{comment}
