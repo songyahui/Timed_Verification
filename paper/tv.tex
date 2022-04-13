@@ -26,6 +26,9 @@
 %\copyrightyear{2018}           %% If different from \acmYear
 
 
+\usepackage{xcolor}
+\usepackage[thicklines]{cancel}
+\renewcommand{\CancelColor}{\color{lightgray}}
 
 
 %% Some recommended packages.
@@ -314,7 +317,7 @@ Timed Automata are powerful
 in designing real-time models with explicit clock variables. Real-time 
 constraints are captured by explicitly setting/resetting clock variables. 
 A number of automatic verification support for Timed Automata have proven 
-to be successful \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,wang2005verifying}.
+to be successful \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,DBLP:conf/seke/WangWH05}.
 
 
 Models based on Timed Automata often adopt a simple structure, e.g., a 
@@ -344,7 +347,7 @@ with dependent values and arithmetic constraints,
 to 
 %capture the parallelism between event-triggered (sync) and  time-triggered (async) execution traces, 
 provide real-time abstractions into traditional linear temporal logics. 
-%Resource usages, provided by a \emph{dynamic ticks}\cite{von2017real}, incorporating the time-triggered (physical time) and event-triggered (logical time) execution loops. 
+%Resource usages, provided by a \emph{dynamic ticks}\cite{DBLP:conf/fdl/HanxledenBG17}, incorporating the time-triggered (physical time) and event-triggered (logical time) execution loops. 
 For example, one safety property, \textit{"The event \anyevent{Done} 
 will be triggered no later than one time unit"}\footnote{Without loss of generality, 
 we use integer values to represent time units in this 
@@ -358,7 +361,7 @@ paper.% while it can bes extended to real numbers and other
 %and .
 %which replaces temporal operators by time-constrained versions from 
 Here, \code{\wedge} connects the arithmetic formula and the timed trace, \code{\mysharp } is a novel operator specifying the \emph{real-time} 
-constraints for the \emph{logical-time} sequences \cite{von2017real}; 
+constraints for the \emph{logical-time} sequences \cite{DBLP:conf/fdl/HanxledenBG17}; 
 \code{\_} is a wildcard matching to any event; 
 Kleene star \code{\star} denotes trace repetition.
 The above formula \code{\effect} corresponds to `\code{\Diamond_{[0, 1)}\ }\anyevent{Done}' 
@@ -497,7 +500,7 @@ A TRS is a refutation method that normalizes expressions in such a way
 that checking their inclusion corresponds to an iterated process of 
 checking the inclusion of their \emph{partial derivatives} 
 \cite{antimirov1995partial}. 
-Works based on such a TRS \cite{song2020automated,DBLP:journals/tcs/AntimirovM95,almeida2009antimirov,keil2014symbolic,hovland2012inclusion}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
+Works based on such a TRS \cite{DBLP:conf/icfem/SongC20,DBLP:journals/tcs/AntimirovM95,almeida2009antimirov,DBLP:conf/fsttcs/KeilT14,hovland2012inclusion}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
 
 This work targets timed temporal verification, and to the best of 
 the authors' knowledge, it proposes the first algebraic TRS 
@@ -604,7 +607,7 @@ five time-units deadline while calling
  a three time-units deadline. 
 
 
-The preconidtion of \codem{main} requies no arithmetic constraints 
+The precondition of \codem{main} requires no arithmetic constraints 
 on its inputs (expressed as \codem{true}) and 
 an empty history trace (denoted using \codem{emp} or \code{\epsilon}).
 The postcondition of \codem{main} specifies 
@@ -625,7 +628,7 @@ in precondition.
 The examples 
 already show that our  effects provide more detailed information than 
 traditional timed verification, and in fact, it cannot be fully 
-captured by any prior works \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,wang2005verifying}.
+captured by any prior works \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,DBLP:conf/seke/WangWH05}.
 Nevertheless, the gain in expressive power comes from the efforts 
 of a more dedicated verification process, handled by our forward verifier and TRS.
 
@@ -667,7 +670,7 @@ The verifier invokes the TRS to check language inclusions along the way.
          {%\small
          \begin{enumerate}
 \item \lstinline|void addOneSugar() {| \textcolor{mGray}{\footnotesize 
-\quad \emph{// initialize the effects state using the function precondition \code{\effect_{pre}^{addOneSugar(n)}}}} \\
+\quad \emph{// initialize the effects state using the function precondition \code{\effect_{pre}^{addOneSugar(n)}}.}} \\
 \textcolor{darklavender}{\{\code{\effect_C {=}\effect_{pre}^{addOneSugar(n)} =  true \wedge  \_^\star \} }} 
 \quad \siderule{\scriptsize[FV\text{-}Meth] } \\
 
@@ -681,7 +684,7 @@ The verifier invokes the TRS to check language inclusions along the way.
  %\textcolor{mGray}{  \emph{(-- check postcondition --) }}
  \textcolor{darkred}{\code{\code{\code{t_0{>}1   \wedge \epsilon \mysharp t_0}
  \CONTAIN t{>}1   \wedge \epsilon \mysharp t }}}
- \quad \textcolor{mGray}{\footnotesize  \emph{// TRS: postcondition checked }}
+ \quad \textcolor{mGray}{\footnotesize  \emph{// TRS: postcondition checked. }}
  \\ 
 %ens: t>1 /\ emp#t */ { 
   \noindent\rule{0.92\columnwidth}{0.4pt}
@@ -806,7 +809,7 @@ is the partial derivative of \code{\effect} w.r.t the event
 
 
 
-%The rule \code{[REOCCUR]} finds the syntactic identity, as a companion, of the current open goal, as a bud, from the internal proof tree \cite{brotherston2005cyclic}. (We use \code{\textcolor{persianplum}{(\dagger)}} in \tabref{tab:rewriting_tree_send} to indicate such pairings.)
+%The rule \code{[REOCCUR]} finds the syntactic identity, as a companion, of the current open goal, as a bud, from the internal proof tree \cite{DBLP:conf/tableaux/Brotherston05}. (We use \code{\textcolor{persianplum}{(\dagger)}} in \tabref{tab:rewriting_tree_send} to indicate such pairings.)
 
 %(introduce \code{t_L^1} and \code{t_L^2}, let \code{t_L^1 {+} t_L^2 {=} t_L}  
 
@@ -839,26 +842,26 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
   
   {
 \begin{prooftree}
-\Hypo{
-  \code{\textcircled{4}\siderule{[\codeme{PROVE}]}}
+\hypo{\text{\textcircled{4}}
+  \code{\siderule{[\codeme{PROVE}]}}
 }
 
-\Infer[dashed]1[]{ \code{\textcolor {darkred}{n{=}0} \wedge \epsilon 
+\infer[dashed]1[]{ \code{\textcolor {darkred}{n{=}0} \wedge \epsilon 
 \CONTAIN \textcolor {darkred}{t_r{\geq}0} \wedge \epsilon \mysharp t_r}}
 
 %\textcolor{blue}{\code{\pi_u : true}}
-\Infer[dashed]1[{\textcircled{3}\siderule{[\codeme{UNFOLD}]}}]{ \code{ \textcolor {darkred}{n{=}0} \wedge \cancel{Sugar}
+\infer[dashed]1[{\textcircled{3}\siderule{[\codeme{UNFOLD}]}}]{ \code{ \textcolor {darkred}{n{=}0} \wedge \cancel{Sugar}
 \CONTAIN \textcolor {darkred}{t_r{\geq}0} \wedge \cancel{Sugar \mysharp t_r}}}
 
 
-\Hypo{\qquad \code{(II)}}
+\hypo{\qquad \code{(II)}}
 
-\Infer[dashed]2[{\textcircled{2}\siderule{[\codeme{LHS\text{-}OR}]}}]{\code{(\textcolor {darkred}{n{=}0} \wedge Sugar)\ \vee\ }
+\infer[dashed]2[{\textcircled{2}\siderule{[\codeme{LHS\text{-}OR}]}}]{\code{(\textcolor {darkred}{n{=}0} \wedge Sugar)\ \vee\ }
 \code{ (\textcolor {darkred}{n  {\neq} 0  \wedge  t{>}1 \wedge t_l{\geq}(n\text{-}1)}  \wedge \epsilon \mysharp t \cdot 
  Sugar \mysharp t_l) } 
 \CONTAIN \textcolor {darkred}{t_r{\geq}n} \wedge Sugar \mysharp t_r  }
 
-\Infer[dashed]1[{\textcircled{1}\siderule{[\codeme{RENAME}]}}]{\code{(\textcolor {darkred}{n{=}0} \wedge Sugar)\ \vee\ }
+\infer[dashed]1[{\textcircled{1}\siderule{[\codeme{RENAME}]}}]{\code{(\textcolor {darkred}{n{=}0} \wedge Sugar)\ \vee\ }
 \code{ (\textcolor {darkred}{n  {\neq} 0  \wedge  t{>}1}  \wedge \epsilon \mysharp t \cdot \effect_{post}^{addNSugar(n\text{-}1)}) } 
 \CONTAIN \effect_{post}^{addNSugar(n)}  }
 \end{prooftree}}
@@ -868,24 +871,24 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 \code{(II):} \quad\ \  
 
 {\begin{prooftree}
-  \Hypo{
+  \hypo{
   \code{\textcolor {darkred}{  t{>}1 \wedge t_l{\geq}(n\text{-}1) 
    \wedge  \textcolor{blue}{t_r{=}t_r^1 {+}t \wedge  t_l{=}t_r^1}  \Rightarrow t_r{\geq}n
 }  } 
  }
 
- \Infer[dashed]1[{\textcircled{7}\siderule{[\codeme{PROVE}]}}]{ \code{ \textcolor {darkred}{n  {\neq} 0  \wedge  t{>}1 \wedge t_l{\geq}(n\text{-}1)}  \wedge 
+ \infer[dashed]1[{\textcircled{7}\siderule{[\codeme{PROVE}]}}]{ \code{ \textcolor {darkred}{n  {\neq} 0  \wedge  t{>}1 \wedge t_l{\geq}(n\text{-}1)}  \wedge 
  \epsilon
 \CONTAIN \textcolor {darkred}{t_r{\geq}n} 
 \wedge \epsilon}}
 
- \Infer[dashed]1[{\textcircled{6}\siderule{[\codeme{UNFOLD}]}} \textcolor{blue}{\code{\pi_u :  (t_r{=}t_r^1 {+}t \wedge  t_l{=}t_r^1)}}]
+ \infer[dashed]1[{\textcircled{6}\siderule{[\codeme{UNFOLD}]}} \textcolor{blue}{\code{\pi_u :  (t_r{=}t_r^1 {+}t \wedge  t_l{=}t_r^1)}}]
  { \code{ \textcolor {darkred}{n  {\neq} 0  \wedge  t{>}1 \wedge t_l{\geq}(n\text{-}1)}  \wedge 
 \cancel{ Sugar \mysharp t_l}
 \CONTAIN \textcolor {darkred}{t_r{\geq}n} 
 \wedge \cancel{Sugar \mysharp t_r^1}}}
 
- \Infer[dashed]1[{\textcircled{5}\siderule{[\codeme{UNFOLD}]}} \textcolor{blue}{\code{\pi_u :  (t_r{=}t_r^1 {+}t)}}]
+ \infer[dashed]1[{\textcircled{5}\siderule{[\codeme{UNFOLD}]}} \textcolor{blue}{\code{\pi_u :  (t_r{=}t_r^1 {+}t)}}]
  { \code{ \textcolor {darkred}{n  {\neq} 0  \wedge  t{>}1 \wedge t_l{\geq}(n\text{-}1) } \wedge \cancel{\epsilon \mysharp t} \cdot 
  Sugar \mysharp t_l
 \CONTAIN \textcolor {darkred}{t_r{\geq}n} \wedge Sugar \cancel{\mysharp t_r}}}
@@ -929,12 +932,12 @@ to the unification constraints.
 At the end of the rewriting, step \textcircled{7} manages to prove that 
 \code{\textcolor {darkred}{  t{>}1 \wedge t_l{\geq}(n\text{-}1) 
 \wedge  \textcolor{blue}{t_r{=}t_r^1 {+}t \wedge  t_l{=}t_r^1}  \Rightarrow t_r{\geq}n
-}  } \footnote{The proof obligations generated by the verifier are discharged using constraint solver Z3 \cite{de2008z3}.}; therefore, the proof succeed.
+}  } \footnote{The proof obligations generated by the verifier are discharged using constraint solver Z3 \cite{DBLP:conf/tacas/MouraB08}.}; therefore, the proof succeed.
 
 %(\code{\{Go\} \Rightarrow \_})
 %(\code{\{Ready\} \Rightarrow \_}, \code{t_L^2 \Rightarrow true})
 Termination is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using 
-\emph{memorization} \cite{brotherston2005cyclic}, cf., \tabref{tab:reoccur}. 
+\emph{memorization} \cite{DBLP:conf/tableaux/Brotherston05}, cf., \tabref{tab:reoccur}. 
 
 
 \subsection{The Fischer's mutual exclusion algorithm}
@@ -979,6 +982,7 @@ section and leaves later. Otherwise, it restarts from the
 beginning.  
 
 We show that our method is able to prove the algorithm in the 
+section of implementation.  prove the algorithm in the 
 section of implementation.  
 
 \section{Language and Specifications}
@@ -1589,7 +1593,7 @@ We use
 $[]$ to represent the empty sequence;
 $\lappend$ to represent the append operation of two traces;
 \code{[I]} to represent the sequence only contains one event.
-\code{{\tt{SAT}(\pi)} } indicates the pure \code{\pi} is satisfiable, which is discharged by the constraint solver Z3 \cite{de2008z3}.  
+\code{{\tt{SAT}(\pi)} } indicates the pure \code{\pi} is satisfiable, which is discharged by the constraint solver Z3 \cite{DBLP:conf/tacas/MouraB08}.  
 
 %The signals shown in one event  represent the \emph{minimal} set of signals which are required/guaranteed to be there. An empty set \code{\_} represents any set of signals
 
@@ -1855,7 +1859,7 @@ An inclusion with a disjunctive antecedent succeeds if both disjunctions entail 
 Now, the inclusions are disjunction-free formulas. 
 Next we provide the definitions and the key implementations\footnote{As 
 the implementations according to basic regular expressions can be found 
-in prior work \cite{keil2014symbolic}. 
+in prior work \cite{DBLP:conf/fsttcs/KeilT14}. 
 %Here, we focus on presenting 
 %the definitions and how do we deal with dependent values in the effects, 
 %as the key novelties of this work. 
@@ -2157,13 +2161,13 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 \begin{table}[ht]
 \caption{Normalization Axioms for \timedEffects.}
 \label{table:normalization}
-\setlength{\tabcolsep}{10pt}
+\setlength{\tabcolsep}{8pt}
 \renewcommand{\arraystretch}{1.2}
 \centering
 \begin{tabular}{rl}
 \footnotesize
 
-\begin{minipage}[t]{0.4\textwidth}
+\begin{minipage}[t]{0.45\textwidth}
 \begin{tabular}{||l|l}
 \hline
 (A1)  &
@@ -2207,7 +2211,7 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
  
   &
 \footnotesize
-  \begin{minipage}[t]{0.6\textwidth}
+  \begin{minipage}[t]{0.45\textwidth}
 \begin{tabular}{||l|l|}
 \hline
 (A12)  &
@@ -2296,7 +2300,7 @@ See %the technical report\cite{TR}.
 \subsection{Implementation}
 To show the feasibility of our approach, we have prototyped our automated verification system 
 using OCaml \emph{(A demo page  and source code are available from \cite{CODE})}. 
-The proof obligations generated by the verifier are discharged using constraint solver Z3 \citep{de2008z3}. 
+The proof obligations generated by the verifier are discharged using constraint solver Z3 \citep{DBLP:conf/tacas/MouraB08}. 
 We prove termination and correctness of the TRS. We validate the front-end forward verifier for conformance, against two implementations: the Columbia Esterel Compiler (CEC) 
 \cite{CEC} and Hiphop.js \cite{HH_im}. 
 
@@ -2383,14 +2387,17 @@ Meanwhile, we further demonstrate the flexibility and expressiveness of our effe
    %   \vspace{-2mm}
 %(\code{\{Go\} \Rightarrow \_})
 %(\code{\{Ready\} \Rightarrow \_}, \code{t_L^2 \Rightarrow true})
-Termination of TRS is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using \emph{memorization} \cite{brotherston2005cyclic}, i.e., the rule \code{[REOCCUR]}. % Check out this following example: 
+Termination of TRS is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using \emph{memorization} \cite{DBLP:conf/tableaux/Brotherston05}, i.e., the rule \code{[REOCCUR]}. % Check out this following example: 
 
 
 
 
 
 
-As shown in \tabref{tab:reoccur}, the LHS formula is a disjunction of two effects. An inclusion with a disjunctive antecedent succeeds if both disjunctions entail the consequent, shown in step \code{\textcircled{1}}.  
+As shown in \tabref{tab:reoccur}, the LHS formula is a 
+disjunction of two effects. An inclusion with a disjunctive 
+antecedent succeeds if both disjunctions entail the consequent, 
+shown in step {\textcircled{1}}.  
 %Now we have 2 subtrees, the first subtree is for
 %  \code{
 %    \textcolor {darkred}{t_L{<}3} : \{A\}^\star \mysharp  t_L \cdot \{B\}
@@ -2407,21 +2414,21 @@ As shown in \tabref{tab:reoccur}, the LHS formula is a disjunction of two effect
 %Using the disjunction rule \code{\effect_1 \vee \effect_2 \CONTAIN \effect \iff
 %\effect_1 \CONTAIN \effect \ and \  \effect_2 \CONTAIN \effect}, we split the proposition
 %in . 
-In step \code{\textcircled{2}} of the first sub-tree, in order to eliminate the first event \code{\{B\}}, \code{\{A\}^\star \mysharp  t_R} has to be reduced to be \code{\epsilon}, therefore the time constraints have nothing to do in this branch. 
+In step \textcircled{2} of the first sub-tree, in order to eliminate the first event \code{\{B\}}, \code{\{A\}^\star \mysharp  t_R} has to be reduced to be \code{\epsilon}, therefore the time constraints have nothing to do in this branch. 
 % is 
 %eliminated by \code{\epsilon}, 
-Then in steps \code{\code{\textcircled{4}}}, we
+Then in steps \textcircled{4}, we
 can simply prove it with the side constraint entailment \code{\textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True}} succeed.
 %and \code{\epsilon \CONTAIN \epsilon}. 
 
 
-Looking at the second sub-tree, in step \code{\textcircled{5}}, \code{t_L} and \code{t_R} are firstly split 
+Looking at the second sub-tree, in step \textcircled{5}, \code{t_L} and \code{t_R} are firstly split 
 into \code{t_L^1{+}t_L^2} and \code{t_R^1{+}t_R^2}. 
-Then in step \code{\textcircled{6}}, 
+Then in step {\textcircled{6}, 
 \code{\{A\} \mysharp  t_L^1} together with \code{\{A\} \mysharp  t_R^1} are eliminated, unifying \code{t_L^1} and \code{t_R^1} (adding the constraint \code{ t_L^1 {=}  t_R^1}).
 %, also
 %are unified as new constraint \code{t_L^1{=}t_R^1}.
-In step \code{\textcircled{7}}, we observe the proposition is isomorphic with one of the the previous step, marked using \code{\textcolor{darklavender}{(\ddagger)}}. 
+In step {\textcircled{7}, we observe the proposition is isomorphic with one of the the previous step, marked using \code{\textcolor{darklavender}{(\ddagger)}}. 
 %one in
 %step \code{\textcircled{1}}, 
 Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constraints entailment: \code{\textcolor {
@@ -2453,36 +2460,36 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 \begin{prooftree}
 
 
-\Hypo{
+\hypo{
   \code{
     \textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True} \qquad
     \epsilon \CONTAIN \epsilon
   }
 }
 
-\Infer[dashed]1[{\siderule{\textcircled{4}[PROVE]}}]{
+\infer[dashed]1[{\textcircled{4}\siderule{[PROVE]}}]{
   \code{
     \textcolor {darkred}{True} : \epsilon \CONTAIN
     \textcolor {darkred}{True} : \epsilon
   }
 }
 
-\Infer[dashed]1[{\siderule{\textcircled{3}[Normalisation]}}]{
+\infer[dashed]1[{\textcircled{3}\siderule{[Normalisation]}}]{
   \code{
     \textcolor {darkred}{True} : \cancel{\{B\}} \CONTAIN
     \textcolor {darkred}{True} : \cancel{\empt \cdot \{B\}}
   }
 }
 
-\Infer[dashed]1[{\siderule{\textcircled{2}[UNFOLD]}}]{
+\infer[dashed]1[{\textcircled{2}\siderule{[UNFOLD]}}]{
   \code{
     \textcolor {darkred}{True} : \{B\} \CONTAIN
     \textcolor {darkred}{t_R{<}4} : \{A\}^\star \mysharp  t_R \cdot \{B\}
   }
 }
-\Hypo{\code{II}}
+\hypo{\code{II}}
 
-\Infer[dashed]1[{\siderule{}}]{
+\infer[dashed]1[{\siderule{}}]{
   \code{
     \textcolor {darkred}{t_L{<}3} {:} \{A\}^\star \mysharp  t_L {\cdot} \{B\}
     \CONTAIN
@@ -2490,7 +2497,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
   }
 }
 
-\Infer[dashed]2[{\siderule{\textcircled{1}[Disj\text{-}L]}}]{
+\infer[dashed]2[{\textcircled{1}\siderule{[Disj\text{-}L]}}]{
   \code{
     \textcolor {darkred}{t_L{<}3} : \{A\}^\star \mysharp  t_L \cdot \{B\}
     \vee \textcolor {darkred}{True} : \{B\} \CONTAIN
@@ -2503,7 +2510,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 \hline \\
 \code{II:} 
 {\begin{prooftree}
-\Hypo{
+\hypo{
   \code{
     \textcolor {
       darkred}{t_L^1{+}t_L^2{=}t_L \wedge t_L{<}3 \wedge t_R{=}t_R^1{+}t_R^2 \wedge t_L^1{=}t_R^1
@@ -2517,7 +2524,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
   }
 }
 
-\Infer[dashed]1[{\siderule{}}]{
+\infer[dashed]1[{\siderule{}}]{
   \code{
     \textcolor {
       darkred}{\cdots {\wedge} \cdots
@@ -2532,7 +2539,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
   }
 }
 
-\Infer[dashed]1[{\siderule{\textcircled{7}[REOCCUR]}}]{
+\infer[dashed]1[{\textcircled{7}\siderule{[REOCCUR]}}]{
   \code{
     \textcolor {
       darkred}{
@@ -2546,7 +2553,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
   }
 }
 
-\Infer[dashed]1[{\siderule{\textcircled{6}[UNFOLD]}}]{
+\infer[dashed]1[{\textcircled{6}\siderule{[UNFOLD]}}]{
   \code{
     \textcolor {darkred}{t_L^1{+}t_L^2{=}t_L {\wedge} t_R{=}t_R^1{+}t_R^2} :
      ( \{A\} \mysharp  t_L^1 {\cdot} \{A\}^\star \mysharp  t_L^2) \cdot \{B\}
@@ -2556,7 +2563,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
   }
 }
 
-\Infer[dashed]1[{\siderule{\textcircled{5}[SPLIT]}}]{
+\infer[dashed]1[{\textcircled{5}\siderule{[SPLIT]}}]{
   \code{
     \textcolor {darkred}{t_L{<}3} : \{A\}^\star \mysharp  t_L \cdot \{B\}
     \CONTAIN
@@ -2601,7 +2608,7 @@ As the examples show, our proposed effects logic and the abstract semantics for 
 %Formally, given a KA is \code{(A,+,\cdot, \star,  0, 1)}, a SKA over a finite set \code{A_B} is \code{(A,+, \cdot, \times, \star,  0, 1,  A_B)}, \code{A_B {\subseteq} A}. 
 %Our \code{\bot} corresponds to the \code{0}; our \code{\empt} corresponds to the \code{1}; our \emph{event} containing simultaneous signals can be expressed via \code{\times}; 
 
-Compositional specification for real-time systems based on timed process algebras has been extensively studied. Examples include the CCS\code{\text{+}}Time \cite{yi1991ccs} and Timed CSP \cite{dong2008timed}.  
+Compositional specification for real-time systems based on timed process algebras has been extensively studied. Examples include the CCS\code{\text{+}}Time \cite{DBLP:conf/icalp/Yi91} and Timed CSP \cite{dong2008timed}.  
 The differences are: 
 i) in CCS\code{\text{+}}Time, if there is no timed constraints specified, transitions takes no time; whereas in our effects logic, it means \code{true} (arbitrary time), which is more close to the real life context where the time bounds are often unpredictable.
 ii) Timed CSP does not allow explicit representation of real-time through the manipulation of clock variables.
@@ -2622,35 +2629,21 @@ On the other hand, all the translation-based approaches share the common problem
 the overhead introduced by
 the complex translation makes it particularly inefficient when \emph{disproving} properties. 
 
-We believe in that the goal of verifying real-time systems, in particular safety-critical systems is to check logical temporal properties, which can be done without constructing the whole reachability graph or the full power of model-checking. We are of the opinion that our approach is simpler as it is based directly on constraint-solving techniques and can be fairly efficient in verifying systems consisting of many components as it avoids to explore the whole state-space \cite{song2020automated,yi1995automatic}.
+We believe in that the goal of verifying real-time systems, in particular safety-critical systems is to check logical temporal properties, which can be done without constructing the whole reachability graph or the full power of model-checking. We are of the opinion that our approach is simpler as it is based directly on constraint-solving techniques and can be fairly efficient in verifying systems consisting of many components as it avoids to explore the whole state-space \cite{DBLP:conf/icfem/SongC20,DBLP:conf/forte/YiPD94}.
 
-%About that, between TRS and the construction of efficient automata, recent work \cite{song2020automated} has shown that the former has a minor performance advantage (over a
+%About that, between TRS and the construction of efficient automata, recent work \cite{DBLP:conf/icfem/SongC20} has shown that the former has a minor performance advantage (over a
 %benchmark suite) when it is compared with
-%state-of-the-art PAT \cite{sun2009pat} model checker.
+%state-of-the-art PAT \cite{DBLP:conf/cav/SunLDP09} model checker.
 %Improvement came from the avoidance of the more
 %expensive automata construction process.
 
-Moreover, our \timedEffects also draws similarities to Synchronous Kleene Algebra (SKA) \cite{prisacariu2010synchronous}. 
-%Antimirov and Mosses' algorithm \cite{DBLP:journals/tcs/AntimirovM95} was designed for deciding the inclusion of regular expressions.   
-Kleene algebra (KA) is a decades-old sound and complete equational theory of regular expressions. Among many extensions of KA,
- %timed synchronous 
-  SKA is KA extended with a synchrony combinator for actions. In particularly, SKA's \emph{demanding relation} can be reflected by our \emph{instances subsumption} (\defref{Subsumption}), which contributes to the inductive unfolding process. 
-Yet our timed effects further capture the time bounds constraints by adding the operator \code{\mysharp }, adapting to real-time system modeling and verification, which is not covered by any existing KA variants/extensions. 
-
-
-
-%Presently, SKA allows the synchrony combinator \code{\times} to be expressed over any two SKA terms to support concurrency.
-%We achieve a similar outcome in Synced Effects by supporting normalization operations during trace synchronization, via a \code{zip} function in the forward rule of \code{[FV\text{-}Par]}.
-%This leads to one major difference in the inclusion/equivalence checking procedure, whereby a TRS for SKA would have to rely on
-%\emph{nullable}, \emph{first}, and \emph{partial derivatives} for terms constructed by the added combinator \code{\times}, but
-%carefully avoided by our TRS construction. 
 
 While the original equivalence checking algorithm for SKA terms in \cite{prisacariu2010synchronous} has
-relied on well-studied decision procedures based on classical Thompson \code{\epsilon}-NFA construction, prior work \cite{broda2015deciding}  shows that the use of Antimirov's partial derivatives
+relied on well-studied decision procedures based on classical Thompson \code{\epsilon}-NFA construction, prior work \cite{DBLP:conf/wia/BrodaCFM15}  shows that the use of Antimirov's partial derivatives
 could result in better average-case algorithms for automata construction. 
 %Our present work avoided the consideration for the more general \code{\times} operation from SKA
 %and customized the TRS for inclusion (instead of equivalence) checking. These decisions led to some opportunities for improvements.
-Moreover, between TRS and the construction of efficient automata, prior work has recently shown in \cite{song2020automated} that the former has a minor performance advantage (over a benchmark suite) when it is compared with state-of-the-art PAT \cite{sun2009pat} model checker.
+Moreover, between TRS and the construction of efficient automata, prior work has recently shown in \cite{DBLP:conf/icfem/SongC20} that the former has a minor performance advantage (over a benchmark suite) when it is compared with state-of-the-art PAT \cite{DBLP:conf/cav/SunLDP09} model checker.
 Improvement came from the avoidance of the more expensive automata construction process.
 
 
@@ -2659,27 +2652,25 @@ Improvement came from the avoidance of the more expensive automata construction 
 
 
 
-Combining program events with a temporal program logic for asserting properties of event traces yields a powerful and general engine for enforcing program properties. Results in \cite{skalka2008types,skalka2004history,marriott2003resource} have demonstrated that static approximations of program event traces can be generated by type and effect analyses \cite{talpin1994type,amtoft1999type}, in a form amenable to existing model-checking techniques for verification. We call these approximations trace-based effects.
+Combining program events with a temporal program logic for asserting properties of event traces yields a powerful and general engine for enforcing program properties. Results in \cite{skalka2008types,DBLP:conf/aplas/SkalkaS04,DBLP:conf/aplas/MarriottSS03} have demonstrated that static approximations of program event traces can be generated by type and effect analyses \cite{talpin1994type,amtoft1999type}, in a form amenable to existing model-checking techniques for verification. We call these approximations trace-based effects.
 
-Trace-based analyses have been shown capable of statically enforcing flow-sensitive security properties such as safe locking behavior \cite{foster2002flow} and resource usage policies such as file usage protocols and memory management \cite{marriott2003resource}. In \cite{bartoletti2005enforcing}, a trace effect analysis is used to enforce secure service composition. 
- Stack-based security policies are also amenable to this form of analysis, as shown in \cite{skalka2004history}. 
+Trace-based analyses have been shown capable of statically enforcing flow-sensitive security properties such as safe locking behavior \cite{DBLP:conf/pldi/FosterTA02} and resource usage policies such as file usage protocols and memory management \cite{DBLP:conf/aplas/MarriottSS03}. In \cite{DBLP:conf/csfw/BartolettiDF05}, a trace effect analysis is used to enforce secure service composition. 
+ Stack-based security policies are also amenable to this form of analysis, as shown in \cite{DBLP:conf/aplas/SkalkaS04}. 
  
 
  
  %  has effects capturing sequences of events, including requirements about things that must have happened prior to executing a given block of code
 
  
-More related to our work, prior research has been extending Hoare logic with event traces. The work \cite{malecha2011trace} focuses on finite traces (terminating runs) for web applications, leaving the divergent computation, which indicates \code{false}, verified for every specification. The work \cite{nakata2010hoare} focuses on infinite traces (non-terminating runs) by providing coinductively trace definitions. 
-More recent works \cite{bubel2015dynamic,song2020automated} proposed dynamic logics and unified operators to reason about possibly finite and infinite traces at the same time. 
+More related to our work, prior research has been extending Hoare logic with event traces. The work \cite{malecha2011trace} focuses on finite traces (terminating runs) for web applications, leaving the divergent computation, which indicates \code{false}, verified for every specification. The work \cite{DBLP:conf/esop/NakataU10} focuses on infinite traces (non-terminating runs) by providing coinductively trace definitions. 
+More recent works \cite{DBLP:conf/tableaux/BubelDHN15,DBLP:conf/icfem/SongC20} proposed dynamic logics and unified operators to reason about possibly finite and infinite traces at the same time. 
 
-Moreover, this paper draws similarities to \textit{contextual effects} \cite{neamtiu2008contextual}, which computes the effects that have already occurred as the prior effects. The effects of the computation yet to take place as the future effects. 
-Besides, prior work \cite{nielson1998behaviour} proposes an annotated type and effect system and infers behaviors from CML \cite{reppy1993concurrent} programs for channel-based communications, though it did not provide any inclusion solving process. 
+Moreover, this paper draws similarities to \textit{contextual effects} \cite{DBLP:conf/popl/NeamtiuHFP08}, which computes the effects that have already occurred as the prior effects. The effects of the computation yet to take place as the future effects. 
+Besides, prior work \cite{DBLP:conf/fase/NielsonAN98} proposes an annotated type and effect system and infers behaviors from CML \cite{DBLP:conf/mcmaster/Reppy93} programs for channel-based communications, though it did not provide any inclusion solving process. 
 
 
 
 However, none of the previous works have considered adding real-time abstractions into the modeling for a more extensive timed verification, which is our work's main contribution.
- %The purely algebraic TRS is flexible to accommodate possibly extended expressiveness for the effects logics. Furthermore, as an extension of prior work \cite{song2020automated}, this work is able to reason about both finite and infinite traces, using cyclic proof techniques established  from \cite{brotherston2005cyclic}.
-
 
 
 
