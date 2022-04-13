@@ -103,7 +103,7 @@
 {{\textbf{\footnotesize #1}}}}}
 \newcommand{\anynotevent}[1]{{\textcolor{darkred}
 {{\textbf{\footnotesize $\overline{\text{#1}}$}}}}}
-\newcommand{\seq}{\cdot}
+\newcommand{\seq} \cdot 
 \newcommand{\choice}{\vee}
 \newcommand{\fullname}{Integrated Dependent Effects}
 \newcommand{\name}{integrated effects}
@@ -360,7 +360,7 @@ paper.% while it can bes extended to real numbers and other
 %The timed effects incorporates different kinds of existing temporal logics, such as linear-time temporal logic (LTL)
 %and .
 %which replaces temporal operators by time-constrained versions from 
-Here, \code{\wedge} connects the arithmetic formula and the timed trace, \code{\mysharp } is a novel operator specifying the \emph{real-time} 
+Here, \code \wedge  connects the arithmetic formula and the timed trace, \code{\mysharp } is a novel operator specifying the \emph{real-time} 
 constraints for the \emph{logical-time} sequences \cite{DBLP:conf/fdl/HanxledenBG17}; 
 \code{\_} is a wildcard matching to any event; 
 Kleene star \code{\star} denotes trace repetition.
@@ -1320,7 +1320,7 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
 { {True}}
    \ |  {False}
    \ |  {A(}{t_1, t_2}{)}
-  \  |   {{\pi_1}} {\wedge} \code{{\pi}}_2
+  \  |   {{\pi_1}}  \wedge  \code{{\pi}}_2
    \ |  {{\pi_1}} {\vee} \code{{\pi}}_2
    \ |  \neg\code{{\pi}}
   \  |   {{\pi_1}} {\Rightarrow} {{\pi_2}}
@@ -1478,8 +1478,8 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%    parallel  2        %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &\code{d, s, \varphi \models {\pi} \wedge (\ev\mysharp t_1) || (\epsilon \mysharp  t_2)}  
-&\m{iff}\quad & \code{d, s, \varphi \models {(\pi{\wedge}t_1 {\geq}t_2)} \wedge (\ev\mysharp t_1) } 
-\ or\ \code{d, s, \varphi \models {(\pi{\wedge}t_1 {<}t_2)}  \wedge (\ev\mysharp t_1) \cdot (\epsilon \mysharp  (t_2\text{-}t_1))  } \\
+&\m{iff}\quad & \code{d, s, \varphi \models {(\pi \wedge t_1 {\geq}t_2)} \wedge (\ev\mysharp t_1) } 
+\ or\ \code{d, s, \varphi \models {(\pi \wedge t_1 {<}t_2)}  \wedge (\ev\mysharp t_1) \cdot (\epsilon \mysharp  (t_2\text{-}t_1))  } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    block         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1499,7 +1499,7 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 {True} }, 
 \  \exists \code{\es_1,\es_2}. \  \code{\es_1  \cdot  \es_2 {=} es}, \  \m{fresh}\ t_1, t_2,\\
 &&& \qquad  s.t. \ \code{d, s, \varphi {\models} {(\pi 
-{\wedge} t_1{\geq}0{\wedge}t_2{\geq}0 {\wedge} t_1{+} t_2{=}t)} \wedge 
+ \wedge  t_1{\geq}0 \wedge t_2{\geq}0  \wedge  t_1{+} t_2{=}t)} \wedge 
 (\es_1\mysharp t_1)  \cdot  (\es_2\mysharp t_2) } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    star         %%
@@ -1558,7 +1558,7 @@ are taken to be happening in instant time.
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                            CONCATENATE                         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models  \pi : (\es_1{\cdot}\es_2)}  
+&\code{d, \varphi \models  \pi : (\es_1 \cdot \es_2)}  
 &\m{iff}\quad 
 & {\tt{SAT}(\pi)}  \ and \ \exists \code{\varphi_1, \varphi_2, d_1, d_2}\ and\ \code{
 \varphi {=} \varphi_1 \lappend \varphi_2, d {=} d_1 {+} d_2 \ and 
@@ -1789,8 +1789,8 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 
 $[FV\text{-}\m{Value}]$  obtains the next program state by 
 inheriting the current program state.
-$[FV\text{-}Guard]$ updates the event sequences with with
-the guard \code{b}. 
+$[FV\text{-}Guard]$ computes the effects of \code{e} after concatenating
+\code{(b{=}True)}? in to the current program states.  
 {{\small\begin{gather*}
   \code{\frac{
   }
@@ -1799,71 +1799,77 @@ the guard \code{b}.
  {[FV\text{-}Value]}} 
  \qquad
  \code{\frac{
-  \vdash \{  \Pi, \Theta \}\  e \ 
+  \vdash \{  \Pi, \Theta \cdot (b{=}True)? \}\  e \ 
   \{ \Pi^\prime, \Theta^\prime \}
   }
 {  \vdash \{  \Pi, \Theta \}\  [b]\ e \ 
-\{  \Pi^\prime, b? \Theta^\prime \}} \  
+\{  \Pi^\prime, \Theta^\prime \}} \  
  {[FV\text{-}Guard]}} 
 \end{gather*}}}
 
-$[FV\text{-}Seq]$ infers  \code{ \{  \Pi_1, \Theta_1\} } 
+$[FV\text{-}Seq]$ computes  \code{ \{  \Pi_1, \Theta_1\} } 
 from \code{e_1}, 
-then further computes  \code{ \{  \Pi_2, \Theta_2 \} } by 
-continuously infer the behaviors of \code{e_2}, to be the final state.
-$[FV\text{-}Par]$ infers behaviors for  \code{e_1} and \code{e_2} independently,
+then further gets  \code{ \{  \Pi_2, \Theta_2 \} } by 
+continuously computing the behaviors of \code{e_2}, to be the final state.
+$[FV\text{-}Par]$ computes behaviors for  \code{e_1} and \code{e_2} independently,
 then parallel merges the effects from these two branches.  
 {{\small\begin{gather*}
   \code{\frac{ 
- \vdash \{ \Pi, \Theta\} \ e_1 \ \{  \Pi_1, \Theta_1\} 
-\ \  
-\vdash \{ \Pi_1, \Theta_1\} \ e_2 \  \{  \Pi_2, \Theta_2 \} 
+ \vdash \{ \Pi, \Theta\}  e_1  \{  \Pi_1, \Theta_1\} 
+\ \  \ 
+\vdash \{ \Pi_1, \Theta_1\}  e_2   \{  \Pi_2, \Theta_2 \} 
 }{
   \vdash \{  \Pi, \Theta \}\  
   e_1;e_2 \ \{ \Pi_2, \Theta_2
   \}} 
    {[FV\text{-}Seq]}}  
-\  
+\quad 
   \code{\frac{
- \vdash \{ \Pi, \Theta \} \ e_1 \  \{  \Pi_1, \Theta_1\} 
-\ \  
-\vdash \{  \Pi, \Theta \} \ e_2 \  \{  \Pi_2, \Theta_2 \} 
+ \vdash \{ \Pi, \Theta \}  e_1   \{  \Pi_1, \Theta_1\} 
+\ \  \ 
+\vdash \{  \Pi, \Theta \}  e_2   \{  \Pi_2, \Theta_2 \} 
     }{
 \vdash \{   \Pi, \Theta \}\  e_1 || e_2 \ \{ 
-\Pi_1 {\wedge}\Pi_2 , \Theta_1 || \Theta_2
+\Pi_1  \wedge \Pi_2 , \Theta_1 || \Theta_2
 \}}  
 {[FV\text{-}Par]}} 
 \end{gather*}}}
 
-
+The \code{[FV\text{-}If\text{-}Else]} computes an 
+over-approximation of the program states, by adding different constrains into 
+different branches. \code{\Pi \wedge v} enforces 
+\code{v} into the pure constraints of every traces in the state, same 
+for \code{\Pi \wedge \neg v }.
 {{\small\begin{gather*}
   \code{\frac{ 
     \begin{matrix}
-\vdash \{ \Pi{\wedge} v, \Theta    \} \ e_1 \ \{  \Theta^{\prime} , \Pi_1 \} 
+\vdash \{ \Pi \wedge v, \Theta    \} \ e_1 \ \{  \Pi_1, \Theta_2 \} 
 \qquad 
-\vdash \{ \Pi{\wedge} \neg v , \Theta  \} \ e_2 \ 
+\vdash \{ \Pi \wedge \neg v , \Theta  \} \ e_2 \ 
 \{  \Pi_2, \Theta_2 \}  
 \qquad (v\ is\ local)
 \end{matrix}}
   {\vdash \s{ \Pi, \Theta}\  \textbf{if}\ v\ \textbf{then}\ e_1\ 
-  \textbf{else}\ e_2 \ \s{ \Theta^{\prime} , \Pi_1} {\cup} \s{\Pi_2, \Theta_2} } \  
+  \textbf{else}\ e_2 \ \s{ \Pi_1, \Theta_2} \cup \s{\Pi_2, \Theta_2} } \  
   {[FV\text{-}If\text{-}Else\text{-}Local]}} 
-\\
-\code{\frac{ 
-  \begin{matrix}
-\vdash \{ \Pi, \Theta    \} \ e_1 \ \{  \Theta^{\prime} , \Pi_1 \} 
-\qquad 
-\vdash \{ \Pi , \Theta  \} \ e_2 \ 
-\{  \Pi_2, \Theta_2 \}  
-\qquad (v\ is\ global)
-\end{matrix}}
-{\vdash \s{ \Pi, \Theta}\  \textbf{if}\ v\ \textbf{then}\ e_1\ 
-\textbf{else}\ e_2 \ \s{\Pi, v. \Theta_1 \vee \Theta_2 }} \  
-{[FV\text{-}If\text{-}Else\text{-}Global]}} 
   \end{gather*}}}
-  
-     
-
+  %\\
+%\code{\frac{ 
+%  \begin{matrix}
+%\vdash \{ \Pi, \Theta    \} \ e_1 \ \{ \Pi_1, \Theta_2 \} 
+%\qquad 
+%\vdash \{ \Pi , \Theta  \} \ e_2 \ 
+%\{  \Pi_2, \Theta_2 \}  
+%\qquad (v\ is\ global)
+%\end{matrix}}
+%{\vdash \s{ \Pi, \Theta}\  \textbf{if}\ v\ \textbf{then}\ e_1\ 
+%\textbf{else}\ e_2 \ \s{\Pi, v. \Theta_1 \vee \Theta_2 }} \  
+%{[FV\text{-}If\text{-}Else\text{-}Global]}} 
+Rule \code{[FV\text{-}Event]} simply constructs an new event and 
+concatenates it to the current program states. 
+Rule \code{[FV\text{-}Delay]} creates a trace \code{\epsilon\mysharp t}
+, where \code{t} is fresh, and concatenates it to the current program states, 
+together with the additional constraint \code{t{=}d}. 
   {{\small\begin{gather*}
   \code{\frac{
     \Theta^\prime {=} \Theta\cdot \anyevent{A}(v, \alpha^*) 
@@ -1877,56 +1883,69 @@ then parallel merges the effects from these two branches.
     }
   {\vdash \s{ \Pi, \Theta} \  
   \textbf{delay} [d] 
-   \ \{ \Pi{\wedge} t {=}d,  \Theta^\prime \}} \   {[FV\text{-}Delay]}} 
+   \ \{ \Pi \wedge  t {=}d,  \Theta^\prime \}} \   {[FV\text{-}Delay]}} 
 \end{gather*}}}
-     
-
+Rule \code{[FV\text{-}Timeout]} computes the effects from \code{e_1} and \code{e_2}
+using the starting state \code{\s{\Pi, \epsilon}}. The final states are the union 
+of these effects with their corresponding time variables and arithmetic constrains. 
 {{\small\begin{gather*}
   \code{\frac{
     \begin{matrix}
-      \vdash \{ \epsilon, \Pi \}\ e_1 \ \{  \Pi_1, \Theta_1\} 
+      \vdash \{\Pi, \epsilon \}\ e_1 \ \{  \Pi_1, \Theta_1\} 
       \qquad 
-      \vdash \{  \epsilon, \Pi \}\ e_2 \ \{  \Pi_2, \Theta_2 \} 
+      \vdash \{ \Pi, \epsilon \}\ e_2 \ \{  \Pi_2, \Theta_2 \} 
       \\
-      \s{\Theta_f, \Pi_f} {=} \s{\Pi_1 {\wedge}t{\leq}d, \Theta {\cdot}(\Theta_1\mysharp t)}
+      \s{\Theta_f, \Pi_f} {=} \s{\Pi_1  \wedge t_1{\leq}d, (\Theta_1\mysharp t)}
       \cup 
-  \s{\Pi_2 {\wedge}t{>}d, \Theta {\cdot}(\Theta_2\mysharp t)}   
-  \quad (t\ is\ fresh)     
+  \s{\Pi_2  \wedge t_2{>}d,  (\Theta_2\mysharp t)}   
+  \quad (t_1, t_2\ are\ fresh)     
 \end{matrix}
   }
   {\vdash \s{ \Pi, \Theta} \  
   e_1\ \textbf{timeout} [d] \  e_2
-   \ \s{\Theta_f, \Pi_f} } \   {[FV\text{-}Timeout]}} 
+   \ \s{\Pi_f, \Theta \cdot \Theta_f} } \   {[FV\text{-}Timeout]}} 
 \end{gather*}}}
-
+Similar to the previous rule, \code{[FV\text{-}Ddl]} computes the effects 
+from \code{e} and adds an upper time-bound to the result. 
 {{\small\begin{gather*}
   \code{\frac{
     \begin{matrix}
-      \vdash \{ \epsilon, \Pi \}\ e \ \{  \Pi_1, \Theta_1\} 
+      \vdash \{ \Pi, \epsilon\}\ e \ \{  \Pi_1, \Theta_1\} 
   \quad (t\ is\ fresh)     
 \end{matrix}
   }
   {\vdash \s{ \Pi, \Theta} \  
   \textbf{deadline}  [d] \ e 
-   \ \s{\Pi_1 {\wedge}t{\leq}d, \Theta {\cdot}(\Theta_1\mysharp t)} }   
-    {[FV\text{-}Deadline]}} 
-\ 
-\code{\frac{  \vdash \effect_{pre} 
- \ e \  \{ \Pi, \Theta \} \quad   \{ \Pi, \Theta \} \CONTAIN  
-  \effect_{post}}{  \vdash  \ mn  \ {x^*}\ \{\textbf{req}\ \effect_{pre}\ 
+   \ \s{\Pi_1  \wedge t{\leq}d, \Theta  \cdot (\Theta_1\mysharp t)} }   
+    {[FV\text{-}Ddl]}} 
+  \end{gather*}}}
+  Rule \code{[FV\text{-}Meth]} initializes the current effects state 
+using the declared precondition, accumulates the effects from the method body, 
+to obtain \code{ \s{\Pi, \Theta}}; then  it
+checks the  inclusion between \code{ \s{\Pi, \Theta}} and the concatenation of 
+the precondition and the postcondition\footnote{Here, 
+\code{\effect_{post}} only needs to capture the effects from the current method body, excluding the history effects specified in \code{\effect_{pre}}. }.
+  {{\small\begin{gather*}
+\code{\frac{  \vdash \s{\effect_{pre}}
+ \ e \  \{ \Pi, \Theta \} \qquad   \{ \Pi, \Theta \} \CONTAIN  
+ \effect_{pre} \cdot \effect_{post}}{  \vdash  \ mn  \ {x^*}\ \{\textbf{req}\ \effect_{pre}\ 
   \textbf{ens}\  \effect_{post}\} \ \{ e \}}   {[FV\text{-}Meth]}}  
   \end{gather*}}}
 
 
-
-
+Rule \code{[FV\text{-}Call]} first checks whether the instantiated 
+  precondition of callee, \code{[v^*/x^*]\effect_{pre}}, is satisfied by 
+  the current program state. When the check is succeeded, the final states are 
+  formed by concatenating the  
+  instantiated postcondition to the current states. 
+  %, in which we use an auxiliary function \code{rev} to reverse the event sequences of effects.
 {{\small\begin{gather*}
 \code{\frac{
 \begin{matrix}
 {\code{  mn  \ {x^*}\ \{\textbf{req}\ \effect_{pre}\ \textbf{ens}\  \effect_{post}\} \ \{ e \} \in \mathcal{P}\ \ }}
 \\
 \text{\code{ \s{ \Pi, \Theta} \CONTAIN [v^*/x^*] \effect_{pre}   
-\qquad   \effect_f =  \s{ \Pi, \Theta} \cdot  [y^*/x^*]\effect_{post}}}
+\qquad   \effect_f =  \s{ \Pi, \Theta} \cdot  [v^*/x^*]\effect_{post}}}
 \end{matrix}}
 {\vdash \s{ \Pi, \Theta} \ mn({v^*})  \ 
 \effect_f} \ {[FV\text{-}Call]}}
@@ -1981,13 +2000,13 @@ effects \code{{\pi} \wedge \es}, w.r.t \code{\env}.
 
 
 \begin{definition}[Nullable]\label{Nullable}
-Given any \code{\effect {=} \pi {\wedge} \es}, %we define 
+Given any \code{\effect {=} \pi  \wedge  \es}, %we define 
 %\code{\delta_{{\pi}}(\es)} to be \\
 {
   \code{\delta_{{\pi}}(\es) :bool {=}
   \begin{cases}
-        \code{true} & \code{if\ \empt \in \llbracket {\pi} {\wedge} \es \rrbracket_{\varphi}}\\
-        \code{false} & \code{if\ \empt \notin \llbracket {\pi} {\wedge} \es \rrbracket_{\varphi}}
+        \code{true} & \code{if\ \empt \in \llbracket {\pi}  \wedge  \es \rrbracket_{\varphi}}\\
+        \code{false} & \code{if\ \empt \notin \llbracket {\pi}  \wedge  \es \rrbracket_{\varphi}}
       \end{cases} }
       }, where:  
 \begin{comment}
@@ -2100,7 +2119,7 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
     }
     \\ 
 {
- \code{D^{\env}_{h}(\pi \wedge \es_1 {\cdot} \es_2) {=} }
+ \code{D^{\env}_{h}(\pi \wedge \es_1  \cdot  \es_2) {=} }
 \begin{cases}
       \code{D^{\env}_{h}(\pi \wedge \es_1) \cdot  \es_2\ \vee \  D^{\env}_{h}(\pi \wedge \es_2)} \quad &\code{if\ \delta_{\pi}(\es_1) {=} true}   \\
       \code{D^{\env}_{h}(\pi \wedge \es_2) \cdot  \es_2} & \code{if\ \delta_{\pi}(\es_1) {=} false} 
@@ -2116,16 +2135,16 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
  \code{D^{\env}_{t}(\pi \wedge  \ev) } {=} \code{False \wedge \bott} 
  \qquad\qquad 
  \code{D^{\env}_{t}(\pi \wedge  \epsilon \mysharp t^\prime) } {=}  
- \code{\pi{\wedge}(t{=}t^\prime) \wedge \epsilon}
+ \code{\pi \wedge (t{=}t^\prime) \wedge \epsilon}
  \\
  \code{D^{\env}_{t}(\pi \wedge  \es \mysharp t^\prime) } {=} 
- \code{\pi{\wedge}(t{+}t^{\prime\prime}{=}t^\prime) \wedge  
+ \code{\pi \wedge (t{+}t^{\prime\prime}{=}t^\prime) \wedge  
  \es \mysharp t^{\prime\prime} \ \ \  {(t^{\prime\prime}\ is\ fresh)} } 
 \\~\\
 \hline
 ~\\
 \code{D^{\env}_{\ev}(\pi \wedge  \ev^\prime) } {=} 
-\code{\pi{\wedge}(\ev{=}\ev^\prime) \wedge \epsilon} 
+\code{\pi \wedge (\ev{=}\ev^\prime) \wedge \epsilon} 
 \qquad \quad 
 \code{D^{\env}_{\ev}(\pi \wedge  \es \mysharp t^\prime) } {=} 
 \code{\{(\pi^\prime \wedge \es^\prime \mysharp t^\prime) \ | \ (\pi^\prime \wedge \es^\prime) \in D^{\env}_{\ev}(\pi \wedge  \es)\}} 
@@ -2136,7 +2155,7 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
 \code{False \wedge \bott}  
 \qquad \ \ \  
 \code{D^{\env}_{(\ev, t)}(\pi \wedge  \es \mysharp t^\prime) } {=} 
-\code{\pi{\wedge}(t{+}t^{\prime\prime}{=}t^\prime) \wedge  
+\code{\pi \wedge (t{+}t^{\prime\prime}{=}t^\prime) \wedge  
 (D^{\env}_{\ev}(\pi \wedge  \es)) \mysharp t^{\prime\prime} \ \ \  {(t^{\prime\prime}\ is\ fresh)}} 
 \\
 \end{gather*}
@@ -2592,9 +2611,9 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 
 \infer[dashed]1[{\siderule{}}]{
   \code{
-    \textcolor {darkred}{t_L{<}3} {:} \{A\}^\star \mysharp  t_L {\cdot} \{B\}
+    \textcolor {darkred}{t_L{<}3} {:} \{A\}^\star \mysharp  t_L  \cdot  \{B\}
     \CONTAIN
-    \textcolor {darkred}{t_R{<}4} {:} \{A\}^\star \mysharp  t_R {\cdot} \{B\}
+    \textcolor {darkred}{t_R{<}4} {:} \{A\}^\star \mysharp  t_R  \cdot  \{B\}
   }
 }
 
@@ -2628,10 +2647,10 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 \infer[dashed]1[{\siderule{}}]{
   \code{
     \textcolor {
-      darkred}{\cdots {\wedge} \cdots
+      darkred}{\cdots  \wedge  \cdots
 %      
-%      t_L^1{+}t_L^2{=}t_L{<}3 {\wedge} t_R{=}t_R^1{+}t_R^2 {\wedge} t_L^1{=}t_R^1
-%      {\wedge} t_L^2{=}t_R^2
+%      t_L^1{+}t_L^2{=}t_L{<}3  \wedge  t_R{=}t_R^1{+}t_R^2  \wedge  t_L^1{=}t_R^1
+%       \wedge  t_L^2{=}t_R^2
     } :
      \{A\}^\star \mysharp  t_L^2 \cdot \{B\}
     \CONTAIN
@@ -2644,23 +2663,23 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
   \code{
     \textcolor {
       darkred}{
-%t_L^1{+}t_L^2{=}t_L {\wedge} t_R{=}t_R^1{+}t_R^2 {\wedge}      
+%t_L^1{+}t_L^2{=}t_L  \wedge  t_R{=}t_R^1{+}t_R^2  \wedge       
        t_L^1{=}t_R^1
     } :
-     \cancel{\{A\} \mysharp  t_L^1} {\cdot} \{A\}^\star \mysharp  t_L^2 \cdot \{B\}
+     \cancel{\{A\} \mysharp  t_L^1}  \cdot  \{A\}^\star \mysharp  t_L^2 \cdot \{B\}
     \CONTAIN
     \textcolor {darkred}{t_R{<}4} :
-     \cancel{\{A\} \mysharp  t_R^1} {\cdot} \{A\}^\star \mysharp  t_R^2 \cdot \{B\}
+     \cancel{\{A\} \mysharp  t_R^1}  \cdot  \{A\}^\star \mysharp  t_R^2 \cdot \{B\}
   }
 }
 
 \infer[dashed]1[{\textcircled{6}\siderule{[UNFOLD]}}]{
   \code{
-    \textcolor {darkred}{t_L^1{+}t_L^2{=}t_L {\wedge} t_R{=}t_R^1{+}t_R^2} :
-     ( \{A\} \mysharp  t_L^1 {\cdot} \{A\}^\star \mysharp  t_L^2) \cdot \{B\}
+    \textcolor {darkred}{t_L^1{+}t_L^2{=}t_L  \wedge  t_R{=}t_R^1{+}t_R^2} :
+     ( \{A\} \mysharp  t_L^1  \cdot  \{A\}^\star \mysharp  t_L^2) \cdot \{B\}
     \CONTAIN
     \textcolor {darkred}{t_R{<}4} :
-     ( \{A\} \mysharp  t_R^1 {\cdot} \{A\}^\star \mysharp  t_R^2) \cdot \{B\}
+     ( \{A\} \mysharp  t_R^1  \cdot  \{A\}^\star \mysharp  t_R^2) \cdot \{B\}
   }
 }
 
