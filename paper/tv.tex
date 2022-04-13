@@ -317,7 +317,7 @@ Timed Automata are powerful
 in designing real-time models with explicit clock variables. Real-time 
 constraints are captured by explicitly setting/resetting clock variables. 
 A number of automatic verification support for Timed Automata have proven 
-to be successful \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,DBLP:conf/seke/WangWH05}.
+to be successful \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,DBLP:journals/sttt/Yovine97,DBLP:conf/seke/WangWH05}.
 
 
 Models based on Timed Automata often adopt a simple structure, e.g., a 
@@ -500,7 +500,7 @@ A TRS is a refutation method that normalizes expressions in such a way
 that checking their inclusion corresponds to an iterated process of 
 checking the inclusion of their \emph{partial derivatives} 
 \cite{antimirov1995partial}. 
-Works based on such a TRS \cite{DBLP:conf/icfem/SongC20,DBLP:journals/tcs/AntimirovM95,almeida2009antimirov,DBLP:conf/fsttcs/KeilT14,hovland2012inclusion}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
+Works based on such a TRS \cite{DBLP:conf/icfem/SongC20,DBLP:journals/tcs/AntimirovM95,DBLP:journals/ijfcs/AlmeidaMR09,DBLP:conf/fsttcs/KeilT14,DBLP:journals/jcss/Hovland12}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
 
 This work targets timed temporal verification, and to the best of 
 the authors' knowledge, it proposes the first algebraic TRS 
@@ -628,7 +628,7 @@ in precondition.
 The examples 
 already show that our  effects provide more detailed information than 
 traditional timed verification, and in fact, it cannot be fully 
-captured by any prior works \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,yovine1997kronos,DBLP:conf/seke/WangWH05}.
+captured by any prior works \cite{DBLP:journals/tse/WangSWQ17,DBLP:journals/sttt/LarsenPY97,DBLP:journals/sttt/Yovine97,DBLP:conf/seke/WangWH05}.
 Nevertheless, the gain in expressive power comes from the efforts 
 of a more dedicated verification process, handled by our forward verifier and TRS.
 
@@ -2098,7 +2098,7 @@ Thirdly, we iterate each element \code{(I, \pi, t) \in F}, and compute the parti
 We present a set of normalization rules to soundly transfer the timed effects into a normal form, in particular after getting their derivatives. 
 Before getting into the above inference rules, we assume that the effects formulae are tailored accordingly based on the axioms shown in
 \tabref{table:normalization}
-We built the axiom system on top of a complete axiom system \code{F_1}, from (A1) to (A11), suggested by \cite{salomaa1966two}, which was designed for regular languages. We develop axioms (A12) to (A22) to further accommodate effects constructed by \code{||},   \code{\mysharp } and \code{\omega}.
+We built the axiom system on top of a complete axiom system \code{F_1}, from (A1) to (A11), suggested by \cite{DBLP:journals/jacm/Salomaa66}, which was designed for regular languages. We develop axioms (A12) to (A22) to further accommodate effects constructed by \code{||},   \code{\mysharp } and \code{\omega}.
 
 
 
@@ -2590,6 +2590,7 @@ As the examples show, our proposed effects logic and the abstract semantics for 
 
 
 
+Works based on such a TRS \cite{DBLP:conf/icfem/SongC20,DBLP:conf/vmcai/SongC21,DBLP:journals/tcs/AntimirovM95,DBLP:journals/ijfcs/AlmeidaMR09,DBLP:conf/fsttcs/KeilT14,DBLP:journals/jcss/Hovland12,prisacariu2010synchronous}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
 
 
 
@@ -2608,7 +2609,7 @@ As the examples show, our proposed effects logic and the abstract semantics for 
 %Formally, given a KA is \code{(A,+,\cdot, \star,  0, 1)}, a SKA over a finite set \code{A_B} is \code{(A,+, \cdot, \times, \star,  0, 1,  A_B)}, \code{A_B {\subseteq} A}. 
 %Our \code{\bot} corresponds to the \code{0}; our \code{\empt} corresponds to the \code{1}; our \emph{event} containing simultaneous signals can be expressed via \code{\times}; 
 
-Compositional specification for real-time systems based on timed process algebras has been extensively studied. Examples include the CCS\code{\text{+}}Time \cite{DBLP:conf/icalp/Yi91} and Timed CSP \cite{dong2008timed}.  
+Compositional specification for real-time systems based on timed process algebras has been extensively studied. Examples include the CCS\code{\text{+}}Time \cite{DBLP:conf/icalp/Yi91} and Timed CSP \cite{DBLP:journals/tse/DongHQSY08}.  
 The differences are: 
 i) in CCS\code{\text{+}}Time, if there is no timed constraints specified, transitions takes no time; whereas in our effects logic, it means \code{true} (arbitrary time), which is more close to the real life context where the time bounds are often unpredictable.
 ii) Timed CSP does not allow explicit representation of real-time through the manipulation of clock variables.
@@ -2616,20 +2617,25 @@ ii) Timed CSP does not allow explicit representation of real-time through the ma
 %relies on implicit clocks, which means it 
 
 
-There have been a number of translation-based approaches on building verification support for timed process algebras. For example, Timed CSP \cite{dong2008timed} is translated to Timed Automata (TA) so that the model checker Uppaal can be \cite{DBLP:journals/sttt/LarsenPY97} applied. 
+There have been a number of translation-based approaches on building verification support for timed process algebras. For example, Timed CSP \cite{DBLP:journals/tse/DongHQSY08} is translated to Timed Automata (TA) so that the model checker Uppaal can be \cite{DBLP:journals/sttt/LarsenPY97} applied. 
 TA are finite state automata equipped with clock variables. Models based on TA often have simple structures. For example, the input models of the Uppaal are networks of TA with no hierarchy. 
 
 %Given the well-established TA techniques, 
 
-In practice, system requirements are often structured into phases, which are then composed in many different ways, while TA is deficiency in modeling complex compositional systems. Users often need to manually cast high-level requirements into a set of clock variables with carefully calculated clock constraints, which is tedious and error-prone \cite{sun2013modeling}. 
+In practice, system requirements are often structured into phases, which are then composed in many different ways, while TA is deficiency in modeling complex compositional systems. Users often need to manually cast high-level requirements into a set of clock variables with carefully calculated clock constraints, which is tedious and error-prone \cite{DBLP:journals/tosem/00010DLSA13}. 
 %Also real-time system modeling based on timed process algebras often suffers from lack of language features or automated tool support. 
 On the other hand, all the translation-based approaches share the common problem: 
-%i) the worst-case complexity of any efficient  equivalences/inclusion checking algorithm \cite{de2006antichains} %based on such translation 
 %goes  exponential in the number of automata states; and ii) 
 the overhead introduced by
 the complex translation makes it particularly inefficient when \emph{disproving} properties. 
 
-We believe in that the goal of verifying real-time systems, in particular safety-critical systems is to check logical temporal properties, which can be done without constructing the whole reachability graph or the full power of model-checking. We are of the opinion that our approach is simpler as it is based directly on constraint-solving techniques and can be fairly efficient in verifying systems consisting of many components as it avoids to explore the whole state-space \cite{DBLP:conf/icfem/SongC20,DBLP:conf/forte/YiPD94}.
+We believe in that the goal of verifying real-time systems, in particular 
+safety-critical systems is to check logical temporal properties, which can 
+be done without constructing the whole reachability graph or the full power 
+of model-checking. We are of the opinion that our approach is simpler as 
+it is based directly on constraint-solving techniques and can be fairly 
+efficient in verifying systems consisting of many components as it avoids 
+to explore the whole state-space \cite{DBLP:conf/icfem/SongC20,DBLP:conf/forte/YiPD94}.
 
 %About that, between TRS and the construction of efficient automata, recent work \cite{DBLP:conf/icfem/SongC20} has shown that the former has a minor performance advantage (over a
 %benchmark suite) when it is compared with
@@ -2637,10 +2643,7 @@ We believe in that the goal of verifying real-time systems, in particular safety
 %Improvement came from the avoidance of the more
 %expensive automata construction process.
 
-
-While the original equivalence checking algorithm for SKA terms in \cite{prisacariu2010synchronous} has
-relied on well-studied decision procedures based on classical Thompson \code{\epsilon}-NFA construction, prior work \cite{DBLP:conf/wia/BrodaCFM15}  shows that the use of Antimirov's partial derivatives
-could result in better average-case algorithms for automata construction. 
+ 
 %Our present work avoided the consideration for the more general \code{\times} operation from SKA
 %and customized the TRS for inclusion (instead of equivalence) checking. These decisions led to some opportunities for improvements.
 Moreover, between TRS and the construction of efficient automata, prior work has recently shown in \cite{DBLP:conf/icfem/SongC20} that the former has a minor performance advantage (over a benchmark suite) when it is compared with state-of-the-art PAT \cite{DBLP:conf/cav/SunLDP09} model checker.
@@ -2652,7 +2655,7 @@ Improvement came from the avoidance of the more expensive automata construction 
 
 
 
-Combining program events with a temporal program logic for asserting properties of event traces yields a powerful and general engine for enforcing program properties. Results in \cite{skalka2008types,DBLP:conf/aplas/SkalkaS04,DBLP:conf/aplas/MarriottSS03} have demonstrated that static approximations of program event traces can be generated by type and effect analyses \cite{talpin1994type,amtoft1999type}, in a form amenable to existing model-checking techniques for verification. We call these approximations trace-based effects.
+Combining program events with a temporal program logic for asserting properties of event traces yields a powerful and general engine for enforcing program properties. Results in \cite{DBLP:journals/jfp/SkalkaSH08,DBLP:conf/aplas/SkalkaS04,DBLP:conf/aplas/MarriottSS03} have demonstrated that static approximations of program event traces can be generated by type and effect analyses \cite{DBLP:journals/iandc/TalpinJ94,DBLP:books/daglib/0098135}, in a form amenable to existing model-checking techniques for verification. We call these approximations trace-based effects.
 
 Trace-based analyses have been shown capable of statically enforcing flow-sensitive security properties such as safe locking behavior \cite{DBLP:conf/pldi/FosterTA02} and resource usage policies such as file usage protocols and memory management \cite{DBLP:conf/aplas/MarriottSS03}. In \cite{DBLP:conf/csfw/BartolettiDF05}, a trace effect analysis is used to enforce secure service composition. 
  Stack-based security policies are also amenable to this form of analysis, as shown in \cite{DBLP:conf/aplas/SkalkaS04}. 
@@ -2662,7 +2665,7 @@ Trace-based analyses have been shown capable of statically enforcing flow-sensit
  %  has effects capturing sequences of events, including requirements about things that must have happened prior to executing a given block of code
 
  
-More related to our work, prior research has been extending Hoare logic with event traces. The work \cite{malecha2011trace} focuses on finite traces (terminating runs) for web applications, leaving the divergent computation, which indicates \code{false}, verified for every specification. The work \cite{DBLP:conf/esop/NakataU10} focuses on infinite traces (non-terminating runs) by providing coinductively trace definitions. 
+More related to our work, prior research has been extending Hoare logic with event traces. The work \cite{DBLP:journals/jsc/MalechaMW11} focuses on finite traces (terminating runs) for web applications, leaving the divergent computation, which indicates \code{false}, verified for every specification. The work \cite{DBLP:conf/esop/NakataU10} focuses on infinite traces (non-terminating runs) by providing coinductively trace definitions. 
 More recent works \cite{DBLP:conf/tableaux/BubelDHN15,DBLP:conf/icfem/SongC20} proposed dynamic logics and unified operators to reason about possibly finite and infinite traces at the same time. 
 
 Moreover, this paper draws similarities to \textit{contextual effects} \cite{DBLP:conf/popl/NeamtiuHFP08}, which computes the effects that have already occurred as the prior effects. The effects of the computation yet to take place as the future effects. 
