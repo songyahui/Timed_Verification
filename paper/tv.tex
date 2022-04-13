@@ -103,14 +103,8 @@
 {{\textbf{\footnotesize #1}}}}}
 \newcommand{\anynotevent}[1]{{\textcolor{darkred}
 {{\textbf{\footnotesize $\overline{\text{#1}}$}}}}}
-\newcommand{\seq} \cdot 
-\newcommand{\choice}{\vee}
-\newcommand{\fullname}{Integrated Dependent Effects}
-\newcommand{\name}{integrated effects}
 \newcommand{\code}[1]{{\tt{\ensuremath{\m{#1}}}}}
 \newcommand{\codeme}[1]{{\tt{\ensuremath{#1}}}}
-\newcommand{\empt}{\textcolor{black}{\ensuremath{\epsilon}}}
-\newcommand{\bott}{\textcolor{black}{\ensuremath{\bot}}}
 \newcommand{\CONTAIN}{\sqsubseteq}
 \newcommand{\underscore}{\textcolor{vividauburn}{\code{\_}}}
 \newcommand{\m}{\mathit} 
@@ -118,7 +112,6 @@
 
 \newcommand{\mysharp}{{\mathrel{\texttt{\#}}}}
 
-\newcommand{\toolName}{Tvide}
 \def\defeq{\ensuremath{\,\triangleq}}
 \definecolor{regalia}{rgb}{0.32, 0.18, 0.5}
 \newcommand{\inclusion}{\code{\mathcal{I}}}
@@ -271,7 +264,7 @@ efficiently prove language inclusions between
  \timedEffects. 
 To demonstrate the feasibility of our proposals, 
 we prototype the verification system; prove its 
-correctness; report on case studies and the experimental results. 
+soundness; report on case studies and the experimental results. 
 
  
 
@@ -542,7 +535,7 @@ behaviors and the given temporal specifications, both in  \timedEffects.
 
 \item \textbf{Implementation and Evaluation:} we prototype the novel 
 effects logic and the automated verification system, 
-prove the correctness, report on case studies and experimental results. 
+prove the soundness, report on case studies and experimental results. 
 
 
 
@@ -1292,10 +1285,10 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
     \\
  \m{(Event \ Sequences)}  & \ \code{\es}   &\code{ ::=}&
    
-   \code{ \bott
-   \  | \ \empt 
+   \code{ \bot 
+   \  | \  \epsilon 
     \ | \ \ev
-   \  | \ \es_1 \seq \es_2
+   \  | \ \es_1 \cdot \es_2
     \ | \ \es_1 \vee \es_2
     \ | \ \es_1 {||} \es_2
     \ | \ \pi ? 
@@ -1370,8 +1363,8 @@ The  syntax of the \timedEffects\ is formally defined in
 \figref{fig:Syntax_of_Types_and_Effects} Effects is 
  a conditioned event sequence \code{{\pi}\wedge es} or a disjunction of 
  two effects $\effect_1 \vee \effect_2$.
-Timed sequences comprise \textit{nil} ($\bott$);
- an empty trace $\empt$;
+Timed sequences comprise \textit{nil} ($\bot $);
+ an empty trace $ \epsilon$;
 a single event \code{ev};
   %where \anyevent{a} is an element from a finite set of events, donated by \code{\Sigma};
 %parametrized event \code{ \anyevent{a}.\iota} where \code{\iota} is a list pattern expressing a possibly infinite list (for example, \code{\anyevent{a}.[1,2,3,4]},  \code{\anyevent{a}.[1 .. 4]} and \code{\anyevent{a}.[1, 2.. 4]} all refer to the finite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot \anyevent{a}.4},
@@ -1441,7 +1434,7 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%         Empty          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s,  \varphi \models {\pi} \wedge \empt}  
+&\code{d, s,  \varphi \models {\pi} \wedge  \epsilon}  
 &\m{iff}\quad & \code{d{=}0}\ and  \ \code{\llbracket {\pi} \rrbracket_s {=}  
 {True} } \ and\  \code{ \varphi {=} [] }\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1494,7 +1487,7 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &\code{d, s, \varphi \models {\pi}  \wedge es\mysharp  t}  &\m{iff}\quad &
  \code{\llbracket {\pi}  \wedge t {=} 0 \rrbracket_{s} {=}  
- {True} }, \ \code{d, s, \varphi \models {\pi}  \wedge \empt}\ or  \\
+ {True} }, \ \code{d, s, \varphi \models {\pi}  \wedge  \epsilon}\ or  \\
 & & &  \code{\llbracket {\pi}\wedge t {>} 0 \rrbracket_{s} {=}  
 {True} }, 
 \  \exists \code{\es_1,\es_2}. \  \code{\es_1  \cdot  \es_2 {=} es}, \  \m{fresh}\ t_1, t_2,\\
@@ -1505,13 +1498,13 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%    star         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 &\code{d, s, \varphi \models {\pi}\wedge es^\star}  &\m{iff}\quad & 
-\code{d, s, \varphi \models {\pi}  \wedge \empt}\ or \ 
+\code{d, s, \varphi \models {\pi}  \wedge  \epsilon}\ or \ 
 \code{d, s, \varphi \models {\pi}  \wedge es  \cdot  es^\star}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    FALSE         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 & \code{d, s, \varphi \models false}  &\m{iff}\quad &
- \code{\llbracket {\pi}  \rrbracket_{s} {=} {False} } \ or \ \code{\varphi {=} \bott}
+ \code{\llbracket {\pi}  \rrbracket_{s} {=} {False} } \ or \ \code{\varphi {=} \bot }
 \end{align*}
   \vspace{-2mm}
 \caption{Semantics of \timedEffects.}
@@ -1544,7 +1537,7 @@ are taken to be happening in instant time.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%                          EMPTY                          %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, \varphi \models \pi : \empt }  
+&\code{d, \varphi \models \pi :  \epsilon }  
 &\m{iff}\quad 
 &  d{=}0 \ and\  {\tt{SAT}(\pi)}  \ and \ \varphi {=} [] 
 \\[0.2em]
@@ -1952,17 +1945,44 @@ Rule \code{[FV\text{-}Call]} first checks whether the instantiated
 \end{gather*}}}
 
 
+\begin{theorem}[Soundness of the Forward Rules]\label{Soundness_forward_rules}
+  Given any system configuration \code{\zeta = (\env, e)}, by applying the operational
+  semantics rules, 
+  if \code{(\env, e) {\rightarrow^*} (\env^\prime, ())} produces concrete 
+  execution time \code{d} and event trace \code{\varphi}, and \code{ \vdash  
+  \s{\env, \epsilon} e \s{\Pi, \Theta}}, then, 
+  \code{\exists (\pi\wedge \es) \in \s{\Pi, \Theta} } such that 
+  \code{d, \env^\prime, \varphi  \models (\pi\wedge \es)}. 
+  %. 
+
+%  pair $(\env , e)$ where $\env$ is a variable valuation function and $e$ is an expression.
+  \end{theorem}
+  
+  
+  \begin{proof}
+    By induction. 
+  %See %the technical report\cite{TR}. 
+  %\appref{proof:SoundnessProof}.
+  \end{proof}
+
 
 \section{Temporal Verification via a TRS}
 \label{sec:Entailment_Prover}
 
 
-The TRS  is an automated entailment checker to prove language inclusions among \timedEffects (cf. \defref{Inclusion} and \tabref{tab:rewriting_tree_send}). It is triggered i) prior to temporal property assertions; ii) prior to function calls for the precondition checking; and iii) at the end of verifying a function for the post condition checking. Given two effects \code{\effect_1,\ \effect_2}, TRS decides if the inclusion \code{\effect_1 \CONTAIN  \effect_2 } is valid. 
+The TRS  is an automated entailment checker to prove language 
+inclusions among \timedEffects\ (cf. \defref{Inclusion} and 
+\tabref{tab:rewriting_tree_send}). It is triggered i) prior to 
+temporal property assertions; ii) prior to function calls for the 
+precondition checking; and iii) at the end of verifying a function 
+for the post condition checking. Given two effects 
+\code{\effect_1,\ \effect_2}, TRS decides if the inclusion \code{\effect_1 \CONTAIN  \effect_2 } is valid. 
 
 During the effects rewriting process, the inclusions are in the form of \code{\Gamma \vdash  \effect_1 \CONTAIN^{\effect}  \effect_2 }, a shorthand for: \code{\Gamma \vdash  \effect \cdot \effect_1 \CONTAIN   \effect \cdot  \effect_2}. To prove such inclusions is to check whether all the possible timed traces in the antecedent \code{\effect_1} are legitimately allowed  in the possible timed traces from the consequent \code{\effect_2}.
 \code{\Gamma} is the proof context, i.e., a set of effects inclusion hypothesis, \code{\effect} is the history effects from the antecedent that have been used to match the effects from the consequent.
 Note that \code{\Gamma}, \code{\effect} are derived during the inclusion proof. 
-The inclusion checking is initially invoked with \code{\Gamma{=}\_} and \code{\effect{=} True : \empt}. 
+The inclusion checking is initially invoked with \code{\Gamma{=}\{\}} and 
+\code{\effect{=} True \wedge  \epsilon}. 
 
 
 
@@ -1996,7 +2016,7 @@ effects \code{{\pi} \wedge \es}, w.r.t \code{\env}.
 %\subsection{closure of clock constrains}
 %how to eliminate the unobservable transitions. 
 %
-%we allow the $\empt$transitions without carrying constraints and resetting clocks at the same time. 
+%we allow the $ \epsilon$transitions without carrying constraints and resetting clocks at the same time. 
 
 
 \begin{definition}[Nullable]\label{Nullable}
@@ -2005,8 +2025,8 @@ Given any \code{\effect {=} \pi  \wedge  \es}, %we define
 {
   \code{\delta_{{\pi}}(\es) :bool {=}
   \begin{cases}
-        \code{true} & \code{if\ \empt \in \llbracket {\pi}  \wedge  \es \rrbracket_{\varphi}}\\
-        \code{false} & \code{if\ \empt \notin \llbracket {\pi}  \wedge  \es \rrbracket_{\varphi}}
+        \code{true} & \code{if\  \epsilon \in \llbracket {\pi}  \wedge  \es \rrbracket_{\varphi}}\\
+        \code{false} & \code{if\  \epsilon \notin \llbracket {\pi}  \wedge  \es \rrbracket_{\varphi}}
       \end{cases} }
       }, where:  
 \begin{comment}
@@ -2015,9 +2035,9 @@ We define recursively:
 \end{comment} 
 { 
 \begin{gather*}
-\code{\delta_{\pi}(\bott) {=} false} 
+\code{\delta_{\pi}(\bot ) {=} false} 
 \qquad\quad
-\code{\delta_{\pi}(\empt) {=} true} 
+\code{\delta_{\pi}( \epsilon) {=} true} 
 \qquad\quad
 \code{\delta_{\pi}(\ev){=} false}   
 \qquad\quad
@@ -2025,9 +2045,9 @@ We define recursively:
 \qquad\quad\
     \code{\delta({\es^\star} ) {=} true}   
 \\ 
-\code{\delta_{\pi}(\es \seq \es_2) {=} \delta(\es_1) \wedge \delta(\es_2)}
+\code{\delta_{\pi}(\es \cdot \es_2) {=} \delta(\es_1) \wedge \delta(\es_2)}
 \qquad\qquad\quad
-  \code{\delta_{\pi}(\es_1 \choice \es_2) {=} \delta(\es_1) \vee \delta(\es_2)}   
+  \code{\delta_{\pi}(\es_1 \vee \es_2) {=} \delta(\es_1) \vee \delta(\es_2)}   
   \\
 \code{\delta_{\pi}(\es_1 || \es_2) {=} \delta(\es_1) \wedge \delta(\es_2)}
 \qquad\qquad\quad
@@ -2057,8 +2077,8 @@ A head can be  $t$, denoting a pure time passing;
   derivable from effects \code{\pi \wedge \es}, where: 
     { 
    \begin{gather*} 
-  \code{fst_{{\pi}}( \bott) {=} \{\} } \qquad\ \ 
-  \code{fst_{{\pi}}(\empt) {=}  \{\} } \qquad\ \ 
+  \code{fst_{{\pi}}( \bot ) {=} \{\} } \qquad\ \ 
+  \code{fst_{{\pi}}( \epsilon) {=}  \{\} } \qquad\ \ 
   \code{fst_{{\pi}}( \ev) {=} \{ \ev \}  }
   \qquad\ \ 
   \code{fst_{{\pi}}(  \epsilon \mysharp  t) {=}  \{ t \}}
@@ -2077,7 +2097,7 @@ A head can be  $t$, denoting a pure time passing;
      \code{fst_{{\pi}}(  \es_1 {||} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }   
      \\
   {
-  \code{fst_{{\pi}}(\es_1 {\seq} \es_2) {=} } 
+  \code{fst_{{\pi}}(\es_1 {\cdot} \es_2) {=} } 
   \begin{cases}
         \code{\code{fst_{{\pi}}(  \es_1)} \cup \code{fst_{{\pi}}(  \es_2)} } & \code{ if\ \delta(\es_1) {=} true}\\
         \code{\code{fst_{{\pi}}(  \es_1)}} & \code{  if\ \delta(\es_1) {=} false}
@@ -2095,7 +2115,7 @@ Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we d
 \end{comment}
 
 
-\begin{definition}[Partial Derivative\footnote{Intuitively, the partial derivative refers to the left quotient of a language equation, for example, for REs, \code{x^{{-}1} \llbracket x\cdot y\rrbracket {=} y};  \code{y^{{-}1} \llbracket x\cdot y\rrbracket {=} \bott}; and  \code{y^{{-}1} \llbracket x + y\rrbracket {=} \epsilon}. Here we come up with a new notion of partial derivative for \timedEffects. 
+\begin{definition}[Partial Derivative\footnote{Intuitively, the partial derivative refers to the left quotient of a language equation, for example, for REs, \code{x^{{-}1} \llbracket x\cdot y\rrbracket {=} y};  \code{y^{{-}1} \llbracket x\cdot y\rrbracket {=} \bot }; and  \code{y^{{-}1} \llbracket x + y\rrbracket {=} \epsilon}. Here we come up with a new notion of partial derivative for \timedEffects. 
 }]\label{Derivative}
 Given any \code{\effect {=} \pi \wedge \es}, and a variable valuation function \code{\env}, 
 the partial derivative \code{D^{\env}_{h}(\pi \wedge \es)} 
@@ -2104,9 +2124,9 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
 \rrbracket_{\env}}. 
 %\footnote{As the reader may notice, our First and Derivative function does not handle the timed sequences constructed by \code{||}, as the synchronous parallel is reduced during the normalization phase.}
 \begin{gather*}
-\code{D^{\env}_{h}(\pi \wedge \bott) {=}}  \code{False \wedge \bott} 
+\code{D^{\env}_{h}(\pi \wedge \bot ) {=}}  \code{False \wedge \bot } 
 \qquad\ \ \  
-\code{D^{\env}_{h}( \pi \wedge \empt) {=}}  \code{False \wedge \bott} 
+\code{D^{\env}_{h}( \pi \wedge  \epsilon) {=}}  \code{False \wedge \bot } 
 \qquad\ \ \ 
 \code{D^{\env}_{h}( \pi \wedge {\es^\star}) } {=} \code{ D^{\env}_{h}(\pi \wedge  {\es}) \cdot {\es^\star}}  
 \\
@@ -2126,13 +2146,13 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
     \end{cases} 
     }
 \\
-\code{D^{\env}_{h}(\pi \wedge  \es_1 {\choice} \es_2) } {=} \code{ D^{\env}_{h}(\pi \wedge  \es_1) \choice D^{\env}_{h}( \pi \wedge \es_2)} 
+\code{D^{\env}_{h}(\pi \wedge  \es_1 {\vee} \es_2) } {=} \code{ D^{\env}_{h}(\pi \wedge  \es_1) \vee D^{\env}_{h}( \pi \wedge \es_2)} 
 \qquad 
 \code{D^{\env}_{h}(\pi \wedge \es_1 {||}\es_2)} {=} \code{PD^{\env}_{h}(\pi \wedge \es_1)} || \code{PD^{\env}_{h}(\pi \wedge \es_2)} 
  \\~\\
  \hline
  ~\\
- \code{D^{\env}_{t}(\pi \wedge  \ev) } {=} \code{False \wedge \bott} 
+ \code{D^{\env}_{t}(\pi \wedge  \ev) } {=} \code{False \wedge \bot } 
  \qquad\qquad 
  \code{D^{\env}_{t}(\pi \wedge  \epsilon \mysharp t^\prime) } {=}  
  \code{\pi \wedge (t{=}t^\prime) \wedge \epsilon}
@@ -2152,7 +2172,7 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
 \hline
 ~\\
 \code{D^{\env}_{(\ev, t)}(\pi \wedge  \ev^\prime) } {=} 
-\code{False \wedge \bott}  
+\code{False \wedge \bot }  
 \qquad \ \ \  
 \code{D^{\env}_{(\ev, t)}(\pi \wedge  \es \mysharp t^\prime) } {=} 
 \code{\pi \wedge (t{+}t^{\prime\prime}{=}t^\prime) \wedge  
@@ -2167,7 +2187,7 @@ left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es
   the parallel derivative is defined as: {
     \code{PD^{\env}_{h}(\pi \wedge \es) {=}
     \begin{cases}
-          \code{\pi \wedge \es} & \code{if\ D^{\env}_{h}(\pi \wedge \es) = (False \wedge \bott)}\\
+          \code{\pi \wedge \es} & \code{if\ D^{\env}_{h}(\pi \wedge \es) = (False \wedge \bot )}\\
           \code{D^{\env}_{h}(\pi \wedge \es)} & \code{otherwise}
         \end{cases} }
         }
@@ -2185,7 +2205,7 @@ Given the well-defined auxiliary functions above, we now discuss the key steps a
 \item 
 \textbf{Axiom rules.}
 \label{Base}
-Analogous to  the standard propositional logic, \code{\bott} (referring to \textit{false}) entails any effects, while no \textit{non-false} effects entails \code{\bott}.
+Analogous to  the standard propositional logic, \code{\bot } (referring to \textit{false}) entails any effects, while no \textit{non-false} effects entails \code{\bot }.
 \input{rules/rule1}
 
 \item 
@@ -2232,20 +2252,20 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 %\vspace{0mm}
 %\begin{tabular}{l || l || l}
 %\hline
-%  \code{\effect \choice \effect \rightarrow \effect} 
-%  &\code{\bott \cdot \effect \rightarrow \bott }  
+%  \code{\effect \vee \effect \rightarrow \effect} 
+%  &\code{\bot  \cdot \effect \rightarrow \bot  }  
 %  &
 % 
 %  
 %\\ \hline
 %
-%  \code{\bott \choice \effect \rightarrow \effect } & \code{ \effect  \cdot \bott \rightarrow \bott }  &
+%  \code{\bot  \vee \effect \rightarrow \effect } & \code{ \effect  \cdot \bot  \rightarrow \bot  }  &
 %
 %\code{ (\effect_1 \cdot \effect_2) \cdot \effect_3 \rightarrow \effect_1 \cdot (\effect_2 \cdot \effect_3)}
 %\\ \hline
 %
-%\code{ \effect \choice \bott \rightarrow \effect }
-%&\code{\bott ^\star \rightarrow \empt}
+%\code{ \effect \vee \bot  \rightarrow \effect }
+%&\code{\bot  ^\star \rightarrow  \epsilon}
 %& 
 %
 %
@@ -2253,7 +2273,7 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 %\\ \hline
 %
 %
-% \code{\empt \cdot \effect  \rightarrow \effect }
+% \code{ \epsilon \cdot \effect  \rightarrow \effect }
 % &  \code{\epsilon^\star \rightarrow \epsilon}
 % &  
 %
@@ -2261,8 +2281,8 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 %\\ \hline
 %
 %
-%\code{ \effect \cdot \empt \rightarrow \effect}
-%& \code{(\empt \vee \effect)^\star \rightarrow \effect^\star}
+%\code{ \effect \cdot  \epsilon \rightarrow \effect}
+%& \code{( \epsilon \vee \effect)^\star \rightarrow \effect^\star}
 %& \code{ }
 %
 % 
@@ -2344,10 +2364,10 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 \code{\epsilon^\omega \rightarrow \bot }\\
 \hline
 (A15)  &
-\code{ \effect\ ||\ \empt \rightarrow \effect}\\
+\code{ \effect\ ||\  \epsilon \rightarrow \effect}\\
 \hline
 (A16)  &
-\code{ \effect\ ||\ \bott \rightarrow \bott}\\
+\code{ \effect\ ||\ \bot  \rightarrow \bot }\\
 \hline
 (A17)  &
  \code{(I\mysharp  t) \cdot \effect_1\ ||\ J \cdot\effect_2 \rightarrow ((I  {\cup} J) \mysharp  t) \cdot (\effect_1 || \effect_2)}\\
@@ -2356,19 +2376,19 @@ We built the axiom system on top of a complete axiom system \code{F_1}, from (A1
 \code{\pi : (\effect \mysharp  t_1 ) \mysharp  t_2 \rightarrow \pi  \wedge (t_1 {=} t_2) : \effect \mysharp  t_1 }\\
 \hline
 (A19)  &
- \code{\empt \mysharp  t \rightarrow \empt}\\
+ \code{ \epsilon \mysharp  t \rightarrow  \epsilon}\\
 \hline
 (A20)  &
- \code{\bot \mysharp  t \rightarrow  \bott}\\
+ \code{\bot \mysharp  t \rightarrow  \bot }\\
 \hline
 (A21)  &
- \code{{{False}} : \effect \rightarrow {{False}} : \bott}\\
+ \code{{{False}} : \effect \rightarrow {{False}} : \bot }\\
 \hline
 (A22)  &
- \code{{\pi} : \bott \rightarrow {{False}} : \bott}\\
+ \code{{\pi} : \bot  \rightarrow {{False}} : \bot }\\
 \hline
- %\code{\effect \choice \effect \rightarrow \effect} 
-%  &\code{\bott \cdot \effect \rightarrow \bott }  
+ %\code{\effect \vee \effect \rightarrow \effect} 
+%  &\code{\bot  \cdot \effect \rightarrow \bot  }  
 %  &
 
 
@@ -2421,7 +2441,7 @@ See %the technical report\cite{TR}.
 To show the feasibility of our approach, we have prototyped our automated verification system 
 using OCaml \emph{(A demo page  and source code are available from \cite{CODE})}. 
 The proof obligations generated by the verifier are discharged using constraint solver Z3 \citep{DBLP:conf/tacas/MouraB08}. 
-We prove termination and correctness of the TRS. We validate the front-end forward verifier for conformance, against two implementations: the Columbia Esterel Compiler (CEC) 
+We prove termination and soundness of the TRS. We validate the front-end forward verifier for conformance, against two implementations: the Columbia Esterel Compiler (CEC) 
 \cite{CEC} and Hiphop.js \cite{HH_im}. 
 
 
@@ -2489,7 +2509,6 @@ A term rewriting system is efficient because \emph{it only constructs automata a
 \subsection{Case Studies}
 \label{subsec:Case_Studies}
 
-Let's recall the existing challenges in different programming paradigms discussed in \secref{sec:Preliminaries}. In this section, we first investigate how our effects logic can help to debug errors related to both synchronous and asynchronous programs. Specifically, it effectively resolves the logical correctness checking (for synchronous languages) and critical anti-patterns checking (for premise asynchrony). 
 Meanwhile, we further demonstrate the flexibility and expressiveness of our effects logic. 
 
 %how our proposal makes it flexible for different effects logics.     
@@ -2597,7 +2616,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 \infer[dashed]1[{\textcircled{3}\siderule{[Normalisation]}}]{
   \code{
     \textcolor {darkred}{True} : \cancel{\{B\}} \CONTAIN
-    \textcolor {darkred}{True} : \cancel{\empt \cdot \{B\}}
+    \textcolor {darkred}{True} : \cancel{ \epsilon \cdot \{B\}}
   }
 }
 
@@ -2727,7 +2746,7 @@ Works based on such a TRS \cite{DBLP:conf/icfem/SongC20,DBLP:conf/vmcai/SongC21,
 
 
 %Formally, given a KA is \code{(A,+,\cdot, \star,  0, 1)}, a SKA over a finite set \code{A_B} is \code{(A,+, \cdot, \times, \star,  0, 1,  A_B)}, \code{A_B {\subseteq} A}. 
-%Our \code{\bot} corresponds to the \code{0}; our \code{\empt} corresponds to the \code{1}; our \emph{event} containing simultaneous signals can be expressed via \code{\times}; 
+%Our \code{\bot} corresponds to the \code{0}; our \code{ \epsilon} corresponds to the \code{1}; our \emph{event} containing simultaneous signals can be expressed via \code{\times}; 
 
 Compositional specification for real-time systems based on timed process algebras has been extensively studied. Examples include the CCS\code{\text{+}}Time \cite{DBLP:conf/icalp/Yi91} and Timed CSP \cite{DBLP:journals/tse/DongHQSY08}.  
 The differences are: 
@@ -2798,10 +2817,6 @@ However, none of the previous works have considered adding real-time abstraction
 
 
  
-%due to the reason that Hoare logic only captures partial correctness, 
-%
-%
-% only captures partial correctness, 
 %
 %
 %deploys a Hoare logics based on  while its  networking library does not capture timeout, making certain properties difficult or impossible to specify. And because 
@@ -2924,7 +2939,7 @@ And each rule either increases \code{|H|} (Unfolding) or, otherwise, reduces \co
   - To prove soundness of the rule \codeme{[UNFOLD]}, we consider an arbitrary model, \codeme{d_1,  \varphi_1} and \codeme{d_2,  \varphi_2}  such that:  \codeme{d_1,  \varphi_1 \models {\pi_1 : \es_1}} and \codeme{d_2,  \varphi_2 \models  {\pi_2 : \es_2}}. For an arbitrary event \codeme{(I, \pi, t)}, let \codeme{d_1^\prime, {\varphi_1}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket  \pi_1: \es_1 \rrbracket}; and 
   \codeme{d_2^\prime, {\varphi_2}^\prime \models \codeme{(I, \pi, t)}^{\text{-}1}\llbracket \pi_2 : \es_2 \rrbracket}. 
   
-  Case 1), \codeme{\codeme{(I, \pi, t)} \notin F}, \codeme{d_1^\prime, {\varphi_1}^\prime \models \bott}, thus automatically \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)};
+  Case 1), \codeme{\codeme{(I, \pi, t)} \notin F}, \codeme{d_1^\prime, {\varphi_1}^\prime \models \bot }, thus automatically \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)};
   
   Case 2), \codeme{\codeme{(I, \pi, t)} \in F}, given that inclusions in the rule's premise is valid, then \codeme{d_1^\prime, {\varphi_1}^\prime \models D^{\pi_2}_{\codeme{(I, \pi, t)}}( \es_2)}. 
   
