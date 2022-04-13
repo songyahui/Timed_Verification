@@ -1053,13 +1053,13 @@ We here formally define the syntax of \code{\timedL}, as shown in \figref{fig:co
  % \code{k^\tau:constant\ of\ type\ \tau\ } 
  % \qquad\quad
 \code{c  \in \mathbb{Z}}
-\qquad \ \ 
+\qquad \ 
 \code{b  \in \mathbb{B}}
-\qquad \ \ 
+\qquad \  
 \code{x, mn  ::\in \textbf{var}}  
-\qquad\ \ 
- \code{(Action\ labels)\ \anyevent{A}  \in \Sigma 
-\qquad\ \ 
+\qquad\ 
+ \code{(Action\ labels)\ \anyevent{A}  \in \Sigma %\cup \{\tau\}
+\qquad\ 
 \m{(Time\ Bounds)}\ \code{d} \code{\in \mathbb{N}}    
 }   
     }\\  
@@ -1072,24 +1072,16 @@ We here formally define the syntax of \code{\timedL}, as shown in \figref{fig:co
 \end{figure}
 }
 
-Here, \code{c} is for integer constants, \code{b} is for boolean values, 
+Here, \code{c} and \code{b} are for integer and boolean constants, 
  \code{mn} and \code{x} are for meta-variables.  
  \textbf{var} represents the countably infinite set of arbitrary distinct identifiers. 
-\code{ev} refers to a singleton event coming from the finite 
-set of events \code{\Sigma}. 
-%Without loss of generality, any event can be further parametrized with 
-%constant values, e.g. \code{\anyevent{a}.0} and  \code{\anyevent{a}}.1 are distinct two events. 
-%leading to infinite alphabet.
-%We assume that programs we use are well-typed conforming to basic types \code{\tau} (we take () as the \code{void} type).
-%Each events raising expression \code{\textbf{event}} is parametrized with an event, to trigger such a single event. 
+
 A program \code{\mathcal{P}} comprises a list of 
-global values initializations \code{\alpha^*} and 
+global-variable initializations \code{\alpha^*} and 
 a list of 
 method declarations \code{{meth^*}}. 
 Here, we use the \code{*} superscript to denote a finite list (possibly empty) of items, for example, \code{{x^*}} refers to a list of variables, \code{x_1, ...,\ x_n}. 
 %Besides, \code{d} denotes the name of a user-defined data type, \code{f} denotes a field name. 
-
-
 Each method \code{meth} has a name \code{mn}, an expression-oriented body \code{e}, also is associated with a precondition  \code{\effect_{pre}} and a postcondition \code{\effect_{post}} (the syntax of effects specification \code{\effect} is given in \figref{fig:Syntax_of_Types_and_Effects}).
 The language allows each iterative loop to be optimized to an equivalent 
 tail-recursive method, where mutation on parameters is made visible 
@@ -1113,15 +1105,30 @@ may communicate via multi-party event synchronization or shared variables;
 conditional expressions \code{{if}\ v\ {then}\ e_1\ {else}\ e_2}. 
 
 The expression \code{ \textbf{event} [\anyevent{A}(v,  \alpha^*)] } 
-raises an event \anyevent{A} parametrized with \code{v}, 
-and takes a set of 
-assignment actions \code{\alpha^*}. 
+raises an event \anyevent{A}, which comes from the finite 
+set of event labels \code{\Sigma}. %or can be an invisible event, denoted by $\tau$. 
+Without loss of generality, events can be further parametrized with 
+one constant value \code{v} and a set of assignments \code{\alpha^*} upon 
+the mutable variables. %e.g. \code{\anyevent{a}.0} and  \code{\anyevent{a}}.1 are distinct two events. 
+%leading to infinite alphabet.
+%We assume that programs we use are well-typed conforming to basic types \code{\tau} (we take () as the \code{void} type).
+%Each events raising expression \code{\textbf{event}} is parametrized with an event, to trigger such a single event. 
+
+
+%parametrized with \code{v}, 
+%and takes a set of 
+%assignment actions \code{\alpha^*}. 
+
 Furthermore, a number of timed process constructs can be used to capture common 
 real-time system behavior patterns. Without loss of generality, we 
-assume d is a non-negative integer constant.  $\textbf{delay} [d]$ idles for exactly $d$ 
-time units. In process $e_1\ \textbf{timeout} [d]\ e_2$, the first observable event of 
+assume \code{d} is a non-negative integer constant.  
+$\textbf{delay} [d]$ idles for exactly $d$ 
+time units.
+ In process $e_1\ \textbf{timeout} [d]\ e_2$, the first observable event of 
 $e_1$ shall occur before d time units elapse (since the process starts). 
 Otherwise, $e_2$ takes over control after exactly $d$ time units elapse. 
+Note that the usage of timeout in \figref{fig:Value_dependent_intro} is a 
+special case of the primitive presented here, where \code{e_1} never starts. 
 Process $\textbf{deadline} [d]\ e$ constrains $e$ to terminate before $d$ time units. 
 
 
@@ -1137,26 +1144,26 @@ hence system verification.
 \label{subsec:Targetlanguage_Semantics}
 
 In order to define the operational semantics of a system model, 
-we define the notion of a configuration to capture the global 
-system state during system execution.
+we define the notion of a configuration, in \defref{sys_configuration}, to capture 
+the global system state during system execution.
 
-\begin{definition}[System configuration]
-A system configuration is a pair $c = (\env , e)$ where $\env$ is a variable valuation function and $e$ is an expression.
+\begin{definition}[System configuration]\label{sys_configuration}
+A system configuration \code{\zeta} is a pair $(\env , e)$ where $\env$ is a variable valuation function and $e$ is an expression.
 \end{definition}
 
-A transition of the system is of the form $c \xrightarrow[]{l} c^\prime$ where $c$ and $c^\prime$ are 
+A transition of the system is of the form $\zeta \xrightarrow[]{l} \zeta^\prime$ 
+where $\zeta$ and $\zeta^\prime$ are 
 the system configurations before and after the transition respectively. 
-Transition labels \code{l} consist: 
-%We adopt the following naming convention for transition labels: 
-$t$, denoting a non-negative real integer; 
-$\tau$, denoting an invisible event;
-$\anyevent{A} \in \Sigma $ is an observable 
-event; and $\sigma \in \Sigma\cup \{\tau\}$. 
-For event, $c \xrightarrow[]{\text{t}} c^\prime$ denotes a transition of \codem{t} time units elapsing. 
+%There are four type of the transition labels  :
+We adopt the following naming convention \cite{DBLP:conf/icfem/SunLDZ09} for the transition labels \code{l}: 
+(1) $t$, denoting a non-negative real integer; 
+(2) $\tau$, denoting an invisible event; % which do not make changes to the global valuation;
+(3) $\anyevent{A}$ is an observable event. 
+%and (4) $\sigma \in \Sigma\cup \{\tau\}$. 
+For example, $\zeta \xrightarrow[]{\text{t}} \zeta^\prime$ denotes a transition 
+of \code{t} time-units elapsing. 
 In the following, we present the firing rules which are associated with 
 the timed process constructs. 
-
-
 {{\small
 \begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1164,59 +1171,58 @@ the timed process constructs.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
   t {\leq} d 
-}{(\env, \textbf{delay}[d]) \xrightarrow[]{\text{t}} (\env, \textbf{delay} [d \text{-}t])}\ [de_1]} 
+}{(\env, \textbf{delay}[d]) \xrightarrow[]{\text{t}} (\env, \textbf{delay} [d \text{-}t])}\ [delay_1]} 
 \qquad \qquad 
 \code{\frac{
-}{(\env, \textbf{delay} [0]) \xrightarrow[]{\tau} (\env, ())}\ [de_2]} 
+}{(\env, \textbf{delay} [0]) \xrightarrow[]{\tau} (\env, ())}\ [delay_2]} 
 \end{flalign*}}}
 
-The above captures behaviors of process \code{\textbf{delay}[d]}. 
-Rule \code{de_1} states that the process may idle for 
-any amount of time as long as it is less than or equal to \codem{d} time units; 
-Rule \code{de_2} states that the process terminates immediately after 
-\codem{d} becomes \codem{0}.
+The above captures behaviors of process \textbf{delay}[d]. 
+Rule \code{[delay_1]} states that the process may idle for 
+any amount of time as long as it is less than or equal to \code{d} time units; 
+Rule \code{[delay_2]} states that the process terminates immediately after 
+\code{d} becomes \code{0}.
 {{\small\begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   timeout                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
   (\env,e_1) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_1^\prime)
-}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\anyevent{A}} (\env^\prime,e^\prime)}\ [to_1]} 
+}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\anyevent{A}} (\env^\prime,e^\prime)}\ [tot_1]} 
 \quad  
 \code{\frac{
   (\env,e_1) \xrightarrow[]{\tau} (\env^\prime,e_1^\prime)  
-}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env^\prime, e_1^\prime\ \textbf{timeout}[d]\ e_2 )}\ [to_2]} 
+}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env^\prime, e_1^\prime\ \textbf{timeout}[d]\ e_2 )}\ [tot_2]} 
 \\
 \code{\frac{
   (\env,e_1) \xrightarrow[]{\text{t}} (\env,e_1^\prime)  \quad (t {\leq} d) 
-}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [to_3]} 
+}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [tot_3]} 
 \quad  
 \code{\frac{
-}{(\env, e_1\ \textbf{timeout}   [0] \ e_2) \xrightarrow[]{\tau} (\env, e_2)}\ [to_4]} 
+}{(\env, e_1\ \textbf{timeout}   [0] \ e_2) \xrightarrow[]{\tau} (\env, e_2)}\ [tot_4]} 
 \end{flalign*}}}
 If an observable event \anyevent{A} can be engaged by \code{e_1}, 
-then \code{e_1\ \textbf{timeout}[d]\ e_2} becomes \code{e_1^\prime} (rule \code{[to_1]}). 
-An invisible transition does 
-not solve the choice (rule \code{[to_2]}). 
+then $e_1\ \textbf{timeout}[d]\ e_2$ becomes \code{e_1^\prime} (rule \code{[tot_1]}). 
+An invisible transition continues the waiting on \code{e_1} (rule \code{[tot_2]}). 
 If \code{e_1} may idle for less than or equal 
-to \codem{d} time units, so is the composition (rule \code{[to_3]}). 
-When \codem{d} becomes \codem{0}, 
-\code{e_2} takes over control by a silent transition (rule \code{[to_4]}).
+to \code{d} time units, so is the composition (rule \code{[tot_3]}). 
+When \code{d} becomes \code{0}, 
+\code{e_2} takes over control by a silent transition (rule \code{[tot_4]}).
 {{\small\begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   deadline                 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \code{\frac{
   (\env,e) \xrightarrow[]{\anyevent{A}} (\env^\prime,e^\prime)
-}{(\env, \textbf{deadline} [d] \ e ) \xrightarrow[]{\anyevent{A}} (\env^\prime, \textbf{deadline}  [d] \ e^\prime)} [dl_1]} 
-\quad 
+}{(\env, \textbf{deadline} [d] \ e ) \xrightarrow[]{\anyevent{A}} (\env^\prime, \textbf{deadline}  [d] \ e^\prime)} [ddl_1]} 
+\ \ \  
 \code{\frac{
   (\env,e) \xrightarrow[]{\text{t}} (\env,e^\prime)  \quad (t {\leq} d)
-}{(\env, \textbf{deadline}  [d]\ e ) \xrightarrow[]{\text{t}} (\env, \textbf{deadline}  [d \text{-}t] \ e^\prime )} [dl_2]} 
+}{(\env, \textbf{deadline}  [d]\ e ) \xrightarrow[]{\text{t}} (\env, \textbf{deadline}  [d \text{-}t] \ e^\prime )} [ddl_2]} 
 \end{flalign*}}}
 
-Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as 
-\code{e} except that it must terminate before \codem{d} time units.
+Intuitively, $\textbf{deadline}\  [d] \ e$ behaves exactly as 
+\code{e} except that it must terminate before \code{d} time units.
 
 {{\small\begin{flalign*}
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1224,15 +1230,23 @@ Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \code{\frac{
     \env \not\models  b 
-  }{(\env, [b] \ e ) \xrightarrow[]{t} (\env, [b] \ e)}\ [gu_1]} 
+  }{(\env, [b] \ e ) \xrightarrow[]{t} (\env, [b] \ e)}\ [guard_1]} 
   \ \ \qquad
   \code{\frac{
     \env \models  b 
-  }{(\env, [b] \ e ) \xrightarrow[]{\tau} (\env, e)}\ [gu_2]} 
+  }{(\env, [b] \ e ) \xrightarrow[]{\tau} (\env, e)}\ [guard_2]} 
+\end{flalign*}}}
+
+
+{{\small\begin{flalign*}
+\code{\frac{
+  (\env,e_1) \xrightarrow[]{\anyevent{A}/\tau} (\env^\prime,e_1^\prime) 
+}{(\env, e_1; e_2 ) \xrightarrow[]{\anyevent{A}/\tau} (\env^\prime, e_1^\prime ; e_2)}\ [se]} 
   \ \ \qquad 
   \code{\frac{
   }{(\env, \alpha ) \xrightarrow[]{\tau} (\alpha(\env), ())}\ [assign]} 
 \end{flalign*}}}
+
 
 {{\small\begin{flalign*}
   %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1245,10 +1259,6 @@ Intuitively, \code{\textbf{deadline}\  [d] \ e} behaves exactly as
   \code{\frac{
     (\env,e_2) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_2^\prime) 
   }{(\env, e_1 || e_2 ) \xrightarrow[]{\anyevent{A}} (\env^\prime, e_1 || e_2^\prime)}\ [pa_2]} 
-\ \ 
-\code{\frac{
-  (\env,e_1) \xrightarrow[]{\anyevent{A}/\tau} (\env^\prime,e_1^\prime) 
-}{(\env, e_1; e_2 ) \xrightarrow[]{\anyevent{A}/\tau} (\env^\prime, e_1^\prime ; e_2)}\ [se]} 
 \end{flalign*}}}
 
 
