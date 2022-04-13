@@ -25,7 +25,7 @@
 %\setcopyright{rightsretained}
 %\copyrightyear{2018}           %% If different from \acmYear
 
-
+\usepackage{tikz}
 \usepackage{xcolor}
 \usepackage[thicklines]{cancel}
 \renewcommand{\CancelColor}{\color{lightgray}}
@@ -1429,7 +1429,7 @@ from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}},
 
 
 \begin{figure}[!ht]
-  \vspace{-1mm}
+  \vspace{-3mm}
   \renewcommand{\arraystretch}{1.2}
 \small\begin{align*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1630,20 +1630,97 @@ $\lappend$ to represent the append operation of two traces;
 
 
 
-\begin{wrapfigure}{R}{0.5\columnwidth}
-    \vspace{-3mm}
-\centering
-\includegraphics[width=0.5\columnwidth]{verification.png}
-        \vspace{-3mm}
+\begin{wrapfigure}{R}{0.54\columnwidth}
+  \vspace{-3mm}
+
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-0.65,xscale=0.65]
+%uncomment if require: \path (0,300); %set diagram left start at 0, and has height of 300
+
+
+%Rounded Rect [id:dp1113766752673011] 
+\draw  [line width=1.5]  (68,142.52) .. controls (68,136.24) and (73.09,131.15) .. (79.37,131.15) -- (216.63,131.15) .. controls (222.91,131.15) and (228,136.24) .. (228,142.52) -- (228,176.63) .. controls (228,182.91) and (222.91,188) .. (216.63,188) -- (79.37,188) .. controls (73.09,188) and (68,182.91) .. (68,176.63) -- cycle ;
+%Shape: Rectangle [id:dp6438165442964394] 
+\draw  [line width=1.5]  (67,51) -- (287,51) -- (287,104) -- (67,104) -- cycle ;
+%Rounded Rect [id:dp29624677487783313] 
+\draw  [line width=1.5]  (328,142.52) .. controls (328,136.24) and (333.09,131.15) .. (339.37,131.15) -- (473.63,131.15) .. controls (479.91,131.15) and (485,136.24) .. (485,142.52) -- (485,176.63) .. controls (485,182.91) and (479.91,188) .. (473.63,188) -- (339.37,188) .. controls (333.09,188) and (328,182.91) .. (328,176.63) -- cycle ;
+%Shape: Rectangle [id:dp5138829561825217] 
+\draw  [line width=1.5]  (309,52) -- (486,52) -- (486,104) -- (309,104) -- cycle ;
+%Straight Lines [id:da1612175737893331] 
+\draw [line width=1.5]    (137,109) -- (137,127.22) ;
+\draw [shift={(137,130.22)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=1.5]    (14.21,-4.28) .. controls (9.04,-1.82) and (4.3,-0.39) .. (0,0) .. controls (4.3,0.39) and (9.04,1.82) .. (14.21,4.28)   ;
+%Straight Lines [id:da5383095517878319] 
+\draw [line width=1.5]    (428,108) -- (428,127.95) ;
+\draw [shift={(428,130.95)}, rotate = 270] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=1.5]    (14.21,-4.28) .. controls (9.04,-1.82) and (4.3,-0.39) .. (0,0) .. controls (4.3,0.39) and (9.04,1.82) .. (14.21,4.28)   ;
+%Straight Lines [id:da5450046441977192] 
+\draw [line width=1.5]  [dash pattern={on 5.63pt off 4.5pt}]  (229,164.5) -- (275,165.5) -- (325,165.97) ;
+\draw [shift={(328,166)}, rotate = 180.54] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=1.5]    (14.21,-4.28) .. controls (9.04,-1.82) and (4.3,-0.39) .. (0,0) .. controls (4.3,0.39) and (9.04,1.82) .. (14.21,4.28)   ;
+
+% Text Node
+\draw (61,57) node [anchor=north west][inner sep=0.75pt]   [align=left] {\begin{minipage}[lt]{113.09pt}\setlength\topsep{0pt}
+\begin{center}
+Target Program \&\\ Temporal Specifications
+\end{center}
+
+\end{minipage}};
+% Text Node
+\draw (66.57,139.15) node [anchor=north west][inner sep=0.75pt]   [align=left] {\begin{minipage}[lt]{77.55pt}\setlength\topsep{0pt}
+\begin{center}
+Hoare-style \\Forward Verifier 
+\end{center}
+
+\end{minipage}};
+% Text Node
+\draw (325,58) node [anchor=north west][inner sep=0.75pt]   [align=left] {\begin{minipage}[lt]{66.79pt}\setlength\topsep{0pt}
+\begin{center}
+Two \textit{Timeffs} \\LHS and RHS
+\end{center}
+
+\end{minipage}};
+% Text Node
+\draw (325,139.9) node [anchor=north west][inner sep=0.75pt]   [align=left] {\begin{minipage}[lt]{79.64pt}\setlength\topsep{0pt}
+\begin{center}
+Effects Inclusion \\Prover (TRS)
+\end{center}
+
+\end{minipage}};
+% Text Node
+\draw (223.8,117.63) node [anchor=north west][inner sep=0.75pt]   [align=left] {\begin{minipage}[lt]{51.49pt}\setlength\topsep{0pt}
+\begin{center}
+Proof \\obligations
+\end{center}
+
+\end{minipage}};
+
+
+\end{tikzpicture}
+
+
+
+
+ %   \vspace{-4mm}
+%\centering
+%\includegraphics[width=1\columnwidth]{verification.png}
+%        \vspace{-3mm}
+%\caption{\label{fig:Verification_oberview}System Overview.}
+%      \vspace{-1mm}
 \caption{\label{fig:Verification_oberview}System Overview.}
-      \vspace{-1mm}
 \end{wrapfigure}
 
-An overview of our automated verification system is given in \figref{fig:Verification_oberview} It consists of a Hoare-style forward verifier and a TRS. 
-The inputs of the forward verifier are HipHop.js programs annotated with temporal specifications written in \timedEffects (cf. \figref{fig:overview_coffee}). 
+An overview of our automated verification system is given 
+in \figref{fig:Verification_oberview} 
+Rounded boxes are the main procedures, and both return \emph{true} 
+when the forward reasoning/proving succeeds, return \emph{false} 
+otherwise. Rectangular boxes describe the inputs to the procedures.
+The input of the TRS is a pair of effects LHS and RHS, referring to the 
+inclusion LHS \code{\CONTAIN} RHS to be checked 
+\textit{(LHS refers to left-hand-side effects, and RHS refers to right-hand-side 
+effects)}. 
+Besides, the verifier calls the TRS to prove produced inclusions (dash line). 
+The TRS will be explained in \secref{sec:Entailment_Prover}. 
 
-The input of the TRS is a pair of effects LHS and RHS, referring to the inclusion LHS \code{\CONTAIN} RHS to be checked 
-\textit{(LHS refers to left-hand side effects, and RHS refers to right-hand side effects.)}. Besides, the verifier calls the TRS to prove produced inclusions, i.e., between the effects states and pre/post conditions or assertions (cf. \figref{fig:forward_example}). The TRS will be explained in \secref{sec:Entailment_Prover}. 
+
 
 \newcommand{\s}[1]{\code{\{ #1\}}}
 
