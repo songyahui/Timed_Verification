@@ -1971,12 +1971,12 @@ Rule \code{[FV\text{-}Call]} first checks whether the instantiated
 
 
 The TRS  is an automated entailment checker to prove language 
-inclusions among \timedEffects\ (cf. \defref{Inclusion} and 
-\tabref{tab:rewriting_tree_send}). It is triggered i) prior to 
+inclusions between \timedEffects, cf., \defref{Inclusion} and 
+\tabref{tab:rewriting_tree_send} It is triggered i) prior to 
 temporal property assertions; ii) prior to function calls for the 
 precondition checking; and iii) at the end of verifying a function 
 for the post condition checking. Given two effects 
-\code{\effect_1,\ \effect_2}, TRS decides if the inclusion \code{\effect_1 \CONTAIN  \effect_2 } is valid. 
+\code{\effect_1} and \code{\effect_2}, TRS decides if the inclusion \code{\effect_1 \CONTAIN  \effect_2 } is valid. 
 
 During the effects rewriting process, the inclusions are in the form of \code{\Gamma \vdash  \effect_1 \CONTAIN^{\effect}  \effect_2 }, a shorthand for: \code{\Gamma \vdash  \effect \cdot \effect_1 \CONTAIN   \effect \cdot  \effect_2}. To prove such inclusions is to check whether all the possible timed traces in the antecedent \code{\effect_1} are legitimately allowed  in the possible timed traces from the consequent \code{\effect_2}.
 \code{\Gamma} is the proof context, i.e., a set of effects inclusion hypothesis, \code{\effect} is the history effects from the antecedent that have been used to match the effects from the consequent.
@@ -2009,9 +2009,9 @@ the Nullable function \code{\delta_{{\pi}}(\es)} returns a boolean
 value indicating whether \code{{\pi} \wedge \es} contains the empty 
 trace; the First function \code{fst_{{\pi}}( \es)} computes a set of 
  initial \emph{heads}, denoted as \code{h},  of \code{{\pi} \wedge \es}; and the Derivative 
-function \code{D^{\env}_{h}(\pi \wedge \es)} computes a next-state 
+function \code{D^{\pi}_{h}(\es)} computes a next-state 
 effects after eliminating the head  \code{h} from the current 
-effects \code{{\pi} \wedge \es}, w.r.t \code{\env}. 
+effects \code{{\pi} \wedge \es}. 
 
 %\subsection{closure of clock constrains}
 %how to eliminate the unobservable transitions. 
@@ -2019,14 +2019,15 @@ effects \code{{\pi} \wedge \es}, w.r.t \code{\env}.
 %we allow the $ \epsilon$transitions without carrying constraints and resetting clocks at the same time. 
 
 
-\begin{definition}[Nullable]\label{Nullable}
+\begin{definition}[Nullable \footnote{The proof obligations are 
+  discharged using the Z3 SMT prover, while deciding the nullability of effects constructed by symbolic terms, represented by \code{SAT({\pi})}.}]\label{Nullable}
 Given any \code{\effect {=} \pi  \wedge  \es}, %we define 
 %\code{\delta_{{\pi}}(\es)} to be \\
 {
   \code{\delta_{{\pi}}(\es) :bool {=}
   \begin{cases}
-        \code{true} & \code{if\  \epsilon \in \llbracket {\pi}  \wedge  \es \rrbracket_{\varphi}}\\
-        \code{false} & \code{if\  \epsilon \notin \llbracket {\pi}  \wedge  \es \rrbracket_{\varphi}}
+        \code{true} & \code{if\  \epsilon \in \llbracket {\pi}  \wedge  \es \rrbracket}\\
+        \code{false} & \code{if\  \epsilon \notin \llbracket {\pi}  \wedge  \es \rrbracket}
       \end{cases} }
       }, where:  
 \begin{comment}
@@ -2041,10 +2042,11 @@ We define recursively:
 \qquad\quad
 \code{\delta_{\pi}(\ev){=} false}   
 \qquad\quad
-\code{\delta_{\pi}(\pi^\prime? \es){=} \delta_{\pi}(\es)}   
+\code{\delta_{\pi}(\pi^\prime?){=} false}  
 \qquad\quad\
     \code{\delta({\es^\star} ) {=} true}   
 \\ 
+\ \ 
 \code{\delta_{\pi}(\es \cdot \es_2) {=} \delta(\es_1) \wedge \delta(\es_2)}
 \qquad\qquad\quad
   \code{\delta_{\pi}(\es_1 \vee \es_2) {=} \delta(\es_1) \vee \delta(\es_2)}   
@@ -2066,7 +2068,7 @@ If \code{h} is a head of \code{\pi \wedge \es}, then there exists
 such that \code{\pi \wedge \es} {=} \code{\pi^\prime \wedge h \cdot \es^\prime}. 
    %We adopt the following naming convention for transition labels: 
 A head can be  $t$, denoting a pure time passing; 
-  $\ev $, denoting a pure event passing; 
+  $\ev $, denoting an instant event passing; or 
   $(\ev, t)$, denoting an event passing which takes time \code{t}. 
 \end{definition}
 
@@ -2077,30 +2079,29 @@ A head can be  $t$, denoting a pure time passing;
   derivable from effects \code{\pi \wedge \es}, where: 
     { 
    \begin{gather*} 
-  \code{fst_{{\pi}}( \bot ) {=} \{\} } \qquad\ \ 
-  \code{fst_{{\pi}}( \epsilon) {=}  \{\} } \qquad\ \ 
+  \code{fst_{{\pi}}( \bot ) {=} \{\} } \qquad\quad 
+  \code{fst_{{\pi}}( \epsilon) {=}  \{\} } \qquad\quad
   \code{fst_{{\pi}}( \ev) {=} \{ \ev \}  }
-  \qquad\ \ 
+  \qquad\quad
   \code{fst_{{\pi}}(  \epsilon \mysharp  t) {=}  \{ t \}}
-  \qquad\ \ 
+  \qquad\quad
   \code{fst_{{\pi}}( {\es^\star} ) {=} fst_{{\pi}}({ \es})}
    \\
-   \code{fst_{{\pi}}(\es \mysharp  t) {=}  \{(\ev, t) \ | \ \ev \in fst_{\pi}(\es) \}} 
-   \ \ \  \emph{(t\ is\ fresh)}
-  \qquad\quad 
-  \qquad\quad
-  \code{fst_{{\pi}}(  \es_1 {\vee} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }  \\
-  \code{fst_{{\pi}}(\epsilon \mysharp  t) {=}  \{t\}} 
-   \qquad \qquad
-  \code{fst_{{\pi}}( \pi^\prime? \es ) {=} fst_{\pi}(\es)  }
-      \qquad\qquad
+   \code{fst_{{\pi}}(\es \mysharp  t) {=}  \{(\ev, t^\prime) \ | \ \ev \in fst_{\pi}(\es) \}} 
+   \ \ \  \emph{($t^\prime$\ is\ fresh)}
+  \quad  
+  \qquad
+  \code{fst_{{\pi}}(  \es_1 {\vee} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }  
+  \\
+  \code{fst_{{\pi}}( \pi^\prime? ) {=} \{\tau(\pi^\prime); \tau(\neg \pi^\prime)\}  }
+      \qquad\qquad\qquad 
      \code{fst_{{\pi}}(  \es_1 {||} \es_2) {=} fst_{{\pi}}(  \es_1) \cup fst_{{\pi}}(  \es_2)  }   
      \\
   {
-  \code{fst_{{\pi}}(\es_1 {\cdot} \es_2) {=} } 
+  \code{fst_{{\pi}}(\es_1 \cdot \es_2) {=} } 
   \begin{cases}
-        \code{\code{fst_{{\pi}}(  \es_1)} \cup \code{fst_{{\pi}}(  \es_2)} } & \code{ if\ \delta(\es_1) {=} true}\\
-        \code{\code{fst_{{\pi}}(  \es_1)}} & \code{  if\ \delta(\es_1) {=} false}
+        \code{\code{fst_{{\pi}}(  \es_1)} \cup \code{fst_{{\pi}}(  \es_2)} } \quad   & \code{ if\ \  \delta(\es_1) {=} true}\\
+        \code{\code{fst_{{\pi}}(  \es_1)}} & \code{  if\ \  \delta(\es_1) {=} false}
       \end{cases} 
       }  
   \end{gather*}
@@ -2115,86 +2116,66 @@ Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we d
 \end{comment}
 
 
-\begin{definition}[Partial Derivative\footnote{Intuitively, the partial derivative refers to the left quotient of a language equation, for example, for REs, \code{x^{{-}1} \llbracket x\cdot y\rrbracket {=} y};  \code{y^{{-}1} \llbracket x\cdot y\rrbracket {=} \bot }; and  \code{y^{{-}1} \llbracket x + y\rrbracket {=} \epsilon}. Here we come up with a new notion of partial derivative for \timedEffects. 
-}]\label{Derivative}
-Given any \code{\effect {=} \pi \wedge \es}, and a variable valuation function \code{\env}, 
-the partial derivative \code{D^{\env}_{h}(\pi \wedge \es)} 
- computes the  effects for the 
-left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es 
-\rrbracket_{\env}}. 
-%\footnote{As the reader may notice, our First and Derivative function does not handle the timed sequences constructed by \code{||}, as the synchronous parallel is reduced during the normalization phase.}
-\begin{gather*}
-\code{D^{\env}_{h}(\pi \wedge \bot ) {=}}  \code{False \wedge \bot } 
-\qquad\ \ \  
-\code{D^{\env}_{h}( \pi \wedge  \epsilon) {=}}  \code{False \wedge \bot } 
-\qquad\ \ \ 
-\code{D^{\env}_{h}( \pi \wedge {\es^\star}) } {=} \code{ D^{\env}_{h}(\pi \wedge  {\es}) \cdot {\es^\star}}  
-\\
-{
- \code{\code{D^{\env}_{h}(\pi \wedge \pi^\prime? \es)} {=}}
-\begin{cases}
-      \code{\pi \wedge \pi^\prime? \es} \quad &\code{if\ \llbracket \pi^\prime  \rrbracket_{\env} {=} false}   \\
-      \code{D^{\env}_{h}(\pi \wedge \es)} & \code{if\ \llbracket \pi^\prime  \rrbracket_{\env} {=} true} 
-    \end{cases} 
-    }
-    \\ 
-{
- \code{D^{\env}_{h}(\pi \wedge \es_1  \cdot  \es_2) {=} }
-\begin{cases}
-      \code{D^{\env}_{h}(\pi \wedge \es_1) \cdot  \es_2\ \vee \  D^{\env}_{h}(\pi \wedge \es_2)} \quad &\code{if\ \delta_{\pi}(\es_1) {=} true}   \\
-      \code{D^{\env}_{h}(\pi \wedge \es_2) \cdot  \es_2} & \code{if\ \delta_{\pi}(\es_1) {=} false} 
-    \end{cases} 
-    }
-\\
-\code{D^{\env}_{h}(\pi \wedge  \es_1 {\vee} \es_2) } {=} \code{ D^{\env}_{h}(\pi \wedge  \es_1) \vee D^{\env}_{h}( \pi \wedge \es_2)} 
+
+\begin{definition}[Partial Derivative]\label{Derivative}
+  Given any \code{\effect {=}\pi \wedge  \es}, 
+  %and a variable valuation function \code{\env}, 
+  the partial derivative \code{D^{\pi}_{h}( \es)} 
+   computes the  effects for the 
+  left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es 
+  \rrbracket}\footnote{Intuitively, the partial derivative refers to the left quotient of a language equation, for example, for REs, \code{x^{{-}1} \llbracket x\cdot y\rrbracket {=} y};  \code{y^{{-}1} \llbracket x\cdot y\rrbracket {=} \bot }; and  \code{y^{{-}1} \llbracket x + y\rrbracket {=} \epsilon}. Here we come up with a new notion of partial derivative for \timedEffects. 
+  }. 
+  %\footnote{As the reader may notice, our First and Derivative function does not handle the timed sequences constructed by \code{||}, as the synchronous parallel is reduced during the normalization phase.}
+  \begin{gather*}
+  \code{D^{\pi}_{h}( \bot ) {=}}  \code{False \wedge \bot } 
+  \qquad\qquad 
+  \code{D^{\pi}_{h}(   \epsilon) {=}}  \code{False \wedge \bot } 
+  \qquad\qquad
+  \code{D^{\pi}_{h}(  \ev^\prime) } {=} 
+  \code{  (\pi \wedge h{=}\ev^\prime) \wedge \epsilon} 
+  \\
+  {
+   \code{\code{D^{\pi}_{h}( \pi^\prime?)} {=}}
+  \begin{cases}
+        \code{\pi \wedge \pi^\prime? } &\code{if\ h {\not\Rightarrow}  \pi^\prime}   \\
+        \code{\pi \wedge \epsilon} & \code{if\ h {\Rightarrow} \pi^\prime} 
+      \end{cases} 
+      }
+      \qquad \quad \ \ \ 
+  {
+   \code{D^{\pi}_{h}( \es_1  \cdot  \es_2) {=} }
+  \begin{cases}
+        \code{D^{\pi}_{h}( \es_1) \cdot  \es_2\ \vee \  D^{\pi}_{h}( \es_2)}  &\code{if\ \delta_{\pi}(\es_1) {=} true}   \\
+        \code{D^{\pi}_{h}( \es_2) \cdot  \es_2} & \code{if\ \delta_{\pi}(\es_1) {=} false} 
+      \end{cases} 
+      }
+  \\
+  \code{D^{\pi}_{h}(  {\es^\star}) } {=} \code{ D^{\pi}_{h}(  {\es}) \cdot {\es^\star}}  
+  \qquad\quad \ \ \ 
+  \code{D^{\pi}_{h}(  \es_1 {\vee} \es_2) } {=} \code{ D^{\pi}_{h}(  \es_1) \vee D^{\pi}_{h}(  \es_2)} 
+  \qquad \quad\ \ \ 
+  \code{D^{\pi}_{h}( \es_1 {||}\es_2)} {=} \code{\Bar{\Bar{D}}^{\pi}_{h}( \es_1)} || \code{\Bar{\Bar{D}}^{\pi}_{h}( \es_2)} 
+   \\
+   \code{D^{\pi}_{\ev}(  \es \mysharp t) } {=} {\bigvee}
+   \code{ \{ (\pi^\prime \wedge \es^\prime  \mysharp t) \ | \ (\pi^\prime, \es^\prime) \in D^{\pi}_{\ev}(\es) \} } 
 \qquad 
-\code{D^{\env}_{h}(\pi \wedge \es_1 {||}\es_2)} {=} \code{PD^{\env}_{h}(\pi \wedge \es_1)} || \code{PD^{\env}_{h}(\pi \wedge \es_2)} 
- \\~\\
- \hline
- ~\\
- \code{D^{\env}_{t}(\pi \wedge  \ev) } {=} \code{False \wedge \bot } 
- \qquad\qquad 
- \code{D^{\env}_{t}(\pi \wedge  \epsilon \mysharp t^\prime) } {=}  
- \code{\pi \wedge (t{=}t^\prime) \wedge \epsilon}
- \\
- \code{D^{\env}_{t}(\pi \wedge  \es \mysharp t^\prime) } {=} 
- \code{\pi \wedge (t{+}t^{\prime\prime}{=}t^\prime) \wedge  
- \es \mysharp t^{\prime\prime} \ \ \  {(t^{\prime\prime}\ is\ fresh)} } 
-\\~\\
-\hline
-~\\
-\code{D^{\env}_{\ev}(\pi \wedge  \ev^\prime) } {=} 
-\code{\pi \wedge (\ev{=}\ev^\prime) \wedge \epsilon} 
-\qquad \quad 
-\code{D^{\env}_{\ev}(\pi \wedge  \es \mysharp t^\prime) } {=} 
-\code{\{(\pi^\prime \wedge \es^\prime \mysharp t^\prime) \ | \ (\pi^\prime \wedge \es^\prime) \in D^{\env}_{\ev}(\pi \wedge  \es)\}} 
-\\~\\
-\hline
-~\\
-\code{D^{\env}_{(\ev, t)}(\pi \wedge  \ev^\prime) } {=} 
-\code{False \wedge \bot }  
-\qquad \ \ \  
-\code{D^{\env}_{(\ev, t)}(\pi \wedge  \es \mysharp t^\prime) } {=} 
-\code{\pi \wedge (t{+}t^{\prime\prime}{=}t^\prime) \wedge  
-(D^{\env}_{\ev}(\pi \wedge  \es)) \mysharp t^{\prime\prime} \ \ \  {(t^{\prime\prime}\ is\ fresh)}} 
-\\
-\end{gather*}
-\end{definition}
-
-
-\begin{definition}[Parallel Derivative]\label{Derivative_maybe}
-  Given any \code{\effect {=} \pi \wedge \es}, and a variable valuation function \code{\env}, 
-  the parallel derivative is defined as: {
-    \code{PD^{\env}_{h}(\pi \wedge \es) {=}
-    \begin{cases}
-          \code{\pi \wedge \es} & \code{if\ D^{\env}_{h}(\pi \wedge \es) = (False \wedge \bot )}\\
-          \code{D^{\env}_{h}(\pi \wedge \es)} & \code{otherwise}
-        \end{cases} }
-        }
-
-
+   \code{D^{\pi}_{t}(  \es \mysharp t^\prime) } {=} 
+   \code{ (\pi \wedge t{+}t^{\prime\prime}{=}t^\prime) \wedge  
+   \es \mysharp t^{\prime\prime} \ \ \  {(t^{\prime\prime}\ is\ fresh)} } 
+  \end{gather*}
+  \end{definition}
   
-\end{definition}
+Notice that the derivatives of a parallel composition makes use of the \emph{Parallel Derivative} \code{\Bar{\Bar{D}}^{\pi}_{h}(\es)}, defined as follows: 
+  \begin{definition}[Parallel Derivative]\label{Derivative_maybe}
+    Given any \code{\effect {=} \pi \wedge \es}, and a variable valuation function \code{\env}, 
+    the parallel derivative is defined as: {
+      \code{\Bar{\Bar{D}}^{\pi}_{h}( \es) {=}
+      \begin{cases}
+            \code{ \es} & \code{if\ D^{\pi}_{h}(\pi \wedge \es) = (False \wedge \bot )}\\
+            \code{D^{\pi}_{h}( \es)} & \code{otherwise}
+          \end{cases} }
+    }.
+  \end{definition}
 
 \subsection{Rewriting Rules}
 \label{InferenceRules}
