@@ -2,11 +2,11 @@
   \codeme{\frac{
 \begin{matrix}
 \end{matrix}
-}{\text{\code{ \Gamma  \vdash \pi : \bot    \CONTAIN \es }}}\ [Bot\text{-}LHS]}
+}{\text{\code{ \Gamma  \vdash \pi \wedge \bot    \CONTAIN \effect }}}\ [Bot\text{-}LHS]}
 \qquad\qquad\quad
 \codeme{\frac{
 \begin{matrix}
-\es \neq  \pi : \bot  
+  \effect \neq  \pi \wedge \bot  
 \end{matrix}
-}{\text{\code{\Gamma  \vdash  \es \not\CONTAIN  \pi : \bot  }}} \ \codeme{  [Bot\text{-}RHS]} }
+}{\text{\code{\Gamma  \vdash  \effect \not\CONTAIN  \pi \wedge \bot  }}} \ \codeme{  [Bot\text{-}RHS]} }
 \end{gather*}

@@ -2137,8 +2137,8 @@ Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we d
   {
    \code{\code{D^{\pi}_{h}( \pi^\prime?)} {=}}
   \begin{cases}
-        \code{\pi \wedge \pi^\prime? } &\code{if\ h {\not\Rightarrow}  \pi^\prime}   \\
-        \code{\pi \wedge \epsilon} & \code{if\ h {\Rightarrow} \pi^\prime} 
+        \code{\pi \wedge \pi^\prime? } &\code{if\ h \not\Rightarrow  \pi^\prime}   \\
+        \code{\pi \wedge \epsilon} & \code{if\ h \Rightarrow \pi^\prime} 
       \end{cases} 
       }
       \qquad \quad \ \ \ 
@@ -2200,17 +2200,32 @@ This rule is used to disprove the inclusions when the antecedent is nullable, wh
 \item 
 \textbf{Prove.}
 \label{Prove}
-We use two rules to prove an inclusion: (i) \codeme{[PROVE]} is used when the fst set of the antecedent is empty; and (ii) $\code{[REOCCUR]}$ to prove an inclusion
+We use two rules to prove an inclusion: (i) $\codeme{[PROVE]}$ is 
+used when the fst set of the antecedent is empty; and 
+(ii) $\codeme{[REOCCUR]}$ to prove an inclusion
 when there exist inclusion hypotheses 
-in the proof context $\m{\Gamma}$, which are able to soundly prove the current goal. One of the special cases of this rule is when the identical inclusion is shown in the proof context, we then terminate the procedure and prove it as a valid inclusion. 
+in the proof context $\m{\Gamma}$, which are able to 
+soundly prove the current goal. One of the special cases of 
+this rule is when the identical inclusion is shown in the proof 
+context, we then terminate the procedure and prove it as a valid 
+inclusion. 
 \input{rules/rule3}
 
 \item 
 \textbf{Unfolding (Induction).}
 \label{unfolding}
-This is the inductive step of unfolding the inclusions. Firstly, we make use of the auxiliary function \code{fst} to get a set of instances \code{F}, which are all the possible initial time instances from the antecedent. 
-Secondly, we obtain a new proof context \code{\Gamma^\prime} by adding the current inclusion, as an inductive hypothesis, into the current proof context \code{\Gamma}. 
-Thirdly, we iterate each element \code{(I, \pi, t) \in F}, and compute the partial derivatives (\emph{next-state} effects) of both the antecedent and consequent w.r.t \code{(I, \pi, t)}. The proof of the original inclusion succeeds if all the derivative inclusions succeeds.
+This is the inductive step of unfolding the inclusions. Firstly, 
+we make use of the auxiliary function \code{fst} to get a set of 
+heads \code{H}, which are all the possible initial time instances 
+from the antecedent. 
+Secondly, we obtain a new proof context \code{\Gamma^\prime} by 
+adding the current inclusion, as an inductive hypothesis, into 
+the current proof context \code{\Gamma}. 
+Thirdly, we iterate each element \code{h \in H}, and compute the 
+partial derivatives (\emph{next-state} effects) of both the 
+antecedent and consequent w.r.t \code{h}. The proof 
+of the original inclusion succeeds if all the derivative 
+inclusions succeeds.
 \input{rules/rule4}
 
 
@@ -2219,170 +2234,100 @@ Thirdly, we iterate each element \code{(I, \pi, t) \in F}, and compute the parti
 We present a set of normalization rules to soundly transfer the timed effects into a normal form, in particular after getting their derivatives. 
 Before getting into the above inference rules, we assume that the effects formulae are tailored accordingly based on the axioms shown in
 \tabref{table:normalization}
-We built the axiom system on top of a complete axiom system \code{F_1}, from (A1) to (A11), suggested by \cite{DBLP:journals/jacm/Salomaa66}, which was designed for regular languages. We develop axioms (A12) to (A22) to further accommodate effects constructed by \code{||},   \code{\mysharp } and \code{\omega}.
+We built the axiom system on top of a complete axiom system \code{F_1}, from (A1) to (A10), suggested by \cite{DBLP:journals/jacm/Salomaa66}, 
+which was designed for regular languages. We develop axioms (A11) 
+to (A16) to further accommodate effects constructed by 
+\code{||} and \code{\mysharp}.
 
-
-
-%\begin{table}[ht]
-%\vspace{0mm}
-%  \caption{Some Normalization Lemmas for \timedEffects.}
-%  \label{table:normalization}
-%\setlength{\tabcolsep}{13pt}
-%\renewcommand{\arraystretch}{1.1}
-%\centering
-%\vspace{0mm}
-%\begin{tabular}{l || l || l}
-%\hline
-%  \code{\effect \vee \effect \rightarrow \effect} 
-%  &\code{\bot  \cdot \effect \rightarrow \bot  }  
-%  &
-% 
-%  
-%\\ \hline
-%
-%  \code{\bot  \vee \effect \rightarrow \effect } & \code{ \effect  \cdot \bot  \rightarrow \bot  }  &
-%
-%\code{ (\effect_1 \cdot \effect_2) \cdot \effect_3 \rightarrow \effect_1 \cdot (\effect_2 \cdot \effect_3)}
-%\\ \hline
-%
-%\code{ \effect \vee \bot  \rightarrow \effect }
-%&\code{\bot  ^\star \rightarrow  \epsilon}
-%& 
-%
-%
-%
-%\\ \hline
-%
-%
-% \code{ \epsilon \cdot \effect  \rightarrow \effect }
-% &  \code{\epsilon^\star \rightarrow \epsilon}
-% &  
-%
-% 
-%\\ \hline
-%
-%
-%\code{ \effect \cdot  \epsilon \rightarrow \effect}
-%& \code{( \epsilon \vee \effect)^\star \rightarrow \effect^\star}
-%& \code{ }
-%
-% 
-% 
-%\\ \hline
-%
-%
-% 
-%
-%\\ \hline
-%
-%\end{tabular}
-%\vspace{0mm}
-%\end{table}
 
 \begin{table}[ht]
-\caption{Normalization Axioms for \timedEffects.}
-\label{table:normalization}
-\setlength{\tabcolsep}{8pt}
-\renewcommand{\arraystretch}{1.2}
-\centering
-\begin{tabular}{rl}
-\footnotesize
-
-\begin{minipage}[t]{0.45\textwidth}
-\begin{tabular}{||l|l}
-\hline
-(A1)  &
-\code{\effect_1 \vee (\effect_2 \vee \effect_3) \rightarrow   (\effect_1 \vee \effect_2) \vee \effect_3 }\\
-\hline
-(A2)  &
-\code{\effect_1 \cdot (\effect_2 \cdot \effect_3)\rightarrow     (\effect_1 \cdot \effect_2) \cdot \effect_3 }\\
-\hline
-(A3)  &
-\code{\effect_1 \vee \effect_2 \rightarrow   \effect_2 \vee \effect_1 }\\
-\hline
-(A4)  &
-\code{\effect \cdot (\effect_1 \vee \effect_2)  \rightarrow \effect \cdot \effect_1  \vee \effect \cdot \effect_2 }\\
-\hline
-(A5)  &
- \code{(\effect_1 \vee \effect_2)\cdot \effect   \rightarrow \effect_1 \cdot \effect   \vee  \effect_2 \cdot \effect}\\
-\hline
-(A6)  &
- \code{\effect \vee \effect   \rightarrow \effect}\\
-\hline
-(A7)  &
- \code{  \effect \cdot \epsilon   \rightarrow \effect}\\
-\hline
-(A8)  &
- \code{  \effect \cdot  \bot \rightarrow \bot}\\
-\hline
-(A9)  &
- \code{\effect \vee \bot   \rightarrow \effect}\\
-\hline
-(A10)  &
- \code{\epsilon \vee (\effect \cdot \effect^\star)   \rightarrow  \effect^\star}\\
-\hline
-(A11)  &
- \code{(\epsilon \vee \effect)^\star   \rightarrow  \effect^\star}\\
-\hline
-
-
-
-\end{tabular}
-  \end{minipage} 
- 
-  &
-\footnotesize
-  \begin{minipage}[t]{0.45\textwidth}
-\begin{tabular}{||l|l|}
-\hline
-(A12)  &
-\code{\bot^\omega  \rightarrow \bot }\\
-\hline
-(A13)  &
-\code{\effect^\omega \cdot \effect_1 \rightarrow \effect^\omega }\\
-\hline
-(A14)  &
-\code{\epsilon^\omega \rightarrow \bot }\\
-\hline
-(A15)  &
-\code{ \effect\ ||\  \epsilon \rightarrow \effect}\\
-\hline
-(A16)  &
-\code{ \effect\ ||\ \bot  \rightarrow \bot }\\
-\hline
-(A17)  &
- \code{(I\mysharp  t) \cdot \effect_1\ ||\ J \cdot\effect_2 \rightarrow ((I  {\cup} J) \mysharp  t) \cdot (\effect_1 || \effect_2)}\\
-\hline
-(A18)  &
-\code{\pi : (\effect \mysharp  t_1 ) \mysharp  t_2 \rightarrow \pi  \wedge (t_1 {=} t_2) : \effect \mysharp  t_1 }\\
-\hline
-(A19)  &
- \code{ \epsilon \mysharp  t \rightarrow  \epsilon}\\
-\hline
-(A20)  &
- \code{\bot \mysharp  t \rightarrow  \bot }\\
-\hline
-(A21)  &
- \code{{{False}} : \effect \rightarrow {{False}} : \bot }\\
-\hline
-(A22)  &
- \code{{\pi} : \bot  \rightarrow {{False}} : \bot }\\
-\hline
- %\code{\effect \vee \effect \rightarrow \effect} 
-%  &\code{\bot  \cdot \effect \rightarrow \bot  }  
-%  &
-
-
-\end{tabular}
-  \end{minipage}
+  \caption{Normalization Axioms for \timedEffects.}
+  \label{table:normalization}
+  \setlength{\tabcolsep}{10pt}
+  \renewcommand{\arraystretch}{1.2}
+  \centering
+  \begin{tabular}{rl}
+  \footnotesize
   
+  \begin{minipage}[t]{0.36\textwidth}
+  \begin{tabular}{||l|l}
+  \hline
+  (A1)  &
+  \code{\es_1 \vee (\es_2 \vee \es_3) \rightarrow   (\es_1 \vee \es_2) \vee \es_3 }\\
+  \hline
+  (A2)  &
+  \code{\es_1 \cdot (\es_2 \cdot \es_3)\rightarrow     (\es_1 \cdot \es_2) \cdot \es_3 }\\
+  \hline
+  (A3)  &
+  \code{\es \cdot (\es_1 \vee \es_2)  \rightarrow \es \cdot \es_1  \vee \es \cdot \es_2 }\\
+  \hline
+  (A4)  &
+   \code{(\es_1 \vee \es_2)\cdot \es   \rightarrow \es_1 \cdot \es   \vee  \es_2 \cdot \es}\\
+  \hline
+  (A5)  &
+   \code{\es \vee \es   \rightarrow \es}\\
+  \hline
+  (A6)  &
+   \code{  \es \cdot \epsilon   \rightarrow \es}\\
+  \hline
+  (A7)  &
+   \code{  \es \cdot  \bot \rightarrow \bot}\\
+  \hline
+  (A8)  &
+  \code{\es \vee \bot   \rightarrow \es}\\
+  \hline
 
- 
-\end{tabular}
-\end{table}
 
+  
+  
+  
+  \end{tabular}
+    \end{minipage} 
+   
+    &
+  \footnotesize
+    \begin{minipage}[t]{0.6\textwidth}
+  \begin{tabular}{||l|l|}
+  \hline
+  (A9)  &
+  \code{\epsilon \vee (\es \cdot \es^\star)   \rightarrow  \es^\star}\\
+  \hline
+  (A10)  &
+  \code{(\epsilon \vee \es)^\star   \rightarrow  \es^\star}\\
+  \hline
+  (A11)\code{^\heartsuit}  &
+  \code{ \es\ ||\  \epsilon \rightarrow \es}\\
+  \hline
+  (A12)\code{^\heartsuit}  &
+  \code{ \es\ ||\ \bot  \rightarrow \bot }\\
+  \hline
+  (A13)\code{^\heartsuit}  &
+  \code{\bot \mysharp  t \rightarrow  \bot }\\
+  \hline
+  (A14)\code{^\heartsuit}  &
+  \code{\pi \wedge (\es \mysharp  t_1 ) \mysharp  t_2 
+  \rightarrow \pi  \wedge (t_1 {=} t_2) \wedge \es \mysharp  t_1 }\\
+  \hline
+  (A15)\code{^\heartsuit}  &
+   \code{(\epsilon \mysharp  t_1) ||(\epsilon \mysharp  t_2) \rightarrow 
+   (t_1 {\geq}t_2 \wedge\epsilon\mysharp t_1) \vee   (t_1 {<}t_2 \wedge \epsilon\mysharp t_2) }\\
+  \hline
+  (A16)\code{^\heartsuit}  &
+   \code{{{False}} \wedge \es = {\pi} \wedge \bot  \rightarrow {{False}} \wedge \bot }\\
+  \hline
 
-
+  
+  
+  \end{tabular}
+    \end{minipage}
+    
+  
+   
+  \end{tabular}
+  \end{table}
+  
+  
+  
 \end{enumerate}
 
 
@@ -2831,9 +2776,18 @@ However, none of the previous works have considered adding real-time abstraction
 \section{Conclusion}
 \label{sec:conclusion}
 %HipHop.js
-We define the syntax and semantics of the novel \timedEffects, to capture reactive program behaviors and  temporal properties. We demonstrate how to give a rather axiomatic semantics to \code{\timedL} by timed-trace processing functions. We use this semantic model to enable  a Hoare-style forward verifier,  which computes the program effects constructively.
-We present an effects inclusion checker (the TRS) to prove the annotated temporal properties efficiently. We prototype the verification system and show its feasibility.
-To the best of our knowledge, our work is the first that formulates semantics of a mixed Sync-Async concurrency paradigm; and that automates modular timed verification for reactive programs using an expressive effects logic. 
+We define the syntax and semantics of the novel \timedEffects, 
+to capture real-time systems' behaviors and  temporal properties. 
+We demonstrate how to give a rather axiomatic semantics to 
+\code{\timedL} by timed-trace processing functions. We use 
+this semantic model to enable  a Hoare-style forward verifier,  
+which computes the program effects constructively.
+We present an effects inclusion checker (the TRS) to prove the 
+annotated temporal properties efficiently. We prototype the 
+verification system and show its feasibility.
+To the best of our knowledge, our work is the first 
+automates modular timed verification for real-time systems 
+using an expressive effects logic. 
 
 
 %%
