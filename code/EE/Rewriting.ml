@@ -230,11 +230,17 @@ let rec fst (pi :pure) (es:es) : head list =
   | Emp -> []
   | Event ev ->  [Instant ev]
   | Ttimes (es1, t) -> 
-    let es1' =normalES es1 pi in  
+    let es1' = normalES es1 pi in  
     (match  es1' with 
     | Emp -> [T t]
     | Event (ev) ->  [Ev(ev, t)]
-    | _ -> fst pi es1')
+    | _ -> List.map (fun h -> 
+      let t_new = getAfreeVar () in 
+      match h with 
+      | Instant ev -> Ev(ev, Var t_new)
+      | _ -> h
+      ) (fst pi es1')
+    )
   | Cons (es1 , es2) ->  if nullable pi es1 then append (fst pi es1) (fst pi es2) else fst pi es1
   | ESOr (es1, es2) -> append (fst pi es1 ) (fst pi es2)
 
@@ -272,15 +278,6 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
         then (ESOr (es1', es2_der), optionPureAnd side1 side2)  
         else (es1', side1)
 
-
-        (*
-        let t_new = getAfreeVar () in 
-          (ESOr (es1', Cons(Ttimes(es1, Var t_new), es2_der)), Some (optionPureAndHalf (optionPureAnd side1 side2) (Ast.Eq(Var t_new, Number 0)))  )
-       
-        *)
-
-
-
   | ESOr (es1, es2) -> 
       let (es1_der, side1) = derivitive pi es1 f in 
       let (es2_der, side2) = derivitive pi es2 f in
@@ -313,16 +310,18 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 		| Ev (ev, t) -> (Bot, None)
 		| Instant ev -> if entailEvent ev ev1 then (Emp, None) else (Bot, None)
 		)
+
   | Ttimes (Ttimes (es1, t1) , t2 ) -> 
     let (es1_der, side1) = derivitive pi (Ttimes (es1, t1)) f in 
     (es1_der, Some (optionPureAndHalf side1 (Eq(t1, t2))))
 
-	| Ttimes (Emp, tIn) -> 
+  | Ttimes (Emp, tIn) -> 
 		(match f with 
 		| T  t -> (Emp,  Some (Eq(t , tIn)))
 		| Ev (ev, t) -> (Bot, None)
 		| Instant ev -> (Bot, None)
 		)
+
 	| Ttimes (Event ev1, tIn) -> 
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
@@ -339,7 +338,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 		| Ev (ev, t) ->  
 		  let (es1_der, side1) = derivitive pi es1 (Instant ev) in 
       (match normalES es1_der pi with 
-      | Emp -> (Emp, side1)
+      | Emp -> (Emp, Some (optionPureAndHalf side1 (Eq(tIn, t))))
       | _ -> 
         let t_new = getAfreeVar () in 
         let p_new = optionPureAndHalf side1 (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
@@ -402,7 +401,7 @@ let delta : hypotheses ref = ref []
 let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
-  let showEntail  =  showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
+  let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side))  in
   (*  print_string (showEntail^"\n");*)
   if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
     (Node (showEntail ^ showRule DISPROVE,[] ), false)

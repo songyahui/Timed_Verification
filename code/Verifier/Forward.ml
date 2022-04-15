@@ -341,6 +341,9 @@ let verify_Main startTimeStamp (auguments) (prog: program): string =
     "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ forward_time ^ result ^ "\n" 
   
   ;;
+let inferenceTime : float ref = ref 0.0 ;;
+let verificationTime : float ref = ref 0.0 ;;
+
 
 let rec verification (decl:(bool * declare)) (prog: program): string = 
   let (isIn, dec) = decl in 
@@ -358,18 +361,24 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
     let acc =  (verifier mn expression (pre) start prog) in 
+    let forward_time_number = (Sys.time() -. startTimeStamp) *. 1000.0 in 
+    let _ = inferenceTime := !inferenceTime +. forward_time_number in 
+    let forward_time = "[Forward Time: " ^ string_of_float (forward_time_number) ^ " ms]\n" in
+
     let acc' = (normalEffect acc) in 
     
     let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
-    (*print_string((showEntailmentEff acc post) ^ "\n") ;*)
-    
+
     (*let varList = (*append*) (getAllVarFromEff acc) (*(getAllVarFromEff post)*) in  
     *)
+    let startTimeStamp1 = Sys.time() in
     let (result_tree, result) =  Rewriting.printReportHelper  (acc') post in 
     let result = "[Result: "^ (if result then "Succeed" else "Fail") ^"]\n" in 
-    let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
+    let verification_time_number = (Sys.time() -. startTimeStamp1) *. 1000.0 in 
+    let _ = verificationTime := !verificationTime +. verification_time_number in 
+    let verification_time = "[Verification Time: " ^ string_of_float (verification_time_number) ^ " ms]\n" in
     let printTree = printTree ~line_prefix:"* " ~get_name ~get_children result_tree in
-    "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ result ^verification_time^ "\n" ^ printTree ^ "\n" 
+    "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ result ^forward_time ^ verification_time^ "\n" ^ printTree ^ "\n" 
     
  ;;
 
@@ -457,6 +466,11 @@ print_string (inputfile ^ "\n" ^ outputfile^"\n");*)
       close_out oc;                (* 写入并关闭通道 *)
       *)
       print_string (verification_re ^"\n");
+      print_string ("\n===Summary===\n");
+      print_string ("Time for inference    :" ^ string_of_float (!inferenceTime) ^"\n");
+      print_string ("Time for verification :" ^ string_of_float (!verificationTime) ^"\n");
+
+
       flush stdout;                (* 现在写入默认设备 *)
       close_in ic                  (* 关闭输入通道 *)
 

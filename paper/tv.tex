@@ -104,7 +104,7 @@
 \definecolor{color_pure}{RGB}{3,35,14}
 \usepackage{epigraph}
 \newcommand{\anyevent}[1]{{\textcolor{darkred}
-{{\textbf{\footnotesize #1}}}}}
+{{\textbf{\small #1}}}}}
 \newcommand{\anynotevent}[1]{{\textcolor{darkred}
 {{\textbf{\footnotesize $\overline{\text{#1}}$}}}}}
 \newcommand{\code}[1]{{\tt{\ensuremath{\m{#1}}}}}
@@ -1441,7 +1441,7 @@ from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}},
 
 
 \begin{figure}[!ht]
-  \vspace{-3mm}
+  %\vspace{-3mm}
   \renewcommand{\arraystretch}{1.2}
 \small\begin{align*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1525,10 +1525,10 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 & \code{d, s, \varphi \models false}  &\m{iff}\quad &
  \code{\llbracket {\pi}  \rrbracket_{s} {=} {False} } \ or \ \code{\varphi {=} \bot }
 \end{align*}
-  \vspace{-2mm}
+ % \vspace{-2mm}
 \caption{Semantics of \timedEffects.}
 \label{fig:Sementic}
-\vspace{-2mm}
+%\vspace{-2mm}
 \end{figure}
 
 
@@ -1819,6 +1819,7 @@ $[FV\text{-}Guard]$ computes the effects of \code{e} after concatenating
  {[FV\text{-}Guard]}} 
 \end{gather*}}}
 
+\vspace{1mm}
 $[FV\text{-}Seq]$ computes  \code{ \{  \Pi_1, \Theta_1\} } 
 from \code{e_1}, 
 then further gets  \code{ \{  \Pi_2, \Theta_2 \} } by 
@@ -1847,6 +1848,8 @@ then parallel merges the effects from these two branches.
 {[FV\text{-}Par]}} 
 \end{gather*}}}
 
+
+\vspace{1mm}
 The \code{[FV\text{-}If\text{-}Else]} computes an 
 over-approximation of the program states, by adding different constrains into 
 different branches. \code{\Pi \wedge v} enforces 
@@ -1877,6 +1880,9 @@ for \code{\Pi \wedge \neg v }.
 %{\vdash \s{ \Pi, \Theta}\  \textbf{if}\ v\ \textbf{then}\ e_1\ 
 %\textbf{else}\ e_2 \ \s{\Pi, v. \Theta_1 \vee \Theta_2 }} \  
 %{[FV\text{-}If\text{-}Else\text{-}Global]}} 
+
+
+\vspace{1mm}
 Rule \code{[FV\text{-}Event]} simply constructs an new event and 
 concatenates it to the current program states. 
 Rule \code{[FV\text{-}Delay]} creates a trace \code{\epsilon\mysharp t}
@@ -1897,6 +1903,9 @@ together with the additional constraint \code{t{=}d}.
   \textbf{delay} [d] 
    \ \{ \Pi \wedge  t {=}d,  \Theta^\prime \}} \   {[FV\text{-}Delay]}} 
 \end{gather*}}}
+
+
+\vspace{1mm}
 Rule \code{[FV\text{-}Timeout]} computes the effects from \code{e_1} and \code{e_2}
 using the starting state \code{\s{\Pi, \epsilon}}. The final states are the union 
 of these effects with their corresponding time variables and arithmetic constrains. 
@@ -1917,7 +1926,10 @@ of these effects with their corresponding time variables and arithmetic constrai
   e_1\ \textbf{timeout} [d] \  e_2
    \ \s{\Pi_f, \Theta \cdot \Theta_f} } \   {[FV\text{-}Timeout]}} 
 \end{gather*}}}
-Similar to the previous rule, \code{[FV\text{-}Ddl]} computes the effects 
+
+
+\vspace{1mm}
+Similar to \code{[FV\text{-}Timeout]}, \code{[FV\text{-}Ddl]} computes the effects 
 from \code{e} and adds an upper time-bound to the result. 
 {{\small\begin{gather*}
   \code{\frac{
@@ -1931,6 +1943,8 @@ from \code{e} and adds an upper time-bound to the result.
    \ \s{\Pi_1  \wedge t{\leq}d, \Theta  \cdot (\Theta_1\mysharp t)} }   
     {[FV\text{-}Ddl]}} 
   \end{gather*}}}
+
+  \vspace{1mm}
   Rule \code{[FV\text{-}Meth]} initializes the current effects state 
 using the declared precondition, accumulates the effects from the method body, 
 to obtain \code{ \s{\Pi, \Theta}}; then  it
@@ -1945,6 +1959,7 @@ the precondition and the postcondition\footnote{Here,
   \end{gather*}}}
 
 
+  \vspace{1mm}
 Rule \code{[FV\text{-}Call]} first checks whether the instantiated 
   precondition of callee, \code{[v^*/x^*]\effect_{pre}}, is satisfied by 
   the current program state. When the check is succeeded, the final states are 
@@ -2015,6 +2030,7 @@ An inclusion with a disjunctive antecedent succeeds if both disjunctions entail 
 \input{rules/rule7}
 }
 
+\vspace{2mm}
 Now, the inclusions are disjunction-free formulas. 
 Next we provide the definitions and the key implementations\footnote{As 
 the implementations according to basic regular expressions can be found 
@@ -2081,6 +2097,7 @@ We define recursively:
 %but helps to build up our \emph{First} function \code{fst}. 
 
 
+\vspace{2mm}
 \begin{definition}[Heads]\label{Heads}
 If \code{h} is a head of \code{\pi \wedge \es}, then there exists 
 \code{\pi^\prime} and \code{\es^\prime}, 
@@ -2092,6 +2109,7 @@ A head can be  $t$, denoting a pure time passing;
 \end{definition}
 
 
+\vspace{2mm}
 \begin{definition}[First]\label{First}
   Given any \code{\effect {=} \pi \wedge \es},
   \code{fst_{{\pi}}(\es)} return a set of heads, be the set of initial elements   
@@ -2135,7 +2153,7 @@ Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we d
 \end{comment}
 
 
-
+\vspace{2mm}
 \begin{definition}[Partial Derivative]\label{Derivative}
   Given any \code{\effect {=}\pi \wedge  \es}, 
   %and a variable valuation function \code{\env}, 
@@ -2196,6 +2214,8 @@ Notice that the derivatives of a parallel composition makes use of the \emph{Par
     }.
   \end{definition}
 
+
+  \vspace{2mm}
 \subsection{Rewriting Rules}
 \label{InferenceRules}
 Given the well-defined auxiliary functions above, we now discuss the key steps and related rewriting rules that we may use in such an effects inclusion proof.  
@@ -2212,8 +2232,6 @@ Analogous to  the standard propositional logic, \code{\bot } (referring to \text
 \textbf{Disprove (Heuristic Refutation).}
 \label{Refutation}
 This rule is used to disprove the inclusions when the antecedent is nullable, while the consequent is not nullable. Intuitively, the antecedent contains at least one more trace (the empty trace) than the consequent. Therefore, the inclusion is invalid. 
-
-\vspace{-4mm}
 \input{rules/rule2}
 
 \item 
@@ -2700,8 +2718,98 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 \end{table}
 }
 
-\subsection{Beyond Regular, Context-Free and Context-Sensitive}
-%As explained in \secref{subsec:Specification_language}, t
+
+
+
+
+\subsection{Expressiveness.}
+%for (timed) linear temporal properties
+\label{subsec:Expressive}
+
+
+
+Classical LTL
+extended propositional logic with the temporal operators 
+\code{\mathcal{G} } (``globally") 
+and 
+ \code{\mathcal{F}} (``in the future"), which we also write
+ \code{\square} and \code{\Diamond}, respectively. 
+ %and introduced the concept of fairness. %, which ensures an infinite-paths semantics. 
+ LTL was subsequently extended to include the  \code{\mathcal{U} }
+  (``until") and  \code{\mathcal{X}} (``next time") 
+  operators. 
+  Our \timedEffects\ draws similarities to the metric temporal logic (MTL), 
+which is defined similarly to LTL, 
+  where a set of non-negative real number is added to temporal modal operators.   
+  As shown in 
+  \autoref{tab:ltl_effects}, we are able to recursively encode 
+  these basic MTL operators into \timedEffects, making it 
+   more intuitive and readable, mainly when nested operators 
+   occur. 
+   
+
+
+\begin{table}[h]
+  \vspace{-1mm}
+\caption{\label{tab:ltl_effects} Examples for converting MTL formulae 
+into Effects.  (\code{  \anyevent{A}  ,   \anyevent{B}  } represent 
+different time instants which contain signal \code{\anyevent{A}} and 
+\code{\anyevent{B}} to be present.)
+}
+\setlength{\tabcolsep}{12pt}
+\renewcommand{\arraystretch}{1.4}
+
+\begin{tabular}{llllllll}
+\multicolumn{2}{l|}{\code{ \square \anyevent{A} \equiv   \anyevent{A}    ^\star}} 
+&
+ \multicolumn{2}{l|}{\code{ \Diamond_{[m, n]} \anyevent{A}  \equiv m{\leq}t{\leq}n \wedge ({\_}^\star \mysharp t) \cdot   \anyevent{A}    } } 
+ &
+  \multicolumn{2}{l|}{\code{ \anyevent{A}\ \mathcal{U}\ \anyevent{B}  \equiv {  \anyevent{A}  }^\star \cdot   \anyevent{B}   }} 
+  &
+  \multicolumn{2}{l}{\code{ \anyevent{A} \rightarrow \anyevent{B}  \equiv {  \overline{\anyevent{A}}  } \vee   \anyevent{A}, \anyevent{B}   }} 
+
+        
+  \\
+\hline
+\multicolumn{2}{l|}{\code{ \mathcal{X} \anyevent{A} \equiv      \cdot   \anyevent{A}      }} 
+&
+ \multicolumn{2}{l|}{\code{ \square\Diamond \anyevent{A} \equiv   ( {    }^\star \cdot   \anyevent{A}   )^\star }} 
+ &
+  \multicolumn{2}{l|}{\code{ \Diamond\square \anyevent{A} \equiv {    }^\star  \cdot   \anyevent{A}  ^\star }} 
+  &
+  \multicolumn{2}{l}{\code{\square (\mathcal{X} \anyevent{A}) \equiv (     \cdot   \anyevent{A}  )^\star }} 
+
+\end{tabular}
+  %\vspace{-6mm}
+  \vspace{-1mm}
+\end{table}
+
+%$A  B$ | $\{\overline{A}\} \vee \{A, B\}$ |  Implication
+%Furthermore, consider a property from \textit{Metric Temporal Logic (MTL)}: \code{\anyevent{A}\ \ \mathcal{U}_{[1, 3]}\ \anyevent{B}}, 
+
+
+Besides the high compatibility with standard first-order logic, \timedEffects\ makes the 
+temporal verification more scalable. It avoids 
+the %\textit{must-provided} 
+translation schemas for each LTL temporal operator to automata, 
+as comparing to how it has been done in the 
+prior work \cite{DBLP:conf/cav/JagadeesanPO95}.
+Furthermore, by putting the effects in the
+   precondition, our approach naturally composites \emph{past-time LTL} \cite{DBLP:conf/fmics/ReinbacherBHSK11} along the way.
+  
+
+%to express that the server keeps sending messages to its clients 
+%until the work is done (within a time ), the corresponding synced effects can be \code{\anyevent{Send}^5 \cdot \anyevent{Done}} (as we provide the syntactical sugar of \code{\anyevent{Send}^5} to express 5 times concatenation of \code{\anyevent{Send}}).
+%These properties cannot be expressed using standard LTL, as they can only refer to the relative order of events, not to their relative distance in time, yet can be expressed by our effects logic. 
+
+
+
+
+
+
+
+\paragraph{Beyond Regular, Context-Free and Context-Sensitive}
+
 The paradigmatic non-regular linear language: 
 \code{t{>} 0 \wedge \anyevent{A}\mysharp{t}\cdot\anyevent{B}\mysharp{t}}, 
 can be naturally expressed by the depended effects. 
@@ -2735,7 +2843,7 @@ As the examples show, our proposed effects logic and the abstract semantics for 
 
 
 
-Works based on such a TRS \cite{DBLP:conf/icfem/SongC20,DBLP:conf/vmcai/SongC21,DBLP:journals/tcs/AntimirovM95,DBLP:journals/ijfcs/AlmeidaMR09,DBLP:conf/fsttcs/KeilT14,DBLP:journals/jcss/Hovland12,prisacariu2010synchronous}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
+Works based on such a TRS \cite{DBLP:conf/icfem/SongC20,DBLP:conf/vmcai/SongC21,DBLP:journals/tcs/AntimirovM95,DBLP:journals/ijfcs/AlmeidaMR09,DBLP:conf/fsttcs/KeilT14,DBLP:journals/jcss/Hovland12}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
 
 
 
