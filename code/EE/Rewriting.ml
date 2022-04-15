@@ -79,12 +79,12 @@ let rec normalES (es:es) (pi:pure) : es =
     | (_, Bot) -> Bot
     | (Cons (Ttimes (es1, t1), es12), Cons (Ttimes (Emp, t2), es22)) 
     | (Cons (Ttimes (Emp, t2), es22), Cons (Ttimes (es1, t1), es12)) ->
-      if entailConstrains pi (GtEq(t1, t2)) then (Cons (Ttimes (es1, t1), Par (es12, es22))) 
+      if entailConstrains pi (Gt(t1, t2)) then (Cons (Ttimes (Emp, t2), Par (Cons(Ttimes (es1, (Minus (t1, t2))), es12), es22))) 
       else Cons (Cons (Ttimes (es1, t1), Ttimes (Emp, (Minus (t2, t1)))), Par (es12, es22)) 
     
     | (Cons (Ttimes (es1, t1), es12), Ttimes (Emp, t2)) 
     | (Ttimes (Emp, t2), Cons (Ttimes (es1, t1), es12)) ->
-      if entailConstrains pi (GtEq(t1, t2)) then (Cons (Ttimes (es1, t1), es12)) 
+      if entailConstrains pi (Gt(t1, t2)) then (Cons (Ttimes (Emp, t2), Cons(Ttimes (es1, (Minus (t1, t2))), es12))) 
       else Cons (Cons (Ttimes (es1, t1), Ttimes (Emp, (Minus (t2, t1)))), es12) 
     
     | (Ttimes (es1, t1), Ttimes (Emp, t2)) 
@@ -651,7 +651,8 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
   let (es1_der, v1) = derivitive_concrete valuation pi es1 f in 
   let (es2_der, v2) = derivitive_concrete valuation pi es2 f in 
   (match (normalES es1_der pi, normalES es2_der pi) with 
-  | (Bot, Bot) -> raise (Foo "deadlock")
+  | (Bot, Bot) -> (Par (es1, es2
+  ), valuation)
   | (Bot, _) -> (Par (es1, es2_der), v2)
   | (_, Bot) -> (Par (es1_der, es2), v1)
   | (_, _) -> (Par (es1_der, es2_der), v1))
@@ -733,7 +734,7 @@ let rec normalFstSet (li : head list ): (head list) =
 let rec containment_concrete valuation (effL:effect) (effR:effect) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
-  let showEntail  = (*string_of_globalV !valuationTRS ^"\n") ^ " -- "^ *) showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
+  let showEntail  = (*(string_of_globalV valuation ^"\n") ^ " -- "^ *) showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
   (*  print_string (showEntail^"\n");*)
   if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
     (Node (showEntail ^ showRule DISPROVE,[] ), false)
