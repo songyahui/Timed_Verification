@@ -352,8 +352,8 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
   | Global _ -> ""
   | Method (Meth (t, mn , list_parm, PrePost (pre, post), expression)) -> 
     if String.compare mn "main" == 0 then verify_Main startTimeStamp (t, mn , list_parm, PrePost (pre, post), expression) prog 
-    else "skip for now\n"
-    (*let head = "[Verification for method: "^mn^"]\n"in 
+    else 
+    let head = "[Verification for method: "^mn^"]\n"in 
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
     let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
@@ -370,7 +370,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
     let printTree = printTree ~line_prefix:"* " ~get_name ~get_children result_tree in
     "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ result ^verification_time^ "\n" ^ printTree ^ "\n" 
-    *)
+    
  ;;
 
 let rec printMeth (me:meth) :string = 

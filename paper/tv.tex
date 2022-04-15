@@ -24,8 +24,12 @@
 %\setcopyright{acmlicensed}
 %\setcopyright{rightsretained}
 %\copyrightyear{2018}           %% If different from \acmYear
+\usepackage{pifont}% http://ctan.org/pkg/pifont
 
 \usepackage{tikz}
+\newcommand{\cmark}{\ding{51}}%
+\newcommand{\xmark}{\ding{55}}%
+
 \usepackage{xcolor}
 \usepackage[thicklines]{cancel}
 \renewcommand{\CancelColor}{\color{lightgray}}
@@ -2397,6 +2401,52 @@ We conduct experiments on a MacBook Pro with a 2.6 GHz Intel Core i7 processor. 
 
 %We claim that the extra expressiveness gained from our logic is the symbolic time-bounds. The timed effects represent not only one exact Timed Automata but also a set of Timed Automata. Together with our back-end inclusion solver, it enables a verification framework for a group of Automata. More specifically, instead of running the model checker many times for one non-deterministic time-bound at each time, we can define arithmetic constraints bounding the time variable. And to test that, we cover a number of test cases with function calls, and the callee's parameters would be used as the time bounds.
 
+\autoref{tab:Experimental} presents the evaluation results of a microbenchmark. % summary of a lightweight . 
+In this experiment, we select 16 \timedL\ programs, and  annotate temporal specifications
+with a 1:1 ratio for succeeded/failed cases. 
+It records: 
+the index of the program, \textbf{No.};
+lines of code, \textbf{LOC}; 
+effects inference time, \textbf{Infer(ms)}; 
+number of valid properties, \textbf{$\mysharp$Prop(\cmark)}; 
+average proving time for the valid properties, \textbf{Avg\text{-}Prove(ms)};
+number of invalid properties, \textbf{$\mysharp$Prop(\xmark)}; and 
+average disproving time for the invalid properties, \textbf{Avg\text{-}Dis(ms)}. 
+Times are counted using milliseconds, and the experiment is done on 
+a MacBook Pro with a 2.6 GHz 6-Core Intel Core i7 processor. 
+
+\begin{table}[!ht]
+\caption{\label{tab:Experimental} Experimental Results. }
+%\vspace{-1mm}
+\centering
+\renewcommand{\arraystretch}{1}
+\begin{tabular} {c|c|c|c|c |c|c}
+\hline
+\textbf{No.} & \textbf{LOC} & \textbf{Infer(ms)} & \textbf{$\mysharp$Prop(\cmark)}   
+& \textbf{Avg\text{-}Prove(ms)} & \textbf{$\mysharp$Prop(\xmark)}   & \textbf{Avg\text{-}Dis(ms)} \\ \hline\hline
+1    &    18    & 0.037&  5     &  0.7634    & 5   &   0.0116   \\ \hline
+2    &    33    & 0.145&  5     &  1.3074    & 5   &   0.045    \\ \hline
+3    &    55    & 0.34 &  5     &  6.0766    & 5   &   1.1682   \\ \hline
+4    &    84    & 0.098&  5     &  3.0678    & 5   &   0.1058   \\ \hline
+5    &    110   & 0.191&  7     &  1.7544    & 7   &   0.5031   \\ \hline
+6    &    124   & 0.323&  7     &  4.0114    & 7   &   0.3957   \\ \hline
+7    &    138   & 0.321&  7     &  3.8399    & 7   &   0.4261   \\ \hline
+8    &    163   & 0.594&  7     &  6.1009    & 7   &   1.5019   \\ \hline
+9    &    178   & 0.941&  9     &  10.7758   & 9   &   0.5769   \\ \hline
+10   &    185   & 1.921&  9     &  13.9332   & 9   &   0.04422  \\ \hline
+11   &    202   & 3.434&  9     &  27.4447   & 9   &   0.0561   \\ \hline
+12   &    220   & 6.439&  9     &  59.2226   & 9   &   0.745   \\ \hline
+13   &    250   & 3.6  &  11    &  29.5766   & 11  &   0.0662  \\ \hline
+14   &    261   & 7.552&  11    &  64.2137   & 11  &   0.6121  \\ \hline     
+15   &    293   & 14.896& 11   &  115.9795   & 11  &   0.5462   \\ \hline
+16   &    304   &  30.889  &  11    & 237.2522    & 11  &  0.07164        \\ \hline            
+%\hline
+%\textbf{\quad \ \ Total}  & 2546    &  235   &  446.88   &   305.33   \\ \hline
+\end{tabular}
+%  \vspace{-1mm}
+\end{table}
+
+
 Our implementation is the first that solves the  inclusion problem of symbolic Timed Automata, which is considered important because it overcomes the following main limitations in traditional timed model checking:  i) they cannot be used to specify and verify systems incompletely specified (i. e., whose timing constants are not known yet), and hence cannot be used in early design phases; ii) verifying a system for a set of timing constants usually requires to enumerate all of them one by one if they are supposed to be integer-valued; in addition, Timed Automata cannot be used to verify a system for a set of timing constants that are to be taken in a real-valued dense interval. 
 
 
@@ -2501,7 +2551,7 @@ Then in step {\textcircled{6},
 \code{\{A\} \mysharp  t_L^1} together with \code{\{A\} \mysharp  t_R^1} are eliminated, unifying \code{t_L^1} and \code{t_R^1} (adding the constraint \code{ t_L^1 {=}  t_R^1}).
 %, also
 %are unified as new constraint \code{t_L^1{=}t_R^1}.
-In step {\textcircled{7}, we observe the proposition is isomorphic with one of the the previous step, marked using \code{\textcolor{darklavender}{(\ddagger)}}. 
+In step {\textcircled{8}, we observe the proposition is isomorphic with one of the the previous step, marked using \code{\textcolor{darklavender}{(\ddagger)}}. 
 %one in
 %step \code{\textcircled{1}}, 
 Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constraints entailment: \code{\textcolor {
@@ -2513,6 +2563,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 %we will need to unify \code{t_L^2} and \code{t_R^2} in order to get enough
 %time constraints. And in step \code{\textcircled{5}} we prove the proposition to
 %be true.
+
 
 {
 \begin{table}[ht]
@@ -2534,12 +2585,13 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 
 \hypo{
   \code{
-    \textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True} \qquad
-    \epsilon \CONTAIN \epsilon
+   % \textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True} \qquad
+   % \epsilon \CONTAIN \epsilon
+   {\textcircled{4}\siderule{\codeme{[PROVE]}}}
   }
 }
 
-\infer[dashed]1[{\textcircled{4}\siderule{\codeme{[PROVE]}}}]{
+\infer[dashed]1[]{
   \code{
     \textcolor {darkred}{True} \wedge \epsilon \CONTAIN
     \textcolor {darkred}{True} \wedge \epsilon
@@ -2548,98 +2600,91 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 
 \infer[dashed]1[{\textcircled{3}\siderule{\codeme{[Normalisation]}}}]{
   \code{
-    \textcolor {darkred}{True} \wedge \cancel{\{B\}} \CONTAIN
-    \textcolor {darkred}{True} \wedge \cancel{ \epsilon \cdot \{B\}}
+    \textcolor {darkred}{True} \wedge \cancel{  B  } \CONTAIN
+    \textcolor {darkred}{True} \wedge \cancel{ \epsilon \cdot   B  }
   }
 }
 
 \infer[dashed]1[{\textcircled{2}\siderule{\codeme{[UNFOLD]}}}]{
   \code{
-    \textcolor {darkred}{True} \wedge \{B\} \CONTAIN
-    \textcolor {darkred}{t_R{<}4} \wedge \{A\}^\star \mysharp  t_R \cdot \{B\}
+    \textcolor {darkred}{True} \wedge   B   \CONTAIN
+    \textcolor {darkred}{t_R{<}4} \wedge   A  ^\star \mysharp  t_R \cdot   B  
   }
 }
 \hypo{(\code{II})}
 
 \infer[dashed]1[{\siderule{}}]{
   \code{
-    \textcolor {darkred}{t_L{<}3}  \wedge  \{A\}^\star \mysharp  t_L  \cdot  \{B\}
+    \textcolor {darkred}{t_L{<}3}  \wedge    A  ^\star \mysharp  t_L  \cdot    B  
     \CONTAIN
-    \textcolor {darkred}{t_R{<}4}  \wedge  \{A\}^\star \mysharp  t_R  \cdot  \{B\}
+    \textcolor {darkred}{t_R{<}4}  \wedge    A  ^\star \mysharp  t_R  \cdot    B  
   }
 }
 
 \infer[dashed]2[{\textcircled{1}\siderule{\codeme{[OR\text{-}LHS]}}}]{
   \code{
-    \textcolor {darkred}{t_L{<}3} \wedge \{A\}^\star \mysharp  t_L \cdot \{B\}
-    \vee \textcolor {darkred}{True} \wedge \{B\} \CONTAIN
-    \textcolor {darkred}{t_R{<}4} \wedge \{A\}^\star \mysharp  t_R \cdot \{B\}
+    \textcolor {darkred}{t_L{<}3} \wedge   A  ^\star \mysharp  t_L \cdot   B  
+    \vee \textcolor {darkred}{True} \wedge   B   \CONTAIN
+    \textcolor {darkred}{t_R{<}4} \wedge   A  ^\star \mysharp  t_R \cdot   B  
   }
 }
 \end{prooftree}}
 \\~\\ 
 
 \hline \\
-\code{(II):} \qquad 
+\code{(II):}
 {\begin{prooftree}
 \hypo{
   \code{
     \textcolor {
-      darkred}{t_L^1{+}t_L^2{=}t_L \wedge t_L{<}3 \wedge t_R{=}t_R^1{+}t_R^2 \wedge t_L^1{=}t_R^1
+      darkred}{t_L{<}3 \wedge } \ \textcolor {
+        blue}{t_L^1{+}t_L^2{=}t_L \wedge  t_R{=}t_R^1{+}t_R^2 \wedge t_L^1{=}t_R^1
       \wedge t_L^2{=}t_R^2
     } \Rightarrow
     \textcolor {darkred}{t_R{<}4} 
 %\qquad
-%     \{A\}^\star \cdot \{B\}
+%       A  ^\star \cdot   B  
 %    \CONTAIN
-%     \{A\}^\star \cdot \{B\}
+%       A  ^\star \cdot   B  
   }
 }
 
-\infer[dashed]1[{\siderule{}}]{
+\infer[dashed]1[{\textcircled{8}\siderule{\codeme{[REOCCUR]}}}]{
   \code{
     \textcolor {
-      darkred}{\cdots  \wedge  \cdots
-%      
-%      t_L^1{+}t_L^2{=}t_L{<}3  \wedge  t_R{=}t_R^1{+}t_R^2  \wedge  t_L^1{=}t_R^1
-%       \wedge  t_L^2{=}t_R^2
-    } \wedge 
-     \{A\}^\star \mysharp  t_L^2 \cdot \{B\}
+      darkred}{t_L{<}3} \wedge 
+       A  ^\star \mysharp  t_L^2 \cdot   B  
     \CONTAIN
     \textcolor {darkred}{t_R{<}4} \wedge 
-     \{A\}^\star \mysharp  t_R^2 \cdot \{B\} \quad  \textcolor{darklavender}{(\ddagger)}
+       A  ^\star \mysharp  t_R^2 \cdot   B   \quad  \textcolor{darklavender}{(\ddagger)}
   }
 }
 
-\infer[dashed]1[{\textcircled{7}\siderule{\codeme{[REOCCUR]}}}]{
+\infer[dashed]1[{\textcircled{7}\siderule{\codeme{[UNFOLD]}}} \textcolor{blue}{\code{\pi_u :  (t_L^1{+}t_L^2{=}t_L  \wedge  t_R{=}t_R^1{+}t_R^2 \wedge t_L^1{=}t_R^1)}}]{
   \code{
-    \textcolor {
-      darkred}{
-%t_L^1{+}t_L^2{=}t_L  \wedge  t_R{=}t_R^1{+}t_R^2  \wedge       
-       t_L^1{=}t_R^1
-    } \wedge 
-     \cancel{\{A\} \mysharp  t_L^1}  \cdot  \{A\}^\star \mysharp  t_L^2 \cdot \{B\}
+    \textcolor {darkred}{t_L{<}3} \wedge 
+     \cancel{  A   \mysharp  t_L^1}  \cdot    A  ^\star \mysharp  t_L^2 \cdot   B  
     \CONTAIN
     \textcolor {darkred}{t_R{<}4} \wedge 
-     \cancel{\{A\} \mysharp  t_R^1}  \cdot  \{A\}^\star \mysharp  t_R^2 \cdot \{B\}
+     \cancel{  A   \mysharp  t_R^1}  \cdot    A  ^\star \mysharp  t_R^2 \cdot   B  
   }
 }
 
-\infer[dashed]1[{\textcircled{6}\siderule{\codeme{[UNFOLD]}}}]{
+\infer[dashed]1[{\textcircled{6}\siderule{\codeme{[UNFOLD]}}} \textcolor{blue}{\code{\pi_u :  (t_L^1{+}t_L^2{=}t_L  \wedge  t_R{=}t_R^1{+}t_R^2)}}]{
   \code{
-    \textcolor {darkred}{t_L^1{+}t_L^2{=}t_L  \wedge  t_R{=}t_R^1{+}t_R^2} \wedge 
-     ( \{A\} \mysharp  t_L^1  \cdot  \{A\}^\star \mysharp  t_L^2) \cdot \{B\}
+    \textcolor {darkred}{t_L{<}3} \wedge 
+     (   A   \mysharp  t_L^1  \cdot    A  ^\star \mysharp  t_L^2) \cdot   B  
     \CONTAIN
     \textcolor {darkred}{t_R{<}4} \wedge 
-     ( \{A\} \mysharp  t_R^1  \cdot  \{A\}^\star \mysharp  t_R^2) \cdot \{B\}
+     (   A   \mysharp  t_R^1  \cdot    A  ^\star \mysharp  t_R^2) \cdot   B  
   }
 }
 
 \infer[dashed]1[{\textcircled{5}\siderule{\codeme{[SPLIT]}}}]{
   \code{
-    \textcolor {darkred}{t_L{<}3} \wedge \{A\}^\star \mysharp  t_L \cdot \{B\}
+    \textcolor {darkred}{t_L{<}3} \wedge   A  ^\star \mysharp  t_L \cdot   B  
     \CONTAIN
-    \textcolor {darkred}{t_R{<}4} \wedge \{A\}^\star \mysharp  t_R \cdot \{B\}  
+    \textcolor {darkred}{t_R{<}4} \wedge   A  ^\star \mysharp  t_R \cdot   B    
     \quad \textcolor{darklavender}{(\ddagger)}
   }
 }
