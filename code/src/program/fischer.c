@@ -20,7 +20,9 @@ void process (int i)
 
 void process1 (int i)
 /* req: (d1>0/\d2>d1) /\ (_^*) 
-   ens: (t0<=d1/\t1=d2) /\ [x=-1]? . Update(i){x := i} */
+   ens: (t1>0/\t0>0/\t0<d1/\t1=d2) /\ [x=-1]? . 
+   (Update(i){x := i}#t0). (emp#t1) . 
+   (([x=i] . Critical(i){pc:=i}  ) + [(~(x=i))])*/
 { 1
 }
 

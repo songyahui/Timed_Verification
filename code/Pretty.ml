@@ -125,8 +125,8 @@ let rec showES (es:es):string =
 let rec showEffect (e:effect) :string = 
   match e with 
   | [] -> ""
-  | [(p, es)] ->(* showPure p ^ "/\\" ^ *) showES es 
-  | (p, es):: rest -> (*showPure p ^ "/\\" ^*) showES es  ^ " \\/ "  ^ showEffect rest 
+  | [(p, es)] ->(*  showPure p ^ "/\\" ^ *)  showES es 
+  | (p, es):: rest -> (* showPure p ^ "/\\" ^ *) showES es  ^ " \\/ "  ^ showEffect rest 
   ;;
 
 let rec printType (ty:_type) :string =
@@ -631,4 +631,24 @@ let string_of_globalV (v: globalV) : string =
   ;; 
 
 
+let string_of_event ev : string = 
+    match ev with 
+    | Present (str, param, ops) -> 
+      let print_param = (
+        match param with 
+        | None -> ""
+        | Some v -> "(" ^ string_of_value v ^ ")"
+      )in 
+      (String.make 1 (String.get str 0 )) ^ print_param  ^ 
+      let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
+      print_ops 
+    | Absent str -> "!" ^ str
+    | Any -> "_"
+    | Tau p -> "[" ^ showPure p^"]"
+;;
+let string_of_head h: string = 
 
+  match h with 
+  | Instant ev -> string_of_event ev 
+  | Ev (ev, t) -> "(" ^ string_of_event ev ^","^showTerms t ^ ")"
+  | T   t -> showTerms t ;;
