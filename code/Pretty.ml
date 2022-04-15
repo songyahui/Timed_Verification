@@ -99,9 +99,9 @@ let rec showES (es:es):string =
         | None -> ""
         | Some v -> "(" ^ string_of_value v ^ ")"
       )in 
-      (String.make 1 (String.get str 0 )) ^ print_param ^ 
+      (String.make 1 (String.get str 0 )) ^ print_param (* ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
-      print_ops 
+      print_ops *)
     | Absent str -> "!" ^ str
     | Any -> "_"
     | Tau p -> "[" ^ showPure p^"]"
@@ -125,8 +125,8 @@ let rec showES (es:es):string =
 let rec showEffect (e:effect) :string = 
   match e with 
   | [] -> ""
-  | [(p, es)] -> showPure p ^ "/\\" ^ showES es 
-  | (p, es):: rest -> showPure p ^ "/\\" ^ showES es  ^ " \\/ "  ^ showEffect rest 
+  | [(p, es)] ->(* showPure p ^ "/\\" ^ *) showES es 
+  | (p, es):: rest -> (*showPure p ^ "/\\" ^*) showES es  ^ " \\/ "  ^ showEffect rest 
   ;;
 
 let rec printType (ty:_type) :string =
@@ -606,8 +606,8 @@ let rec normalPure (pi:pure):pure =
   | _ ->  pi 
 ;;
 
-(*
-let rec normalPure (pi:pure):pure = 
+
+let rec normalPureDeep (pi:pure):pure = 
   let allPi = getAllPi pi [] in
   let rec clear_Pi pi li = 
     (match li with 
@@ -624,7 +624,11 @@ let rec normalPure (pi:pure):pure =
   if length filte_true == 0 then  TRUE
   else connectPi (tl filte_true) (hd filte_true)
   ;;
-*)
+
+
+let string_of_globalV (v: globalV) : string = 
+  List.fold_left (fun acc (str, n) -> acc ^ "\n" ^ str ^ "=" ^ string_of_int n) "" v
+  ;; 
 
 
 

@@ -319,7 +319,11 @@ let rec extracPureFromPrecondition (eff:effect) :effect =
 ;;
 
 let getGlobelDeclear (prog: program): globalV = 
-[]
+  List.map (fun (str, t) -> (str, termToInt t)) (List.flatten (List.map (fun a -> 
+    match a with 
+    | Global assign -> [assign]
+    | _ -> []
+  ) prog))
   ;;
 
 let verify_Main startTimeStamp (auguments) (prog: program): string = 
@@ -330,10 +334,9 @@ let verify_Main startTimeStamp (auguments) (prog: program): string =
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
     let acc =  (verifier mn expression (pre) start prog) in 
     let forward_time = "[Forward Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
-    let acc' = (normalEffect acc) in 
+    let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalEffect acc) in 
     
     let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
-
     let (result) =  printReport_concrete (getGlobelDeclear prog) acc' post in 
     "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ forward_time ^ result ^ "\n" 
   

@@ -133,7 +133,8 @@ let rec normalES (es:es) (pi:pure) : es =
   | Kleene es1 -> 
       let normalInside = normalES es1 pi  in 
       (match normalInside with
-        Emp -> Emp
+      | Emp -> Emp
+      | Bot -> Emp
       | Kleene esIn1 ->  Kleene (normalES esIn1 pi )
       | ESOr(Emp, aa) -> Kleene aa 
       | _ ->  Kleene normalInside)
@@ -572,6 +573,26 @@ let rec updateValuation (ops:globalV) : unit =
   | [] -> ()
   | (str, terms):: rest -> let _ = valuationTRS := updateOneValue (str, terms) (!valuationTRS) in updateValuation rest ;;
 
+let rec fst_concrete (pi :pure) (es:es) : head list = 
+  match es with
+    Bot -> []
+  | Emp -> []
+  | Event ev ->  [Instant ev]
+  | Ttimes (es1, t) -> 
+    let es1' =normalES es1 pi in  
+    (match  es1' with 
+    | Emp -> [T t]
+    | Event (ev) ->  [Ev(ev, t)]
+    | _ -> fst_concrete pi es1')
+  | Cons (es1 , es2) ->  if nullable pi es1 then append (fst_concrete pi es1) (fst_concrete pi es2) else fst_concrete pi es1
+  | ESOr (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2)
+
+  | Par (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2 )
+  | Kleene es1 -> fst_concrete pi es1
+  | Guard (pi1) -> [Instant(Tau pi1)]
+
+;;
+
 let rec derivitive_concrete (pi :pure) (es:es) (f:head) : (es)  =
   match es with
   Bot -> Bot 
@@ -584,17 +605,22 @@ let rec derivitive_concrete (pi :pure) (es:es) (f:head) : (es)  =
     then (ESOr (es1', es2_der))
     else (es1')
 
-| ESOr (es1 , es2) -> ESOr (derivitive_concrete pi es1 f, derivitive_concrete pi es2 f) 
-| Kleene es1 -> Kleene (derivitive_concrete pi es1 f)
+| ESOr (es1 , es2) ->  ESOr (derivitive_concrete pi es1 f, derivitive_concrete pi es2 f) 
+| Kleene es1 -> Cons (derivitive_concrete pi es1 f, es)
 | Guard (pi1) -> if entailConstrains (globalVToPure !valuationTRS) pi1 then Emp else es
-| Event (Tau pi1) -> if entailConstrains (globalVToPure !valuationTRS) pi1 then Emp else Bot
+| Event (Tau pi1) -> 
+
+  if entailConstrains (globalVToPure !valuationTRS) pi1 then Emp else Bot
 
 | Par (es1 , es2) -> 
   let es1_der = derivitive_concrete pi es1 f in 
-  (match normalES es1_der pi with 
-  | Bot -> Par (es1 , derivitive_concrete pi es2 f)
-  | _ -> Par (es1_der, es2))
-
+  let es2_der = derivitive_concrete pi es2 f in 
+  (match (normalES es1_der pi, normalES es2_der pi) with 
+  | (Bot, Bot) -> raise (Foo "deadlock")
+  | (Bot, _) -> Par (es1, es2_der)
+  | (_, Bot) -> Par (es1_der, es2)
+  | (_, _) -> Par (es1_der, es2_der))
+  
 | Event Any -> Emp 
 | Event (Absent str) -> 
   (match f with 
@@ -602,10 +628,10 @@ let rec derivitive_concrete (pi :pure) (es:es) (f:head) : (es)  =
   | _ -> Emp 
   )
 
-| Event (Present(str, v, ops)) -> 
+| Event (Present(str, va, ops)) -> 
   (match f with 
   | Instant (Present(s, v, o)) -> 
-    if compareEvent ((Present(s, v, o))) (Present(str, v, ops)) 
+    if compareEvent ((Present(s, v, o))) (Present(str, va, ops)) 
     then (updateValuation (List.map (fun (s, t) -> (s, termToInt t)) ops); Emp )
     else Bot 
   | _ -> Bot )
@@ -654,6 +680,24 @@ let rec derivitive_concrete (pi :pure) (es:es) (f:head) : (es)  =
 
 
 ;;
+let compareHead h1 h2 : bool =
+  match (h1, h2) with 
+  | (Instant ev1, Instant ev2) -> compareEvent ev1 ev2 
+  |( Ev (ev1, t1), Ev (ev2, t2)) -> compareEvent ev1 ev2  && acompareTerms t1 t2 
+  | (T t1, T t2) -> acompareTerms t1 t2 
+  | _ -> raise (Foo "compareHead not yet")
+  ;;
+
+let rec normalFstSet (li : head list ): (head list) = 
+  let rec existHead h hxs = 
+    match hxs with 
+    | [] -> false 
+    | y ::ys -> if compareHead h y then true else existHead h ys
+  in
+  match li with 
+  | [] -> []
+  | x ::xs -> if existHead x xs then normalFstSet xs else x :: (normalFstSet xs)
+  ;;
 
 
 let rec containment_concrete (effL:effect) (effR:effect) : (binary_tree * bool) = 
@@ -674,7 +718,7 @@ let rec containment_concrete (effL:effect) (effR:effect) : (binary_tree * bool) 
             (Node (showEntail ^ showRule REOCCUR,[] ), true)
              
           else 
-            let fstSet = fst pL esL  in
+            let fstSet = normalFstSet (fst_concrete pL esL)  in
             if List.length (fstSet) == 0 then (Node (showEntail ^ " [NO FST1]",[] ), true)
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
@@ -718,3 +762,11 @@ let printReport_concrete (valuation: globalV) (lhs:effect) (rhs:effect) :string 
   let buffur = ( "===================================="^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n") ^verification_time^" \n\n"^ result)
   in buffur
   ;;
+
+  (*
+    print_string (showES es^"\n");
+  print_string (showES (ESOr (derivitive_concrete pi es1 f, derivitive_concrete pi es2 f))^"\n");
+
+  raise (Foo (string_of_globalV (!valuationTRS)));
+
+  *)

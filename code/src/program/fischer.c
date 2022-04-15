@@ -18,8 +18,14 @@ void process (int i)
   }
 }
 
+void process1 (int i)
+/* req: (d1>0/\d2>d1) /\ (_^*) 
+   ens: (t0<=d1/\t1=d2) /\ [x=-1]? . Update(i){x := i} */
+{ 1
+}
+
 void main () 
 /* req: (d1>0/\d2>d1) /\ emp 
    ens: TRUE /\ (([pc=-1] + [pc=x])^*)  */
-{ process(0) || process(1); }
+{ process1(0) || process1(1); }
 
