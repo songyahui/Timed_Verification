@@ -154,7 +154,7 @@
    showspaces=false,
 %frame=single
 numbers=left,   
-xleftmargin=1.5em, 
+xleftmargin=1em, 
     numberstyle=\tiny\color{mGray},
    numbersep=10pt,
    tabsize=4,
@@ -931,52 +931,66 @@ At the end of the rewriting, step \textcircled{7} manages to prove that
 %(\code{\{Ready\} \Rightarrow \_}, \code{t_L^2 \Rightarrow true})
 Termination is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using 
 \emph{memorization} \cite{DBLP:conf/tableaux/Brotherston05}, cf., \tabref{tab:reoccur}. 
+\\
+
+\subsection{Verifying the Fischer’s Mutual Exclusion Protocol}
 
 
-\subsection{The Fischer's mutual exclusion algorithm}
 
 
-
-
-\begin{wrapfigure}{L}{0.53\columnwidth}
-  \vspace{-1mm}
+\begin{wrapfigure}{L}{0.51\columnwidth}
+  \vspace{-5mm}
 \begin{lstlisting}
 var x := -1; 
-var ct := 0;
+var ct:= -1;
+
 void proc (int i) {
   [x=-1] 
   deadline(event["Update"(i)]{x:=i},d1);
   delay (d2);
   if (x=i) {
-    event["Critical"(i)]{ct:=ct+1};
-    event["Exit"(i)]{ct:=ct-1; x:=-1};
+    event["Critical"(i)]{ct:=i};
+    event["Exit"(i)]{ct:=-1; x:=-1};
     proc (i);
   } else {
     proc (i);}}
-void main () { 
-  proc(0) || proc(1) || proc(2); }
+
+void main () 
+/*req: d1<d2/\emp
+  ens: true /\ (([ct=-1]\/[ct=x])^*) */ 
+{ proc(0) || proc(1) || proc(2); }
 \end{lstlisting}  
-  \vspace{-1mm}
+  %\vspace{-1mm}
   \caption{Fischer's mutual exclusion algorithm.}\label{fig:overview_ficher}
-     \vspace{-1mm}
+    % \vspace{-2mm}
 \end{wrapfigure}
 
-The following models Fischer's mutual exclusion algorithm. 
-where d1 and d2 are two integer constants with d1 < d2; 
-x and ct are global variables. The protocol is modeled as 
-process Protocol, which is the parallel composition of three 
+\figref{fig:overview_ficher} presents the classical 
+Fischer's mutual exclusion algorithm. 
+where \codem{d1} and \codem{d2} are two integer constants
+ with \codem{d1<d2}; 
+\code{x} and \code{ct} are global variables. The protocol is 
+modeled as 
+process protocol, which is the parallel composition of three 
 processes. Each of the three processes attempts to enter 
-the critical section when x is -1, i.e. no other process is 
-currently attempting. Once the process is active, it sets x 
-to its identity i within d1 time units (captured by deadline[d1]). 
-Then it idles for d2 time units (captured by Wait[d2]) and then 
-checks whether x is still i. If so, it enters the critical 
+the critical section when \code{x} is \code{-1}, i.e. no 
+other process is 
+currently attempting. Once the process is active, it sets \codeme{}{x} 
+to its identity \codem{i} within \codem{d1} time units (captured by \codem{deadline(..., d1}). 
+Then it idles for \codem{d2} time units (captured by \codem{delay(d2)}) and then 
+checks whether \codem{x} is still \codem{i}. If so, 
+it enters the critical 
 section and leaves later. Otherwise, it restarts from the 
 beginning.  
 
-We show that our method is able to prove the algorithm in the 
-section of implementation.  prove the algorithm in the 
-section of implementation.  
+We show the specification of \codem{main} using \timedEffects, which
+restricts the relation between \codem{d1} and \codem{d2}. When 
+\codem{d1<d2} is provided, it ensures a repeated trace where the value of 
+\codem{ct} is either \codem{-1} or equals to \codem{x}. The specification
+implies that this implementation is indeed mutual exclusive. 
+Our prototype system is able to soundly check such time-critical 
+algorithms. \autoref{sec:Evaluation} presents the details about the implementation and evaluation.
+
 
 \section{Language and Specifications}
 \label{sec:LanguageSpecifications}

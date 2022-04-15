@@ -29,5 +29,5 @@ void process1 (int i)
 void main () 
 /* req: (d1>0/\d2>d1) /\ emp 
    ens: TRUE /\ (([pc=-1] + [pc=(x)])^*)  */
-{ process1(0) || process1(1); }
+{ process1(0) || process1(1) || process1(2); }
 
