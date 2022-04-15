@@ -174,17 +174,7 @@ let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure option ) =
   | _ -> (es', None)
   ;;
 
-(*
-let globalVToPure (v:globalV) : pure =
-  let pureList = List.map (fun (str, n) -> Eq(Var str, Number n)) v in 
-  let rec helper li: pure = 
-    match li with 
-    | [] -> TRUE 
-    | p :: rest -> PureAnd (p, helper rest)
-  in 
-  helper pureList
-;;
-*)
+
 
 
 let rec nullable (pi :pure) (es:es) : bool=
@@ -339,149 +329,6 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 
 ;;
 
-(*
-let rec derivitive (pi :pure) (es:es) (f:head) (v:globalV): (es * pure) =
-  match f with 
-  | T  t ->
-    (match es with 
-      Bot -> (Bot, TRUE)
-    | Emp -> (Bot, TRUE)
-    | Event (Any) -> (Emp, TRUE)
-    | Event ev -> (Bot, TRUE)
-    | Ttimes (Emp, tIn) -> (Emp,  Eq(t , tIn))
-    | Ttimes (es1, tIn) -> 
-      let t_new = getAfreeVar () in 
-      (Ttimes (es1, Var t_new), PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0)))
-
-    | Cons (es1 , es2) ->  
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let es1' = Cons (es1_der, es2) in 
-      let (es2_der, side2) = derivitive pi es2 f in    
-      if nullable pi es1 
-        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
-        else (es1', side1)
-
-    | ESOr (es1, es2) -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let (es2_der, side2) = derivitive pi es2 f in
-      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
-
-    | Kleene es1 -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      (Cons (es1_der, es), side1)
-    | Par (es1, es2) ->
-      let helper esIn = 
-        let (der, side) = derivitive pi esIn f in 
-        match normalES der pi with 
-        | Bot -> derivitive pi esIn (T t) v
-        | _ -> (der, side)
-      in 
-      let (es1', side1) = helper es1 in 
-      let (es2', side2) = helper es2 in 
-      (Par (es1', es2'), PureAnd(side1, side2))
-    | Guard (pi1, es1) -> 
-      if askZ3 (PureAnd(pi1, globalVToPure v)) then derivitive pi es1 f v 
-      else (es, TRUE)
-      
-    
-    )
-  | Ev (ev, t) -> 
-    (match es with 
-      Bot -> (Bot, TRUE)
-    | Emp -> (Bot, TRUE)
-    | Event ev1 -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
-    | Ttimes (Event ev1, tIn) -> 
-      if entailEvent ev ev1 then (Emp, Eq(tIn, t)) else (Bot, TRUE)
-
-    | Ttimes (es1, tIn) -> 
-
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let t_new = getAfreeVar () in 
-      let p_new = PureAnd (side1, PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
-      (Ttimes (es1_der, Var t_new), p_new)
-
-    | Cons (es1 , es2) ->  
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let es1' = Cons (es1_der, es2) in 
-      let (es2_der, side2) = derivitive pi es2 f in    
-      if nullable pi es1 
-        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
-        else (es1', side1)
-
-    | ESOr (es1, es2) -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let (es2_der, side2) = derivitive pi es2 f in
-      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
-
-    | Kleene es1 -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      (Cons (es1_der, es), side1)
-
-    | Par (es1, es2) ->
-      let helper esIn = 
-        let (der, side) = derivitive pi esIn f in 
-        match normalES der pi with 
-        | Bot -> derivitive pi esIn (T t) v
-        | _ -> (der, side)
-      in 
-      let (es1', side1) = helper es1 in 
-      let (es2', side2) = helper es2 in 
-      (Par (es1', es2'), PureAnd(side1, side2))
-    | Guard (pi1, es1) -> 
-      if askZ3 (PureAnd(pi1, globalVToPure v)) then derivitive pi es1 f v 
-      else (es, TRUE)
-    
-    )
-
-  | Instant ev -> 
-    (match es with 
-      Bot -> (Bot, TRUE)
-    | Emp -> (Bot, TRUE)
-    | Event ev1 -> if entailEvent ev ev1 then (Emp, TRUE) else (Bot, TRUE)
-    | Ttimes (es1, tIn) -> 
-
-      let (es1_der, side1) = derivitive pi es1 f in 
-      (Ttimes (es1_der, tIn), pi)
-
-    | Cons (es1 , es2) ->  
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let es1' = Cons (es1_der, es2) in 
-      let (es2_der, side2) = derivitive pi es2 f in    
-      if nullable pi es1 
-        then (ESOr (es1', es2_der), PureAnd(side1, side2))  
-        else (es1', side1)
-
-    | ESOr (es1, es2) -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let (es2_der, side2) = derivitive pi es2 f in
-      (ESOr (es1_der, es2_der), PureAnd(side1, side2)) 
-
-    | Kleene es1 -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      (Cons (es1_der, es), side1)
-    | Par (es1, es2) ->
-      let helper esIn = 
-        let (der, side) = derivitive pi esIn f in 
-        match normalES der pi with 
-        | Bot -> (esIn, Ast.TRUE)
-        | _ -> (der, side)
-      in 
-      let (es1', side1) = helper es1 in 
-      let (es2', side2) = helper es2 in 
-      (Par (es1', es2'), PureAnd(side1, side2))
-    | Guard (pi1, es1) -> 
-      if askZ3 (PureAnd(pi1, globalVToPure v)) then derivitive pi es1 f v 
-      else (es, TRUE)
-    )
-
-
-
-  
-;;
-*)
-
-
-
 
 
 let rec normalEffect (eff:effect) :effect =
@@ -523,15 +370,12 @@ let reoccur lhs rhs delta : bool =
 
 let delta : hypotheses ref = ref []
 
-(*
-let valuationLHS: globalV ref=  ref [] ;;
-let valuationRHS: globalV ref=  ref [] ;;
-*)
+
 
 let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
-  let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side))  in
+  let showEntail  =  showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
   (*  print_string (showEntail^"\n");*)
   if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
     (Node (showEntail ^ showRule DISPROVE,[] ), false)
@@ -543,10 +387,12 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
           if askZ3 pL == false then (Node (showEntail ^ " [PURE ER LHS] ", []), false) else 
 
           if reoccur (esL) (esR) !delta then 
-            if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
-            else 
+            (Node (showEntail ^ showRule REOCCUR,[] ), true)
+            (*if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
+            else   
               if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ showRule REOCCUR,[] ), true)
               else (Node (showEntail ^ " [PURE ER2] ", []), false)
+              *)
              
           else 
             let fstSet = fst pL esL  in
@@ -587,7 +433,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
 let rec reNameTerms t str: terms = 
 match t with
   Var name -> 
-    if (String.compare name "n" == 0) then Var name
+    if (String.compare name "n" == 0 || String.compare name "d1" == 0 || String.compare name "d2" == 0) then Var name
     else 
     Var (str^name)
 | Number n -> t
@@ -673,11 +519,200 @@ let printReportHelper lhs rhs : (binary_tree * bool) =
   ;;
 
 
-
 let printReport lhs rhs :string =
   let _ = initialise () in 
   let startTimeStamp = Sys.time() in
   let (tree, re) =  printReportHelper lhs rhs  in
+  let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
+  let result = printTree ~line_prefix:"* " ~get_name ~get_children tree in
+  let buffur = ( "===================================="^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n") ^verification_time^" \n\n"^ result)
+  in buffur
+  ;;
+
+(* *********************************************************************)
+(* *********************************************************************)
+(* *********************************************************************)
+(* ****************  REWRITING THE CONCRETE SYSTEM   *******************)
+(* *********************************************************************)
+(* *********************************************************************)
+(* *********************************************************************)
+
+
+let valuationTRS: globalV ref=  ref [] ;;
+
+
+let globalVToPure (v:globalV) : pure =
+  let pureList = List.map (fun (str, n) -> Eq(Var str, Number n)) v in 
+  let rec helper li: pure = 
+    match li with 
+    | [] -> TRUE 
+    | p :: rest -> PureAnd (p, helper rest)
+  in 
+  helper pureList
+;;
+
+let rec updateOneValue (str, terms) screenshot: globalV = 
+  match screenshot with 
+  | [] -> raise (Foo (str ^" does not exist in current V "))
+  | (s, t) :: rest -> if String.compare s str == 0 then (str, terms):: rest 
+    else (s, t) :: (updateOneValue (str, terms) rest)
+
+;;
+
+let termToInt t : int = 
+  match  t with 
+  | Number n -> n 
+  | _ -> raise (Foo "error termToInt")
+;;
+
+
+
+let rec updateValuation (ops:globalV) : unit = 
+  match ops with
+  | [] -> ()
+  | (str, terms):: rest -> let _ = valuationTRS := updateOneValue (str, terms) (!valuationTRS) in updateValuation rest ;;
+
+let rec derivitive_concrete (pi :pure) (es:es) (f:head) : (es)  =
+  match es with
+  Bot -> Bot 
+| Emp -> Bot
+| Cons (es1 , es2) ->  
+  let (es1_der) = derivitive_concrete pi es1 f in 
+  let es1' = Cons (es1_der, es2) in 
+  let (es2_der) = derivitive_concrete pi es2 f in    
+  if nullable pi es1
+    then (ESOr (es1', es2_der))
+    else (es1')
+
+| ESOr (es1 , es2) -> ESOr (derivitive_concrete pi es1 f, derivitive_concrete pi es2 f) 
+| Kleene es1 -> Kleene (derivitive_concrete pi es1 f)
+| Guard (pi1) -> if entailConstrains (globalVToPure !valuationTRS) pi1 then Emp else es
+| Event (Tau pi1) -> if entailConstrains (globalVToPure !valuationTRS) pi1 then Emp else Bot
+
+| Par (es1 , es2) -> 
+  let es1_der = derivitive_concrete pi es1 f in 
+  (match normalES es1_der pi with 
+  | Bot -> Par (es1 , derivitive_concrete pi es2 f)
+  | _ -> Par (es1_der, es2))
+
+| Event Any -> Emp 
+| Event (Absent str) -> 
+  (match f with 
+  | (Instant (Present (strh, _, _))) -> if String.compare strh str == 0 then Bot else Emp 
+  | _ -> Emp 
+  )
+
+| Event (Present(str, v, ops)) -> 
+  (match f with 
+  | Instant (Present(s, v, o)) -> 
+    if compareEvent ((Present(s, v, o))) (Present(str, v, ops)) 
+    then (updateValuation (List.map (fun (s, t) -> (s, termToInt t)) ops); Emp )
+    else Bot 
+  | _ -> Bot )
+  
+| Ttimes (Ttimes (es1, t1) , t2 ) -> 
+  derivitive_concrete pi (Ttimes (es1, t1)) f
+
+| Ttimes (Emp, tIn) -> 
+		(match f with 
+		| T  t -> (Emp)
+		| Ev (ev, t) -> (Bot)
+		| Instant ev -> (Bot)
+		)
+| Ttimes (Event ev1, tIn) -> 
+		(match f with 
+		| T  t ->  let t_new = getAfreeVar () in 
+      (Ttimes (Event ev1, Var t_new))
+		| Ev (ev, t) ->  if entailEvent ev ev1 then (Emp) else (Bot)
+
+		| Instant ev ->  if entailEvent ev ev1 then (Ttimes (Emp, tIn)) else (Bot)
+		)
+	
+| Ttimes (es1, tIn) -> 
+		(match f with 
+		| T  t ->  let t_new = getAfreeVar () in 
+      (Ttimes (es1, Var t_new))
+		| Ev (ev, t) ->  
+		  let (es1_der) = derivitive_concrete pi es1 (Instant ev) in 
+      (match normalES es1_der pi with 
+      | Emp -> (Emp)
+      | _ -> 
+        let t_new = getAfreeVar () in 
+        (Ttimes (es1_der, Var t_new))
+      )
+		
+		| Instant ev ->  let (es1_der) = derivitive_concrete pi es1 f in 
+        match normalES es1_der pi with 
+        | Bot -> (Bot)
+        | _ -> 
+      (Ttimes (es1_der, tIn))
+
+		)
+
+
+
+
+
+;;
+
+
+let rec containment_concrete (effL:effect) (effR:effect) : (binary_tree * bool) = 
+  let normalFormL = normalEffect effL in 
+  let normalFormR = normalEffect effR in
+  let showEntail  =  showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
+  (*  print_string (showEntail^"\n");*)
+  if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
+    (Node (showEntail ^ showRule DISPROVE,[] ), false)
+
+  else 
+    let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
+      let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
+        let (subtreeIn, reIn) = 
+          if askZ3 pL == false then (Node (showEntail ^ " [PURE ER LHS] ", []), false) else 
+
+          if reoccur (esL) (esR) !delta then 
+            (Node (showEntail ^ showRule REOCCUR,[] ), true)
+             
+          else 
+            let fstSet = fst pL esL  in
+            if List.length (fstSet) == 0 then (Node (showEntail ^ " [NO FST1]",[] ), true)
+            else 
+            let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
+            let (derL) = derivitive_concrete pL esL f  in 
+            let (derR) = derivitive_concrete pR esR f  in 
+            let _ = delta := ((esL, esR) :: !delta) in 
+            let (subtree, result) = containment_concrete [(pL, derL)] [(pR, derR)]  in 
+            (List.append accT [subtree], accR && result) 
+            ) ([], true) fstSet in 
+            (Node (showEntail ^ showRule UNFOLD, subtrees ), re)
+
+          in 
+        (subtreeIn::accInT, reIn || accInR)  
+      ) ([], false) normalFormR in 
+      (List.append subtree accT, re && accR)
+
+    ) ([], true) normalFormL in 
+    if List.length (finalTress) == 1 then 
+      (List.hd finalTress, finalRe)
+    else 
+      (Node (showEntail ^ " [SPLITLHS] ", finalTress), finalRe)
+
+;;
+
+let printReportHelper_concrete lhs rhs : (binary_tree * bool) = 
+  
+  let a : hypotheses ref = ref [] in 
+  let _ = (delta: hypotheses ref) := !a in 
+
+  containment_concrete (lhs) (rhs)    
+
+  ;;
+
+let printReport_concrete (valuation: globalV) (lhs:effect) (rhs:effect) :string =
+  let _ = initialise () in 
+  let _ = valuationTRS := valuation in 
+  let startTimeStamp = Sys.time() in
+  let (tree, re) =  printReportHelper_concrete  lhs rhs  in
   let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
   let result = printTree ~line_prefix:"* " ~get_name ~get_children tree in
   let buffur = ( "===================================="^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n") ^verification_time^" \n\n"^ result)

@@ -70,19 +70,6 @@ let rec searchMeth (prog: program) (name:string) : meth option=
 
 
 
-let rec substitutePureWithAgr (pi:pure) (realArg:expression) (formalArg: var):pure = 
-  match pi with 
-    TRUE -> pi 
-  | FALSE ->pi
-  | Gt (term, n) ->  Gt (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
-  | Lt (term, n) ->  Lt (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
-  | GtEq (term, n) ->  GtEq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
-  | LtEq (term, n) ->  LtEq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
-  | Eq (term, n) ->  Eq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
-  | PureOr (p1, p2) -> PureOr (substitutePureWithAgr p1 realArg formalArg, substitutePureWithAgr p2 realArg formalArg)
-  | PureAnd (p1, p2) -> PureAnd (substitutePureWithAgr p1 realArg formalArg, substitutePureWithAgr p2 realArg formalArg)
-  | Neg p -> Neg (substitutePureWithAgr p realArg formalArg)
-  ;;
 
 
 
@@ -331,6 +318,27 @@ let rec extracPureFromPrecondition (eff:effect) :effect =
   List.map (fun (pi, es) ->  (pi, Emp))eff
 ;;
 
+let getGlobelDeclear (prog: program): globalV = 
+[]
+  ;;
+
+let verify_Main startTimeStamp (auguments) (prog: program): string = 
+  let (t, mn , list_parm, PrePost (pre, post), expression) = auguments in 
+  let head = "[Verification for method: "^mn^"]\n"in 
+    let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
+    let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
+    let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
+    let acc =  (verifier mn expression (pre) start prog) in 
+    let forward_time = "[Forward Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
+    let acc' = (normalEffect acc) in 
+    
+    let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
+
+    let (result) =  printReport_concrete (getGlobelDeclear prog) acc' post in 
+    "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ forward_time ^ result ^ "\n" 
+  
+  ;;
+
 let rec verification (decl:(bool * declare)) (prog: program): string = 
   let (isIn, dec) = decl in 
   if isIn == false then ""
@@ -340,10 +348,13 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
   | Include str -> ""
   | Global _ -> ""
   | Method (Meth (t, mn , list_parm, PrePost (pre, post), expression)) -> 
-    let head = "[Verification for method: "^mn^"]\n"in 
+    if String.compare mn "main" == 0 then verify_Main startTimeStamp (t, mn , list_parm, PrePost (pre, post), expression) prog 
+    else "skip for now\n"
+    (*let head = "[Verification for method: "^mn^"]\n"in 
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
     let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
-    let acc =  (verifier mn expression (pre) [(TRUE, Emp)] prog) in 
+    let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
+    let acc =  (verifier mn expression (pre) start prog) in 
     let acc' = (normalEffect acc) in 
     
     let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
@@ -356,7 +367,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
     let printTree = printTree ~line_prefix:"* " ~get_name ~get_children result_tree in
     "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ result ^verification_time^ "\n" ^ printTree ^ "\n" 
-    
+    *)
  ;;
 
 let rec printMeth (me:meth) :string = 

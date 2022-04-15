@@ -99,9 +99,9 @@ let rec showES (es:es):string =
         | None -> ""
         | Some v -> "(" ^ string_of_value v ^ ")"
       )in 
-      str ^ print_param (*^ 
+      (String.make 1 (String.get str 0 )) ^ print_param ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
-      print_ops *)
+      print_ops 
     | Absent str -> "!" ^ str
     | Any -> "_"
     | Tau p -> "[" ^ showPure p^"]"
@@ -309,13 +309,30 @@ let substituteValueWithAgr (i:value) (realArg:expression) (formalArg:var): value
   | _ -> i 
 ;;
 
+let rec substitutePureWithAgr (pi:pure) (realArg:expression) (formalArg: var):pure = 
+  match pi with 
+    TRUE -> pi 
+  | FALSE ->pi
+  | Gt (term, n) ->  Gt (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | Lt (term, n) ->  Lt (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | GtEq (term, n) ->  GtEq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | LtEq (term, n) ->  LtEq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | Eq (term, n) ->  Eq (substituteTermWithAgr term realArg formalArg, substituteTermWithAgr n realArg formalArg)
+  | PureOr (p1, p2) -> PureOr (substitutePureWithAgr p1 realArg formalArg, substitutePureWithAgr p2 realArg formalArg)
+  | PureAnd (p1, p2) -> PureAnd (substitutePureWithAgr p1 realArg formalArg, substitutePureWithAgr p2 realArg formalArg)
+  | Neg p -> Neg (substitutePureWithAgr p realArg formalArg)
+  ;;
+
+
 let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es = 
   match es with 
     Bot  -> es
   | Emp  -> es
-  | Event (Present (str, Some i, ops))  -> Event (Present (str, Some (substituteValueWithAgr i realArg formalArg),  ops))
+  | Event (Present (str, Some i, ops))  -> Event (Present (str, Some (substituteValueWithAgr i realArg formalArg),  (List.map (fun (fff, t)-> (fff, substituteTermWithAgr t realArg formalArg)) ops)))
+  | Event (Tau pi)  -> Event (Tau (substitutePureWithAgr pi realArg formalArg))
+  | Event (Present (str, v, ops)) -> Event (Present (str, v, (List.map (fun (fff, t)-> (fff, substituteTermWithAgr t realArg formalArg)) ops)))
   | Event _  -> es
-  | Guard (p) -> Guard (p)
+  | Guard (pi) -> Guard (substitutePureWithAgr pi realArg formalArg)
   | Cons (es1, es2) ->  Cons (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | ESOr (es1, es2) ->  ESOr (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | Ttimes (esIn, t) -> Ttimes (substituteESWithAgr esIn realArg formalArg, substituteTermWithAgr t realArg formalArg)
@@ -504,9 +521,26 @@ let rec normalTerms (t:terms):terms  =
   | _ -> t 
   ;;
 
+let compareValue v1 v2 : bool =
+  match (v1, v2) with 
+  | (Unit, Unit) -> true 
+  | (UnitPAR, UnitPAR) -> true 
+  | (Integer n1, Integer n2) -> n1 == n2  
+  | (Bool b1 , Bool b2) -> b1 == b2 
+  | (Variable v1, Variable v2) -> String.compare v1 v2 == 0 
+  | _ -> raise (Foo "compareValue not yet ") 
+;;
+
+let compareMaybeValue v1 v2 : bool = 
+  match (v1, v2) with 
+  | (None, None) -> true 
+  | (Some v1, Some v2) -> compareValue v1 v2 
+  | _ -> false 
+  ;;
+
 let compareEvent ev1 ev2 : bool=
   match (ev1, ev2) with 
-  | (Present (str1, _, _), Present (str2, _, _)) -> if String.compare str1 str2 = 0 then true else false 
+  | (Present (str1, v1, _), Present (str2, v2, _)) -> if String.compare str1 str2 = 0 && compareMaybeValue v1 v2 then true else false 
   | (Absent str1, Absent str2) -> if String.compare str1 str2 = 0 then true else false 
   | (Tau pi1, Tau pi2) -> comparePure pi1 pi2
   | (Any, Any) -> true 
