@@ -1802,6 +1802,7 @@ Let \code{\Pi} represents the pure constraints for all the terms; \code{H} repre
 
 \end{comment}
 
+\vspace{1mm}
 $[FV\text{-}\m{Value}]$  obtains the next program state by 
 inheriting the current program state.
 $[FV\text{-}Guard]$ computes the effects of \code{e} after concatenating
@@ -2364,6 +2365,8 @@ to (A16) to further accommodate effects constructed by
   
    
   \end{tabular}
+  \vspace{-2mm}
+
   \end{table}
   
   
@@ -2412,35 +2415,25 @@ are discharged using constraint solver Z3
 We prove termination and soundness of the TRS. We validate 
 the front-end forward verifier against the state-of-the-art PAT 
 \cite{DBLP:conf/cav/SunLDP09} model checker for conformance. 
-Next, we show experimental results and case studies to evaluate the 
-capability of our proposals. 
+Next, we show experimental results and case studies to evaluate our proposals. 
 
 \subsection{Experimental Results}
 \label{subsec:Experimental_Results}
 
-We conduct experiments on a MacBook Pro with a 2.6 GHz Intel Core i7 processor. Given our benchmark, the running time varying from 0 to 500 ms. 
 
 %We claim that the extra expressiveness gained from our logic is the symbolic time-bounds. The timed effects represent not only one exact Timed Automata but also a set of Timed Automata. Together with our back-end inclusion solver, it enables a verification framework for a group of Automata. More specifically, instead of running the model checker many times for one non-deterministic time-bound at each time, we can define arithmetic constraints bounding the time variable. And to test that, we cover a number of test cases with function calls, and the callee's parameters would be used as the time bounds.
 
+
 \autoref{tab:Experimental} presents the evaluation results of a microbenchmark. % summary of a lightweight . 
-In this experiment, we select 16 \timedL\ programs, and  annotate temporal specifications
-with a 1:1 ratio for succeeded/failed cases. 
-It records: 
-the index of the program, \textbf{No.};
-lines of code, \textbf{LOC}; 
-effects inference time, \textbf{Infer(ms)}; 
-number of valid properties, \textbf{$\mysharp$Prop(\cmark)}; 
-average proving time for the valid properties, \textbf{Avg\text{-}Prove(ms)};
-number of invalid properties, \textbf{$\mysharp$Prop(\xmark)}; and 
-average disproving time for the invalid properties, \textbf{Avg\text{-}Dis(ms)}. 
-Times are counted using milliseconds, and the experiment is done on 
-a MacBook Pro with a 2.6 GHz 6-Core Intel Core i7 processor. 
+
+
+
 
 \begin{table}[!ht]
 \caption{\label{tab:Experimental} Experimental Results. }
-%\vspace{-1mm}
+\vspace{-2mm}
 \centering
-\renewcommand{\arraystretch}{1.1}
+\renewcommand{\arraystretch}{1}
 \begin{tabular} {c|c|c|c|c |c|c|c}
 \hline
 \textbf{No.} & \textbf{LOC} & \textbf{Infer(ms)} & \textbf{$\mysharp$Prop(\cmark)}   
@@ -2467,6 +2460,40 @@ a MacBook Pro with a 2.6 GHz 6-Core Intel Core i7 processor.
 %  \vspace{-1mm}
 \end{table}
 
+In this experiment, we select 16 \timedL\ programs, and  annotate temporal specifications
+with a roughly 1:1 ratio for succeeded/failed cases. 
+Times are counted using milliseconds, and the experiment is done on 
+a MacBook Pro with a 2.6 GHz 6-Core Intel Core i7 processor. 
+The table records: 
+\textbf{No.}, the index of the program;
+\textbf{LOC}, lines of code; 
+\textbf{Infer(ms)}, effects inference time; 
+\textbf{$\mysharp$Prop(\cmark)}, number of valid properties; 
+\textbf{Avg\text{-}Prove(ms)}, average proving time for the valid properties;
+\textbf{$\mysharp$Prop(\xmark)}, number of invalid properties; 
+\textbf{Avg\text{-}Dis(ms)}, average disproving time for the invalid properties; and 
+\textbf{$\mysharp$AskZ3}, number of querying Z3 solver through out the experiments.
+
+
+\paragraph{Discussion:} Generally, the inference time and proving 
+time increase while the program's length increases. 
+Besides, while \emph{the number of querying Z3 per property} (\textbf{$\mysharp$AskZ3}/(\textbf{$\mysharp$Prop(\cmark)} +\textbf{$\mysharp$Prop(\xmark)})) 
+goes up, the 
+proving/disproving time goes up.
+Furthermore, we notice that 
+%that no matter how long the programs are, 
+the disproving
+times for invalid properties are constantly lower than the proving process, 
+regardless of the program complexity. This finding echos the 
+insights from prior TRS-based works \cite{DBLP:conf/icfem/SongC20,DBLP:journals/tcs/AntimirovM95,DBLP:journals/ijfcs/AlmeidaMR09,DBLP:conf/fsttcs/KeilT14,DBLP:journals/jcss/Hovland12}, 
+which suggest that TRS is a better average-case algorithm than 
+those based on the comparison of automata.  
+
+We summary: a TRS is efficient because 
+\emph{it only constructs automata as far as it needs}, which makes 
+it more efficient when disproving incorrect specifications, as we can 
+disprove it earlier without constructing the whole automata. In other 
+words, the more incorrect specifications are, the more efficient our solver is.
 
 
 %
@@ -2532,53 +2559,6 @@ i.e., the rule $\codeme{[REOCCUR]}$.
 % Check out this following example: 
 
 
-
-As shown in \tabref{tab:reoccur}, the LHS formula is a 
-disjunction of two effects. An inclusion with a disjunctive 
-antecedent succeeds if both disjunctions entail the consequent, 
-shown in step {\textcircled{1}}.  
-%Now we have 2 subtrees, the first subtree is for
-%  \code{
-%    \textcolor {darkred}{t_L{<}3} : \{A\}^\star \mysharp  t_L \cdot \{B\}
-%    \CONTAIN
-%    \textcolor {darkred}{t_R{<}4} : \{A\}^\star \mysharp  t_R \cdot \{B\}
-%  }
-%and the second one is for
-%  \code{
-%    \textcolor {darkred}{True} : {B} \CONTAIN
-%    \textcolor {darkred}{t_R{<}4} : \{A\}^\star \mysharp  t_R \cdot \{B\}
-%  }.
-%In order to prove the original proposition, both of the two new propositions have
-%to be proved.
-%Using the disjunction rule \code{\effect_1 \vee \effect_2 \CONTAIN \effect \iff
-%\effect_1 \CONTAIN \effect \ and \  \effect_2 \CONTAIN \effect}, we split the proposition
-%in . 
-In step \textcircled{2} of the first sub-tree, in order to eliminate the first event \code{\{B\}}, \code{\{A\}^\star \mysharp  t_R} has to be reduced to be \code{\epsilon}, therefore the time constraints have nothing to do in this branch. 
-% is 
-%eliminated by \code{\epsilon}, 
-Then in steps \textcircled{4}, we
-can simply prove it with the side constraint entailment \code{\textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True}} succeed.
-%and \code{\epsilon \CONTAIN \epsilon}. 
-
-
-Looking at the second sub-tree, in step \textcircled{5}, \code{t_L} and \code{t_R} are firstly split 
-into \code{t_L^1{+}t_L^2} and \code{t_R^1{+}t_R^2}. 
-Then in step {\textcircled{6}, 
-\code{\{A\} \mysharp  t_L^1} together with \code{\{A\} \mysharp  t_R^1} are eliminated, unifying \code{t_L^1} and \code{t_R^1} (adding the constraint \code{ t_L^1 {=}  t_R^1}).
-%, also
-%are unified as new constraint \code{t_L^1{=}t_R^1}.
-In step {\textcircled{8}, we observe the proposition is isomorphic with one of the the previous step, marked using \code{\textcolor{darklavender}{(\ddagger)}}. 
-%one in
-%step \code{\textcircled{1}}, 
-Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constraints entailment: \code{\textcolor {
-      darkred}{t_L^1{+}t_L^2{=}t_L \wedge t_L{<}3 \wedge t_R{=}t_R^1{+}t_R^2 \wedge t_L^1{=}t_R^1
-      \wedge t_L^2{=}t_R^2
-    }\Rightarrow
-    \textcolor {darkred}{t_R{<}4} }. 
-%Since the structure of terms \code{t_L^2, t_L} and \code{t_R^2, t_R} are isomorphic,
-%we will need to unify \code{t_L^2} and \code{t_R^2} in order to get enough
-%time constraints. And in step \code{\textcircled{5}} we prove the proposition to
-%be true.
 
 
 {
@@ -2720,13 +2700,38 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 
 
 
+As shown in \tabref{tab:reoccur}, the LHS formula is a 
+disjunction of two effects. An inclusion with a disjunctive 
+antecedent succeeds if both disjunctions entail the consequent, 
+shown in step {\textcircled{1}}.  
+ 
+In step \textcircled{2} of the first sub-tree, in order to eliminate the first event \code{  B  }, \code{  A  ^\star \mysharp  t_R} has to be reduced to be \code{\epsilon}, therefore the time constraints have nothing to do in this branch. 
+Then in steps \textcircled{4}, we
+can simply prove it with the side constraint entailment \code{\textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True}} succeed.
+
+
+Looking at the second sub-tree, in step \textcircled{5}, \code{t_L} and \code{t_R} are firstly split 
+into \code{t_L^1{+}t_L^2} and \code{t_R^1{+}t_R^2}. 
+Then in step {\textcircled{6}, 
+\code{  A   \mysharp  t_L^1} together with \code{  A   \mysharp  t_R^1} are eliminated, unifying \code{t_L^1} and \code{t_R^1} (adding the constraint \code{ t_L^1 {=}  t_R^1}).
+In step {\textcircled{8}, we observe the proposition is isomorphic with one of the the previous step, marked using \code{\textcolor{darklavender}{(\ddagger)}}. 
+%one in
+%step \code{\textcircled{1}}, 
+Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constraints entailment: \code{\textcolor {
+      darkred}{t_L^1{+}t_L^2{=}t_L \wedge t_L{<}3 \wedge t_R{=}t_R^1{+}t_R^2 \wedge t_L^1{=}t_R^1
+      \wedge t_L^2{=}t_R^2
+    }\Rightarrow
+    \textcolor {darkred}{t_R{<}4} }. 
+
+
 \subsubsection{Expressiveness.}
 %for (timed) linear temporal properties
 \label{subsec:Expressive}
 
 
 
-Classical LTL
+\begin{comment}
+  Classical LTL
 extended propositional logic with the temporal operators 
 \code{\mathcal{G} } (``globally") 
 and 
@@ -2807,6 +2812,7 @@ Furthermore, by putting the effects in the
 
 
 \subsubsection{Beyond Regular, Context-Free and Context-Sensitive}
+\end{comment}
 
 The paradigmatic non-regular linear language: 
 \code{t{>} 0 \wedge \anyevent{A}\mysharp{t}\cdot\anyevent{B}\mysharp{t}}, 
@@ -2825,8 +2831,8 @@ even by push-down automata (PDA) can be represented by our effects.
 However, such specifications are significant, suppose we 
 have a traffic light control system, we could have a 
 specifications \code{n{>} 0 \wedge m{>} 0 \wedge  
-(\anyevent{Red}\mysharp{n}\cdot\anyevent{Yellow}\mysharp{m}\cdot
-\anyevent{Green}\mysharp{n})^\star}, which specifies that  
+(\anyevent{Red}\mysharp{n}\cdot\anyevent{Yellow}\mysharp{m}}
+\code{\cdot \anyevent{Green}\mysharp{n})^\star}, which specifies that  
 (i) all the colors will occur at each life circle; and 
 (ii) the duration of the green light and the red light is 
 always the same. Moreover, these effects can not be translated 
@@ -2837,11 +2843,31 @@ finite traces.
 
 \subsection{Discussion}
 
-As the examples show, our proposed effects logic and the abstract semantics for \code{\timedL} not only tightly capture the behaviors of a mixed synchronous and asynchronous concurrency model but also help to mitigate the programming challenges in each paradigm. Meanwhile, the inferred temporal traces from a given reactive program enable a compositional timed temporal verification at the source level, which is not yet supported by existing temporal verification techniques. 
+As the examples show, our proposed effects logic and the abstract semantics for 
+\code{\timedL} not only tightly capture the behaviors of a time-critical model 
+but also help to increase the capability of existing techniques. 
+Meanwhile, the inferred temporal traces from a given reactive program enable a compositional 
+timed temporal verification at the source level, which is not yet supported by existing temporal 
+verification techniques. 
+
+Our implementation is the first that solves the  inclusion problem of symbolic Timed Automata, 
+which is considered important because it overcomes the following main limitations in traditional 
+timed model checking:  i) they cannot be used to specify and verify systems incompletely 
+specified (i. e., whose timing constants are not known yet), and hence cannot be used in early 
+design phases; ii) verifying a system for a set of timing constants usually requires to enumerate 
+all of them one by one if they are supposed to be integer-valued; in addition, Timed Automata 
+cannot be used to verify a system for a set of timing constants that are to be taken in a 
+real-valued dense interval. 
 
 
 
-Works based on such a TRS \cite{DBLP:conf/icfem/SongC20,DBLP:conf/vmcai/SongC21,DBLP:journals/tcs/AntimirovM95,DBLP:journals/ijfcs/AlmeidaMR09,DBLP:conf/fsttcs/KeilT14,DBLP:journals/jcss/Hovland12}  show its feasibility and suggest that this method is a better average-case algorithm than those based on the comparison of automata. 
+A term rewriting system is efficient because \emph{it only constructs automata as far as it needed}, 
+which makes it more efficient when disproving incorrect specifications, as we can disprove it 
+earlier without constructing the whole automata. In other words, the more incorrect specifications 
+are, the more efficient our solver is.
+
+
+
 
 
 
@@ -2975,11 +3001,6 @@ To the best of our knowledge, our work is the first
 automates modular timed verification for real-time systems 
 using an expressive effects logic. 
 
-Our implementation is the first that solves the  inclusion problem of symbolic Timed Automata, which is considered important because it overcomes the following main limitations in traditional timed model checking:  i) they cannot be used to specify and verify systems incompletely specified (i. e., whose timing constants are not known yet), and hence cannot be used in early design phases; ii) verifying a system for a set of timing constants usually requires to enumerate all of them one by one if they are supposed to be integer-valued; in addition, Timed Automata cannot be used to verify a system for a set of timing constants that are to be taken in a real-valued dense interval. 
-
-
-
-A term rewriting system is efficient because \emph{it only constructs automata as far as it needed}, which makes it more efficient when disproving incorrect specifications, as we can disprove it earlier without constructing the whole automata. In other words, the more incorrect specifications are, the more efficient our solver is.
 
 
 
