@@ -3010,7 +3010,7 @@ it produces the concrete sequence [\anyevent{A}; \code{\varphi(e_1^\prime)}], an
 By \code{[FV\text{-}Timeout]}, $\vdash  \s{\env, \epsilon} \ e_1\ \textbf{timeout}  [d] \ e_2\  
 \s{\env \wedge (t{\leq}d), \anyevent{A}\mysharp t \cdot (\es_{e_1^\prime})}$. \\
 Then \code{\env \wedge (t{\leq}d) \wedge \anyevent{A}\mysharp t \cdot (\es_{e_1^\prime})} is 
-the witness such that \code{d, \env, [\anyevent{A}; \code{\varphi(e_1^\prime)}]  
+the witness such that \code{d, \env^\prime, [\anyevent{A}; \code{\varphi(e_1^\prime)}]  
 \models (\env \wedge (t{\leq}d) \wedge \anyevent{A}\mysharp t \cdot (\es_{e_1^\prime})}. 
 \\
 - \code{e_1} never started, by applying rules \code{[to_4]}, 
@@ -3018,7 +3018,7 @@ it produces the concrete sequence [\code{\varphi(e_2)}], and it takes more than 
 By \code{[FV\text{-}Timeout]}, $\vdash  \s{\env, \epsilon} \ e_1\ \textbf{timeout}  [d] \ e_2\  
 \s{\env \wedge (t{>}d), (\es_2 \mysharp t)}$. \\
 Then \code{\env \wedge (t{>}d) \wedge (\es_2 \mysharp t)} is 
-the witness such that \code{d, \env, [\varphi(e_2)]  
+the witness such that \code{d, \env^\prime, [\varphi(e_2)]  
 \models (\env \wedge (t{>}d) \wedge (\es_2 \mysharp t)}. 
 
 
@@ -3031,7 +3031,7 @@ it produces the concrete sequence [\code{\varphi(e)}], and it takes less than \c
 By \code{[FV\text{-}Deadline]}, $\vdash  \s{\env, \epsilon} \ \textbf{deadline}[d]\ e 
 \ \s{\env \wedge (t{<}d), \es(e)\mysharp t}$. \\
 Then \code{\env \wedge (t{<}d) \wedge \es(e)\mysharp t} is the witness such that 
-\code{d, \env, [\code{\varphi(e)}]  \models (\env \wedge (t{<}d) \wedge \es(e)\mysharp t)}. \\
+\code{d, \env^\prime, [\code{\varphi(e)}]  \models (\env \wedge (t{<}d) \wedge \es(e)\mysharp t)}. \\
 
 
 \item We omit the primitives which are not related to the timing.  
