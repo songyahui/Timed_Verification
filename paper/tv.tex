@@ -936,7 +936,7 @@ At the end of the rewriting, step \textcircled{7} manages to prove that
 %(\code{\{Ready\} \Rightarrow \_}, \code{t_L^2 \Rightarrow true})
 Termination is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using 
 \emph{memorization} \cite{DBLP:conf/tableaux/Brotherston05}, cf., \tabref{tab:reoccur}. 
-\\
+
 
 \subsection{Verifying the Fischer’s Mutual Exclusion Protocol}
 
@@ -1188,7 +1188,6 @@ the timed process constructs.
 \code{\frac{
 }{(\env, \textbf{delay} [0]) \xrightarrow[]{\tau} (\env, ())}\ [delay_2]} 
 \end{flalign*}}}
-
 The above captures behaviors of process \textbf{delay}[d]. 
 Rule \code{[delay_1]} states that the process may idle for 
 any amount of time as long as it is less than or equal to \code{d} time units; 
@@ -1205,7 +1204,9 @@ Rule \code{[delay_2]} states that the process terminates immediately after
 \code{\frac{
   (\env,e_1) \xrightarrow[]{\tau} (\env^\prime,e_1^\prime)  
 }{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env^\prime, e_1^\prime\ \textbf{timeout}[d]\ e_2 )}\ [tot_2]} 
-\\
+\end{flalign*}}}
+
+{{\small\begin{flalign*}
 \code{\frac{
   (\env,e_1) \xrightarrow[]{\text{t}} (\env,e_1^\prime)  \quad (t {\leq} d) 
 }{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [tot_3]} 
@@ -1220,6 +1221,7 @@ If \code{e_1} may idle for less than or equal
 to \code{d} time units, so is the composition (rule \code{[tot_3]}). 
 When \code{d} becomes \code{0}, 
 \code{e_2} takes over control by a silent transition (rule \code{[tot_4]}).
+
 {{\small\begin{flalign*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%   deadline                 %%
@@ -1250,6 +1252,7 @@ Intuitively, $\textbf{deadline}\  [d] \ e$ behaves exactly as
 \end{flalign*}}}
 The guarded process \code{[b]e} behaves as \code{e} when \code{b} is true, 
 otherwise it idles until \code{b} becomes true. 
+
 {{\small\begin{flalign*}
 \code{\frac{
   (\env,e_1) \xrightarrow[]{l} (\env^\prime,e_1^\prime) 
@@ -2437,27 +2440,27 @@ a MacBook Pro with a 2.6 GHz 6-Core Intel Core i7 processor.
 \caption{\label{tab:Experimental} Experimental Results. }
 %\vspace{-1mm}
 \centering
-\renewcommand{\arraystretch}{1}
-\begin{tabular} {c|c|c|c|c |c|c}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular} {c|c|c|c|c |c|c|c}
 \hline
 \textbf{No.} & \textbf{LOC} & \textbf{Infer(ms)} & \textbf{$\mysharp$Prop(\cmark)}   
-& \textbf{Avg\text{-}Prove(ms)} & \textbf{$\mysharp$Prop(\xmark)}   & \textbf{Avg\text{-}Dis(ms)} \\ \hline\hline
-1    &    18    & 0.037&  5     &  0.7634    & 5   &   0.0116   \\ \hline
-2    &    33    & 0.145&  5     &  1.3074    & 5   &   0.045    \\ \hline
-3    &    55    & 0.34 &  5     &  6.0766    & 5   &   1.1682   \\ \hline
-4    &    84    & 0.098&  5     &  3.0678    & 5   &   0.1058   \\ \hline
-5    &    110   & 0.191&  7     &  1.7544    & 7   &   0.5031   \\ \hline
-6    &    124   & 0.323&  7     &  4.0114    & 7   &   0.3957   \\ \hline
-7    &    138   & 0.321&  7     &  3.8399    & 7   &   0.4261   \\ \hline
-8    &    163   & 0.594&  7     &  6.1009    & 7   &   1.5019   \\ \hline
-9    &    178   & 0.941&  9     &  10.7758   & 9   &   0.5769   \\ \hline
-10   &    185   & 1.921&  9     &  13.9332   & 9   &   0.04422  \\ \hline
-11   &    202   & 3.434&  9     &  27.4447   & 9   &   0.0561   \\ \hline
-12   &    220   & 6.439&  9     &  59.2226   & 9   &   0.745   \\ \hline
-13   &    250   & 3.6  &  11    &  29.5766   & 11  &   0.0662  \\ \hline
-14   &    261   & 7.552&  11    &  64.2137   & 11  &   0.6121  \\ \hline     
-15   &    293   & 14.896& 11   &  115.9795   & 11  &   0.5462   \\ \hline
-16   &    304   &  30.889  &  11    & 237.2522    & 11  &  0.07164        \\ \hline            
+& \textbf{Avg\text{-}Prove(ms)} & \textbf{$\mysharp$Prop(\xmark)}   & \textbf{Avg\text{-}Dis(ms)} &\textbf{$\mysharp$AskZ3} \\ \hline\hline
+1    &    30    & 0.031  &  5     &  4.185   & 5   &  3.242  & 68 \\ \hline
+2    &    35    & 0.038  &  3     &  13.761  & 7   &  9.331  & 214 \\ \hline
+3    &    44    & 0.049  &  4     &  12.149  & 6   & 7.853   & 215 \\ \hline
+4    &    72    & 0.061  &  5     &  37.268 & 5   & 28.3054 & 617 \\ \hline
+5    &    95    & 0.105  &  7     &  6.139    & 7   &  5.238  & 186 \\ \hline
+6    &    108   & 0.16   &  7     &  43.667    & 7   &  17.178  & 818 \\ \hline
+7    &    106   & 0.142  &  7     &  18.776    & 7   &  8.432  & 346 \\ \hline
+8    &    144   & 0.141  &  7     &  22.238    & 7   &  10.051  & 426 \\ \hline
+9    &    155   & 0.308  &  9     &  194.666   & 9   &  56.344  & 4059 \\ \hline
+10   &    174   & 0.373  &  9     &  78.132   & 9   &   24.665  & 1740 \\ \hline
+11   &    196   & 0.557  &  9     &  111.100   & 9   &   31.262  & 2403 \\ \hline
+12   &    213   & 0.516  &  9     &  114.667   & 9   &  30.284   & 2484 \\ \hline
+13   &    265   & 1.895  &  11    & 616.619    & 11  &  302.975  & 9068 \\ \hline
+14   &    271   & 1.702  &  11    &  302.145   & 11  &  131.938  & 7779 \\ \hline     
+15   &    276   & 2.121 & 11     &  466.174  & 11  &   181.116  & 12239 \\ \hline
+16   &    314   & 1.654 &  11    & 1094.231   & 11  &  465.704  & 32620 \\ \hline            
 %\hline
 %\textbf{\quad \ \ Total}  & 2546    &  235   &  446.88   &   305.33   \\ \hline
 \end{tabular}
@@ -2465,11 +2468,6 @@ a MacBook Pro with a 2.6 GHz 6-Core Intel Core i7 processor.
 \end{table}
 
 
-Our implementation is the first that solves the  inclusion problem of symbolic Timed Automata, which is considered important because it overcomes the following main limitations in traditional timed model checking:  i) they cannot be used to specify and verify systems incompletely specified (i. e., whose timing constants are not known yet), and hence cannot be used in early design phases; ii) verifying a system for a set of timing constants usually requires to enumerate all of them one by one if they are supposed to be integer-valued; in addition, Timed Automata cannot be used to verify a system for a set of timing constants that are to be taken in a real-valued dense interval. 
-
-
-
-A term rewriting system is efficient because \emph{it only constructs automata as far as it needed}, which makes it more efficient when disproving incorrect specifications, as we can disprove it earlier without constructing the whole automata. In other words, the more incorrect specifications are, the more efficient our solver is.
 
 %
 %\subsubsection{Experimental Results}~\\
@@ -2522,7 +2520,7 @@ A term rewriting system is efficient because \emph{it only constructs automata a
 
 
 
-\subsubsection{Prove it when Reoccur}~\\
+\subsubsection{Prove it when Reoccur}
 
    %   \vspace{-2mm}
 %(\code{\{Go\} \Rightarrow \_})
@@ -2722,7 +2720,7 @@ Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constra
 
 
 
-\subsection{Expressiveness.}
+\subsubsection{Expressiveness.}
 %for (timed) linear temporal properties
 \label{subsec:Expressive}
 
@@ -2808,7 +2806,7 @@ Furthermore, by putting the effects in the
 
 
 
-\paragraph{Beyond Regular, Context-Free and Context-Sensitive}
+\subsubsection{Beyond Regular, Context-Free and Context-Sensitive}
 
 The paradigmatic non-regular linear language: 
 \code{t{>} 0 \wedge \anyevent{A}\mysharp{t}\cdot\anyevent{B}\mysharp{t}}, 
@@ -2976,6 +2974,13 @@ verification system and show its feasibility.
 To the best of our knowledge, our work is the first 
 automates modular timed verification for real-time systems 
 using an expressive effects logic. 
+
+Our implementation is the first that solves the  inclusion problem of symbolic Timed Automata, which is considered important because it overcomes the following main limitations in traditional timed model checking:  i) they cannot be used to specify and verify systems incompletely specified (i. e., whose timing constants are not known yet), and hence cannot be used in early design phases; ii) verifying a system for a set of timing constants usually requires to enumerate all of them one by one if they are supposed to be integer-valued; in addition, Timed Automata cannot be used to verify a system for a set of timing constants that are to be taken in a real-valued dense interval. 
+
+
+
+A term rewriting system is efficient because \emph{it only constructs automata as far as it needed}, which makes it more efficient when disproving incorrect specifications, as we can disprove it earlier without constructing the whole automata. In other words, the more incorrect specifications are, the more efficient our solver is.
+
 
 
 %%

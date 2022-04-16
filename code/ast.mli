@@ -56,7 +56,7 @@ and globalV = (string * int) list
 
 and entilment = EE of effect * effect
 
-and spec = PrePost of effect * effect
+and spec = PrePost of effect * (effect list)
 
 and _type = INT | FLOAT | BOOL | VOID
 

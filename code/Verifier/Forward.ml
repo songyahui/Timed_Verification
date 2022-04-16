@@ -7,6 +7,7 @@ open Lexer
 open Pretty
 open Rewriting 
 open Sys
+open Askz3
 
 let verifier_counter: int ref = ref 0;;
 
@@ -27,12 +28,13 @@ let verifier_getAfreeVar () :string  =
 
 
 
-
+let string_of_list_effect eff = List.fold_left (fun acc a -> acc ^ "\n" ^ showEffect a) "" eff ;; 
 
 
 let rec printSpec (s:spec ) :string = 
   match s with 
-  PrePost (e1, e2) -> "\n[Pre: " ^ showEffect e1 ^ "]\n[Post:"^ showEffect e2 ^"]\n"
+  PrePost (e1, e2) -> "\n[Pre: " ^ showEffect e1 ^ "]\n[Post:"^ (string_of_list_effect e2)  ^"]\n"
+  ;;
 
 
 
@@ -272,7 +274,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
           
             
             let subPre = substituteEffWithAgrs pre exprList list_parm in 
-            let subPost = substituteEffWithAgrs post exprList list_parm in
+            let subPost = substituteEffWithAgrs (List.hd post) exprList list_parm in
             
             (*print_string ("======\n");
             print_string (List.fold_left (fun acc a -> acc ^ printExpr a) "" exprList);
@@ -285,10 +287,10 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
 
             let his_cur =  (concatEffEff precondition current) in 
 
-            let (result, tree) = checkPrecondition (his_cur) subPre in 
+            (*let (result, tree) = checkPrecondition (his_cur) subPre in *)
             (*print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree));*)
             
-            if result == true then 
+            if true then 
               (
                 (*print_string ("[Precondition holds] when " ^caller ^" is calling " ^ mn ^"\n\n");*)
               let newState = ( (concatEffEff ( current) ( subPost))) in
@@ -330,19 +332,18 @@ let verify_Main startTimeStamp (auguments) (prog: program): string =
   let (t, mn , list_parm, PrePost (pre, post), expression) = auguments in 
   let head = "[Verification for method: "^mn^"]\n"in 
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
-    let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
+    let postcon = "[Postcondition: "^ (string_of_list_effect ( post)) ^ "]\n" in 
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
     let acc =  (verifier mn expression (pre) start prog) in 
     let forward_time = "[Forward Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
     let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalEffect acc) in 
     
     let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
-    let (result) =  printReport_concrete (getGlobelDeclear prog) acc' post in 
+    let (result) =  printReport_concrete (getGlobelDeclear prog) acc' (List.hd post) in 
     "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ forward_time ^ result ^ "\n" 
   
   ;;
 let inferenceTime : float ref = ref 0.0 ;;
-let verificationTime : float ref = ref 0.0 ;;
 
 
 let rec verification (decl:(bool * declare)) (prog: program): string = 
@@ -358,7 +359,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     else 
     let head = "[Verification for method: "^mn^"]\n"in 
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
-    let postcon = "[Postcondition: "^ (showEffect ( post)) ^ "]\n" in 
+    let postcon = "[Postcondition: "^ (string_of_list_effect ( post)) ^ "]\n" in 
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
     let acc =  (verifier mn expression (pre) start prog) in 
     let forward_time_number = (Sys.time() -. startTimeStamp) *. 1000.0 in 
@@ -371,7 +372,31 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
 
     (*let varList = (*append*) (getAllVarFromEff acc) (*(getAllVarFromEff post)*) in  
     *)
-    let startTimeStamp1 = Sys.time() in
+    let results = List.map (fun eff -> 
+      let startTimeStamp1 = Sys.time() in
+      let (result_tree, result) = Rewriting.printReportHelper  (acc') eff in 
+      let verification_time_number = (Sys.time() -. startTimeStamp1) *. 1000.0 in 
+      (verification_time_number, result, result_tree)
+      ) post in 
+
+    let proves = List.filter (fun (_, b, _) -> b ==true ) results in 
+    let disproves = List.filter (fun (_, b, _) -> b==false ) results in 
+    let totol li = List.fold_left (fun acc (a, _, _) -> acc +. a) 0.0 li in  
+    let printing li = string_of_int (List.length li) ^ " cases with avg time " ^  string_of_float ((totol li)/.(float_of_int(List.length li))) ^ " ms\n" in 
+
+
+    "\n========== Module: "^ mn ^" ==========\n" ^
+    "[Pre  Condition] " ^ showEffect pre ^"\n"^
+    "[Post Condition] " ^ string_of_list_effect post ^"\n"^
+    "[Final  Effects] " ^ showEffect ( acc') ^"\n"^
+    "[Inferring Time] " ^ string_of_float (forward_time_number)^ " ms" ^"\n" ^
+
+    "[Proving   Time] " ^ printing proves ^
+    "[Disprove  Time] " ^ printing disproves ^"\n" 
+    (*^ printTree ~line_prefix:"* " ~get_name ~get_children (List.hd (List.map (fun (_, _, c) -> c) results)) 
+*)
+
+    (*
     let (result_tree, result) =  Rewriting.printReportHelper  (acc') post in 
     let result = "[Result: "^ (if result then "Succeed" else "Fail") ^"]\n" in 
     let verification_time_number = (Sys.time() -. startTimeStamp1) *. 1000.0 in 
@@ -379,7 +404,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     let verification_time = "[Verification Time: " ^ string_of_float (verification_time_number) ^ " ms]\n" in
     let printTree = printTree ~line_prefix:"* " ~get_name ~get_children result_tree in
     "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ result ^forward_time ^ verification_time^ "\n" ^ printTree ^ "\n" 
-    
+    *)
  ;;
 
 let rec printMeth (me:meth) :string = 
@@ -466,10 +491,11 @@ print_string (inputfile ^ "\n" ^ outputfile^"\n");*)
       close_out oc;                (* 写入并关闭通道 *)
       *)
       print_string (verification_re ^"\n");
-      print_string ("\n===Summary===\n");
+      
       print_string ("Time for inference    :" ^ string_of_float (!inferenceTime) ^"\n");
-      print_string ("Time for verification :" ^ string_of_float (!verificationTime) ^"\n");
 
+      print_string (string_of_int (!Askz3.counter) ^"\n");
+      
 
       flush stdout;                (* 现在写入默认设备 *)
       close_in ic                  (* 关闭输入通道 *)

@@ -119,7 +119,11 @@ prog:
 | hd = head  p = prog_rest {append [hd] p}
 | assign = assign SIMI  p = prog_rest {append [Global(assign)] p}
 
-spec: LSPEC REQUIRE e1 = effect  ENSURE e2 = effect RSPEC {PrePost(e1, e2)}
+morePostcondition:
+| {[]}
+| ENSURE e2 = effect rest=morePostcondition {e2::rest}
+
+spec: LSPEC REQUIRE e1 = effect pos =morePostcondition  RSPEC {PrePost(e1, pos)}
 
 term:
 | str = VAR { Var str }

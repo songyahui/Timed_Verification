@@ -459,7 +459,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
 let rec reNameTerms t str: terms = 
 match t with
   Var name -> 
-    if (String.compare name "n" == 0 || String.compare name "d1" == 0 || String.compare name "d2" == 0) then Var name
+    if (String.compare name "n" == 0 || String.compare name "d1" == 0 || String.compare name "d2" == 0 || String.compare name "x" == 0 || String.compare name "y" == 0) then Var name
     else 
     Var (str^name)
 | Number n -> t

@@ -85,7 +85,7 @@ let rec showPure (p:pure):string =
   | Eq (t1, t2) -> (showTerms t1) ^ "=" ^ (showTerms t2)
   | PureOr (p1, p2) -> "("^showPure p1 ^ "\\/" ^ showPure p2^")"
   | PureAnd (p1, p2) -> showPure p1 ^ "/\\" ^ showPure p2
-  | Neg p -> "(!" ^ "(" ^ showPure p^"))"
+  | Neg p -> "(~" ^ "(" ^ showPure p^"))"
   ;; 
 
 
@@ -102,7 +102,7 @@ let rec showES (es:es):string =
       (String.make 1 (String.get str 0 )) ^ print_param (* ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
       print_ops *)
-    | Absent str -> "!" ^ str
+    | Absent str -> "~" ^ str
     | Any -> "_"
     | Tau p -> "[" ^ showPure p^"]"
   in 
@@ -125,8 +125,8 @@ let rec showES (es:es):string =
 let rec showEffect (e:effect) :string = 
   match e with 
   | [] -> ""
-  | [(p, es)] ->  showPure p ^ "/\\" ^   showES es 
-  | (p, es):: rest ->  showPure p ^ "/\\" ^  showES es  ^ " \\/ "  ^ showEffect rest 
+  | [(p, es)] -> "(" ^ showPure p  ^ ")/\\" ^   showES es 
+  | (p, es):: rest -> "(" ^ showPure p  ^ ")/\\" ^  showES es  ^ " \\/ "  ^ showEffect rest 
   ;;
 
 let rec printType (ty:_type) :string =
@@ -642,7 +642,7 @@ let string_of_event ev : string =
       (String.make 1 (String.get str 0 )) ^ print_param  ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
       print_ops 
-    | Absent str -> "!" ^ str
+    | Absent str -> "~" ^ str
     | Any -> "_"
     | Tau p -> "[" ^ showPure p^"]"
 ;;

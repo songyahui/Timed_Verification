@@ -119,8 +119,10 @@ let addAssert (str:string) :string =
   "(assert " ^ str ^ " ) \n (check-sat) \n"
   ;;
 
+let counter : int ref = ref 0 ;;
 
 let askZ3 pi = 
+  let _ = counter := !counter + 1 in 
   (*
   let startTimeStamp = Sys.time() in
   *)
