@@ -210,7 +210,6 @@ xleftmargin=1em,
 \title{Automated Verification for Real-Time Systems 
 using Implicit Clocks and an Extended Antimirov Algorithm}
 
-%% Automated Temporal Verification for Mixed Sync-Async Reactive Paradigm
 
 
 %%
@@ -974,11 +973,11 @@ void main ()
 Fischer's mutual exclusion algorithm. 
 where \codem{d1} and \codem{d2} are two integer constants
  with \codem{d1<d2}; 
-\code{x} and \code{ct} are global variables. The protocol is 
+\codem{x} and \codem{ct} are global variables. The protocol is 
 modeled as 
 process protocol, which is the parallel composition of three 
 processes. Each of the three processes attempts to enter 
-the critical section when \code{x} is \code{-1}, i.e. no 
+the critical section when \codem{x} is \codem{-1}, i.e. no 
 other process is 
 currently attempting. Once the process is active, it sets \codeme{}{x} 
 to its identity \codem{i} within \codem{d1} time units (captured by \codem{deadline(..., d1}). 
@@ -990,11 +989,11 @@ beginning.
 
 We show the specification of \codem{main} using \timedEffects, which
 restricts the relation between \codem{d1} and \codem{d2}. When 
-\codem{d1<d2} is provided, it ensures a repeated trace where the value of 
+\codem{d1<d2} is provided, it ensures a global state, i.e., the repeated trace, where the value of 
 \codem{ct} is either \codem{-1} or equals to \codem{x}. The specification
 implies that this implementation is indeed mutual exclusive. 
 Our prototype system is able to soundly check such time-critical 
-algorithms. \autoref{sec:Evaluation} presents the details about the implementation and evaluation.
+algorithms. \secref{sec:Evaluation} presents the details about the implementation and evaluation.
 
 
 \section{Language and Specifications}
@@ -1176,44 +1175,17 @@ For example, $\zeta \xrightarrow[]{\text{t}} \zeta^\prime$ denotes a transition
 of \code{t} time-units elapsing. 
 In the following, we present the firing rules which are associated with 
 the timed process constructs. 
-{{\small
-\begin{flalign*}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%   Wait                 %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\code{\frac{
-  t {\leq} d 
-}{(\env, \textbf{delay}[d]) \xrightarrow[]{\text{t}} (\env, \textbf{delay} [d \text{-}t])}\ [delay_1]} 
-\qquad \qquad 
-\code{\frac{
-}{(\env, \textbf{delay} [0]) \xrightarrow[]{\tau} (\env, ())}\ [delay_2]} 
-\end{flalign*}}}
+
+\input{rules/op_delay.tex}
+
 The above captures behaviors of process \textbf{delay}[d]. 
 Rule \code{[delay_1]} states that the process may idle for 
 any amount of time as long as it is less than or equal to \code{d} time units; 
 Rule \code{[delay_2]} states that the process terminates immediately after 
 \code{d} becomes \code{0}.
-{{\small\begin{flalign*}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%   timeout                 %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\code{\frac{
-  (\env,e_1) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_1^\prime)
-}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\anyevent{A}} (\env^\prime,e^\prime)}\ [tot_1]} 
-\quad  
-\code{\frac{
-  (\env,e_1) \xrightarrow[]{\tau} (\env^\prime,e_1^\prime)  
-}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env^\prime, e_1^\prime\ \textbf{timeout}[d]\ e_2 )}\ [tot_2]} 
-\end{flalign*}}}
 
-{{\small\begin{flalign*}
-\code{\frac{
-  (\env,e_1) \xrightarrow[]{\text{t}} (\env,e_1^\prime)  \quad (t {\leq} d) 
-}{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [tot_3]} 
-\quad  
-\code{\frac{
-}{(\env, e_1\ \textbf{timeout}   [0] \ e_2) \xrightarrow[]{\tau} (\env, e_2)}\ [tot_4]} 
-\end{flalign*}}}
+\input{rules/op_to.tex}
+
 If an observable event \anyevent{A} can be engaged by \code{e_1}, 
 then $e_1\ \textbf{timeout}[d]\ e_2$ becomes \code{e_1^\prime} (rule \code{[tot_1]}). 
 An invisible transition continues the waiting on \code{e_1} (rule \code{[tot_2]}). 
@@ -1222,34 +1194,16 @@ to \code{d} time units, so is the composition (rule \code{[tot_3]}).
 When \code{d} becomes \code{0}, 
 \code{e_2} takes over control by a silent transition (rule \code{[tot_4]}).
 
-{{\small\begin{flalign*}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%%   deadline                 %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\code{\frac{
-  (\env,e) \xrightarrow[]{\anyevent{A}} (\env^\prime,e^\prime)
-}{(\env, \textbf{deadline} [d] \ e ) \xrightarrow[]{\anyevent{A}} (\env^\prime, \textbf{deadline}  [d] \ e^\prime)} [ddl_1]} 
-\ \ \  
-\code{\frac{
-  (\env,e) \xrightarrow[]{\text{t}} (\env,e^\prime)  \quad (t {\leq} d)
-}{(\env, \textbf{deadline}  [d]\ e ) \xrightarrow[]{\text{t}} (\env, \textbf{deadline}  [d \text{-}t] \ e^\prime )} [ddl_2]} 
-\end{flalign*}}}
+\input{rules/op_ddl.tex}
 
 Intuitively, $\textbf{deadline}\  [d] \ e$ behaves exactly as 
 \code{e} except that it must terminate before \code{d} time units.
 
-{{\small\begin{flalign*}
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  %%   deadline                 %%
-  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \code{\frac{
-    \env \models  b 
-  }{(\env, [b] \ e ) \xrightarrow[]{\tau} (\env, e)}\ [guard_1]} 
-  \ \ \qquad\qquad 
-  \code{\frac{
-    \env \not\models  b 
-  }{(\env, [b] \ e ) \xrightarrow[]{t} (\env, [b] \ e)}\ [guard_2]} 
-\end{flalign*}}}
+
+\input{rules/op_gu.tex}
+
+
+
 The guarded process \code{[b]e} behaves as \code{e} when \code{b} is true, 
 otherwise it idles until \code{b} becomes true. 
 
@@ -1275,6 +1229,7 @@ otherwise it idles until \code{b} becomes true.
     (\env,e_2) \xrightarrow[]{t} (\env,e_2^\prime) 
   }{(\env, e_1 || e_2 ) \xrightarrow[]{t} (\env, e_1^\prime || e_2^\prime)}\ [par_3]} 
 \end{flalign*}}}
+
 Rules \code{[seq_1]} and \code{[seq_2]} state that \code{e_1} takes the control 
 when it still can behave; then the control transfers to \code{e_2} when \code{e_1}
 terminates. Rules \code{[par_1]} and \code{[par_2]} state that in a parallel composition, 
@@ -1403,7 +1358,7 @@ A timed sequence can be constructed by \code{\es^\star}, representing zero or
 more times repetition of the trace \code{\es}.
 
 \anyevent{A}\code{(v, \alpha^*)} stands for an observable event with label 
-\anyevent{A}, parameterized by \code{v}, and the assignment operations \code{\alpha^*}. 
+\anyevent{A}, parameterized by \code{v}, and the assignment operations \code{\alpha^*}; and 
 \code{\tau(\pi)} is an invisible event, which can be parameterized with a pure formula 
 \code{\pi}\footnote{The difference between 
 \code{\tau(\pi)} and \code{\pi?} is \code{\tau(\pi)} leads to false (\code{\bot}) if 
@@ -1428,20 +1383,11 @@ qual to  0.
 \subsection{Semantic Model of Timed Effects}
 \label{subsec:Specification_Semantics}
 
-
 To define the model, 
 \code{var} is the set of program variables, 
 \code{val} is the set of primitive values, 
 \code{\es} is the set of event sequences (or event multi-trees, per se), 
 indicating the sequencing constraints on temporal behaviors.
-Let \code{d, s, \varphi \models \effect} denote the model relation, i.e., 
-the effects \code{\effect} take \code{d} time units to complete; 
-the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
-temporal effects \code{\effect}, with \code{d}, \code{s}, \code{\varphi} 
-from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}}, 
-\code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{\es} \ .
-
-
 
 \begin{figure}[!ht]
   %\vspace{-3mm}
@@ -1533,6 +1479,16 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 \label{fig:Sementic}
 %\vspace{-2mm}
 \end{figure}
+
+
+
+Let \code{d, s, \varphi \models \effect} denote the model relation, i.e., 
+the effects \code{\effect} take \code{d} time units to complete; 
+the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
+temporal effects \code{\effect}, with \code{d}, \code{s}, \code{\varphi} 
+from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}}, 
+\code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{\es} \ .
+
 
 
 As shown in \figref{fig:Sementic}, we define the semantics of our effects. 
@@ -1646,7 +1602,7 @@ $\lappend$ to represent the append operation of two traces;
 
 
 \begin{wrapfigure}{R}{0.54\columnwidth}
-  \vspace{-3mm}
+ % \vspace{-1mm}
 
 \tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
 
@@ -1807,6 +1763,7 @@ $[FV\text{-}\m{Value}]$  obtains the next program state by
 inheriting the current program state.
 $[FV\text{-}Guard]$ computes the effects of \code{e} after concatenating
 \code{(b{=}True)}? in to the current program states.  
+
 {{\small\begin{gather*}
   \code{\frac{
   }
@@ -1830,6 +1787,7 @@ then further gets  \code{ \{  \Pi_2, \Theta_2 \} } by
 continuously computing the behaviors of \code{e_2}, to be the final state.
 $[FV\text{-}Par]$ computes behaviors for  \code{e_1} and \code{e_2} independently,
 then parallel merges the effects from these two branches.  
+
 {{\small\begin{gather*}
   \code{\frac{ 
  \vdash \{ \Pi, \Theta\}  e_1  \{  \Pi_1, \Theta_1\} 
@@ -1853,12 +1811,13 @@ then parallel merges the effects from these two branches.
 \end{gather*}}}
 
 
-\vspace{1mm}
+
 The \code{[FV\text{-}If\text{-}Else]} computes an 
 over-approximation of the program states, by adding different constrains into 
 different branches. \code{\Pi \wedge v} enforces 
 \code{v} into the pure constraints of every traces in the state, same 
 for \code{\Pi \wedge \neg v }.
+
 {{\small\begin{gather*}
   \code{\frac{ 
     \begin{matrix}
@@ -1886,12 +1845,13 @@ for \code{\Pi \wedge \neg v }.
 %{[FV\text{-}If\text{-}Else\text{-}Global]}} 
 
 
-\vspace{1mm}
+
 Rule \code{[FV\text{-}Event]} simply constructs an new event and 
 concatenates it to the current program states. 
 Rule \code{[FV\text{-}Delay]} creates a trace \code{\epsilon\mysharp t}
 , where \code{t} is fresh, and concatenates it to the current program states, 
 together with the additional constraint \code{t{=}d}. 
+
   {{\small\begin{gather*}
   \code{\frac{
     \Theta^\prime {=} \Theta\cdot \anyevent{A}(v, \alpha^*) 
@@ -1909,10 +1869,13 @@ together with the additional constraint \code{t{=}d}.
 \end{gather*}}}
 
 
-\vspace{1mm}
+
 Rule \code{[FV\text{-}Timeout]} computes the effects from \code{e_1} and \code{e_2}
 using the starting state \code{\s{\Pi, \epsilon}}. The final states are the union 
 of these effects with their corresponding time variables and arithmetic constrains. 
+Note that, \code{hd(\Theta_1)} and \code{tl(\Theta_1)} return the head and the tail of 
+\code{\Theta_1} respectively. 
+
 {{\small\begin{gather*}
   \code{\frac{
     \begin{matrix}
@@ -1920,7 +1883,7 @@ of these effects with their corresponding time variables and arithmetic constrai
       \qquad 
       \vdash \{ \Pi, \epsilon \}\ e_2 \ \{  \Pi_2, \Theta_2 \} 
       \\
-      \s{\Theta_f, \Pi_f} {=} \s{\Pi_1  \wedge t_1{\leq}d, (\Theta_1\mysharp t)}
+      \s{\Theta_f, \Pi_f} {=} \s{\Pi_1  \wedge t_1{\leq}d, (hd(\Theta_1)\mysharp t \cdot tl(\Theta_1))}
       \cup 
   \s{\Pi_2  \wedge t_2{>}d,  (\Theta_2\mysharp t)}   
   \quad (t_1, t_2\ are\ fresh)     
@@ -1932,9 +1895,9 @@ of these effects with their corresponding time variables and arithmetic constrai
 \end{gather*}}}
 
 
-\vspace{1mm}
 Similar to \code{[FV\text{-}Timeout]}, \code{[FV\text{-}Ddl]} computes the effects 
 from \code{e} and adds an upper time-bound to the result. 
+
 {{\small\begin{gather*}
   \code{\frac{
     \begin{matrix}
@@ -1948,14 +1911,15 @@ from \code{e} and adds an upper time-bound to the result.
     {[FV\text{-}Ddl]}} 
   \end{gather*}}}
 
-  \vspace{1mm}
+
   Rule \code{[FV\text{-}Meth]} initializes the current effects state 
 using the declared precondition, accumulates the effects from the method body, 
 to obtain \code{ \s{\Pi, \Theta}}; then  it
 checks the  inclusion between \code{ \s{\Pi, \Theta}} and the concatenation of 
 the precondition and the postcondition\footnote{Here, 
 \code{\effect_{post}} only needs to capture the effects from the current method body, excluding the history effects specified in \code{\effect_{pre}}. }.
-  {{\small\begin{gather*}
+  
+{{\small\begin{gather*}
 \code{\frac{  \vdash \s{\effect_{pre}}
  \ e \  \{ \Pi, \Theta \} \qquad   \{ \Pi, \Theta \} \CONTAIN  
  \effect_{pre} \cdot \effect_{post}}{  \vdash  \ mn  \ {x^*}\ \{\textbf{req}\ \effect_{pre}\ 
@@ -1963,12 +1927,13 @@ the precondition and the postcondition\footnote{Here,
   \end{gather*}}}
 
 
-  \vspace{1mm}
+
 Rule \code{[FV\text{-}Call]} first checks whether the instantiated 
   precondition of callee, \code{[v^*/x^*]\effect_{pre}}, is satisfied by 
   the current program state. When the check is succeeded, the final states are 
   formed by concatenating the  
   instantiated postcondition to the current states. 
+
   %, in which we use an auxiliary function \code{rev} to reverse the event sequences of effects.
 {{\small\begin{gather*}
 \code{\frac{
@@ -1987,9 +1952,10 @@ Rule \code{[FV\text{-}Call]} first checks whether the instantiated
   Given any system configuration \code{\zeta = (\env, e)}, by applying the operational
   semantics rules, 
   if \code{(\env, e) {\rightarrow^*} (\env^\prime, ())} produces concrete 
-  execution time \code{d} and event trace \code{\varphi}, and \code{ \vdash  
-  \s{\env, \epsilon} e \s{\Pi, \Theta}}, then, 
-  \code{\exists (\pi\wedge \es) \in \s{\Pi, \Theta} } such that 
+  execution time \code{d} and event sequence \code{\varphi}, and the forward verifier reasons \code{ \vdash  
+  \s{\env, \epsilon} \ e\  \s{\Pi, \Theta}}, then, \\
+  \code{\qquad \qquad \qquad \qquad  \qquad 
+   \exists (\pi\wedge \es) \in \s{\Pi, \Theta} } such that 
   \code{d, \env^\prime, \varphi  \models (\pi\wedge \es)}. 
   %. 
 
@@ -1998,9 +1964,8 @@ Rule \code{[FV\text{-}Call]} first checks whether the instantiated
   
   
   \begin{proof}
-    By induction. 
-  %See %the technical report\cite{TR}. 
-  %\appref{proof:SoundnessProof}.
+   % By induction.        
+    See \appref{proof:SoundnessProof_FE}.
   \end{proof}
 
 
@@ -2166,7 +2131,7 @@ Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we d
   left quotient \code{(h)^{\text{-}1}\llbracket \pi \wedge \es 
   \rrbracket}\footnote{Intuitively, the partial derivative refers to the left quotient of a language equation, for example, for REs, \code{x^{{-}1} \llbracket x\cdot y\rrbracket {=} y};  \code{y^{{-}1} \llbracket x\cdot y\rrbracket {=} \bot }; and  \code{y^{{-}1} \llbracket x + y\rrbracket {=} \epsilon}. Here we come up with a new notion of partial derivative for \timedEffects. 
   }. 
-  %\footnote{As the reader may notice, our First and Derivative function does not handle the timed sequences constructed by \code{||}, as the synchronous parallel is reduced during the normalization phase.}
+
   \begin{gather*}
   \code{D^{\pi}_{h}( \bot ) {=}}  \code{False \wedge \bot } 
   \qquad\qquad 
@@ -2207,7 +2172,8 @@ Given two time instances \code{(I, \pi_1, t_1)} and \code{(J, \pi_2, t_2)}, we d
   \end{definition}
   
 Notice that the derivatives of a parallel composition makes use of the \emph{Parallel Derivative} \code{\Bar{\Bar{D}}^{\pi}_{h}(\es)}, defined as follows: 
-  \begin{definition}[Parallel Derivative]\label{Derivative_maybe}
+ 
+\begin{definition}[Parallel Derivative]\label{Derivative_maybe}
     Given any \code{\effect {=} \pi \wedge \es}, and a variable valuation function \code{\env}, 
     the parallel derivative is defined as: {
       \code{\Bar{\Bar{D}}^{\pi}_{h}( \es) {=}
@@ -2379,7 +2345,7 @@ to (A16) to further accommodate effects constructed by
 
 
  
-\begin{theorem}[Termination]\label{termination}
+\begin{theorem}[Termination  of the TRS]\label{termination}
 The rewriting system TRS is terminating.
 \end{theorem}
 \begin{proof}
@@ -2387,7 +2353,7 @@ See %the technical report\cite{TR}.
 \appref{proof:TerminationProof}.
 \end{proof}
 
- \begin{theorem}[Soundness]\label{Cyclicsoundness}
+ \begin{theorem}[Soundness of the TRS]\label{Cyclicsoundness}
 Given an inclusion \code{\effect_1 \CONTAIN \effect_2}, if the TRS returns \code{TRUE} when proving \code{\effect_1 \CONTAIN \effect_2}, i.e., it has a cyclic proof, 
 then \code{\effect_1 \CONTAIN \effect_2} is valid.
 \end{theorem}
@@ -2397,7 +2363,6 @@ then \code{\effect_1 \CONTAIN \effect_2} is valid.
 See %the technical report\cite{TR}. 
 \appref{proof:SoundnessProof}.
 \end{proof}
-
 
 
 
@@ -2424,7 +2389,6 @@ Next, we show experimental results and case studies to evaluate our proposals.
 %We claim that the extra expressiveness gained from our logic is the symbolic time-bounds. The timed effects represent not only one exact Timed Automata but also a set of Timed Automata. Together with our back-end inclusion solver, it enables a verification framework for a group of Automata. More specifically, instead of running the model checker many times for one non-deterministic time-bound at each time, we can define arithmetic constraints bounding the time variable. And to test that, we cover a number of test cases with function calls, and the callee's parameters would be used as the time bounds.
 
 
-\autoref{tab:Experimental} presents the evaluation results of a microbenchmark. % summary of a lightweight . 
 
 
 
@@ -2460,6 +2424,7 @@ Next, we show experimental results and case studies to evaluate our proposals.
 %  \vspace{-1mm}
 \end{table}
 
+\autoref{tab:Experimental} presents the evaluation results of a microbenchmark. % summary of a lightweight . 
 In this experiment, we select 16 \timedL\ programs, and  annotate temporal specifications
 with a roughly 1:1 ratio for succeeded/failed cases. 
 Times are counted using milliseconds, and the experiment is done on 
@@ -2638,10 +2603,6 @@ i.e., the rule $\codeme{[REOCCUR]}$.
       \wedge t_L^2{=}t_R^2
     } \Rightarrow
     \textcolor {darkred}{t_R{<}4} 
-%\qquad
-%       A  ^\star \cdot   B  
-%    \CONTAIN
-%       A  ^\star \cdot   B  
   }
 }
 
@@ -2705,7 +2666,9 @@ disjunction of two effects. An inclusion with a disjunctive
 antecedent succeeds if both disjunctions entail the consequent, 
 shown in step {\textcircled{1}}.  
  
-In step \textcircled{2} of the first sub-tree, in order to eliminate the first event \code{  B  }, \code{  A  ^\star \mysharp  t_R} has to be reduced to be \code{\epsilon}, therefore the time constraints have nothing to do in this branch. 
+In step \textcircled{2} of the first sub-tree, in order to eliminate the first event 
+\code{  B  }, \code{  A  ^\star \mysharp  t_R} has to be reduced to \code{\epsilon}, therefore 
+the time constraints have nothing to do in this branch. 
 Then in steps \textcircled{4}, we
 can simply prove it with the side constraint entailment \code{\textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True}} succeed.
 
@@ -2717,11 +2680,15 @@ Then in step {\textcircled{6},
 In step {\textcircled{8}, we observe the proposition is isomorphic with one of the the previous step, marked using \code{\textcolor{darklavender}{(\ddagger)}}. 
 %one in
 %step \code{\textcircled{1}}, 
-Hence we apply the rule \code{[REOCCUR]} to prove it with a succeed side constraints entailment: \code{\textcolor {
-      darkred}{t_L^1{+}t_L^2{=}t_L \wedge t_L{<}3 \wedge t_R{=}t_R^1{+}t_R^2 \wedge t_L^1{=}t_R^1
-      \wedge t_L^2{=}t_R^2
-    }\Rightarrow
-    \textcolor {darkred}{t_R{<}4} }. 
+Hence we apply the rule $\codeme{[REOCCUR]}$ to prove it with a succeed side constraints entailment: 
+\code{
+  \textcolor {
+    darkred}{t_L{<}3 \wedge } \ \textcolor {
+      blue}{t_L^1{+}t_L^2{=}t_L \wedge  t_R{=}t_R^1{+}t_R^2 \wedge t_L^1{=}t_R^1
+    \wedge t_L^2{=}t_R^2
+  } \Rightarrow
+  \textcolor {darkred}{t_R{<}4} 
+}. 
 
 
 \subsubsection{Expressiveness.}
@@ -2967,24 +2934,6 @@ However, none of the previous works have considered adding real-time abstraction
 
 
 
-%
-%
-%compare to Timed Automata:
-%modular and can plug in anywhere. 
-%absolute time and relative time. 
-%$
-%//
-%(lower_t, upper_time)
-%lower_ti<=upper_t
-%lower_t<5
-%lower_t>8
-%modular and can plug in anywhere. 
-%absolote time and relative time. 
-%it can be only for synchronous system, t.sync, 
-%or or real time t.rt.dur. 
-%$
-
-
 \section{Conclusion}
 \label{sec:conclusion}
 %HipHop.js
@@ -3028,7 +2977,72 @@ using an expressive effects logic.
 %% If your work has an appendix, this is the place to put it.
 \appendix
 
-\section{Termination Proof}  \label{proof:TerminationProof}
+\section{Soundness of the Forward Rules} 
+ \label{proof:SoundnessProof_FE}
+
+Given any system configuration \code{\zeta = (\env, e)}, by applying the operational
+  semantics rules, \\
+  if \code{(\env, e) {\rightarrow^*} (\env^\prime, ())} produces concrete 
+  execution time \code{d} and event sequence \code{\varphi}, and the forward verifier reasons \code{ \vdash  
+  \s{\env, \epsilon} \ e\  \s{\Pi, \Theta}}, then, 
+  \code{
+   \exists (\pi \wedge \es) \in \s{\Pi, \Theta} } such that 
+  \code{d, \env^\prime, \varphi  \models (\pi\wedge \es)}
+  
+  \begin{proof}
+    ~\\
+  \begin{enumerate}
+  \item \textbf{Delay:}  
+  \input{rules/op_delay.tex}
+\noindent When $\zeta = (\env,  \textbf{delay}[d]) {\rightarrow^*} (\env, ()) $, by applying rules \code{[delay_1]} and \code{[delay_2]}, 
+it produces the concrete sequence [], and takes concrete time \codeme{d}. \\
+By \code{[FV\text{-}Delay]}, $\vdash  \s{\env, \epsilon} \ \textbf{delay}[d]\  \s{\env \wedge (t{=}d), \epsilon\mysharp t}$. \\
+Then \code{\env \wedge (t{=}d) \wedge \epsilon\mysharp t} is the witness such that \code{d, \env, []  \models (\env \wedge (t{=}d) \wedge \epsilon\mysharp t)}. 
+\\
+
+\item \textbf{Timeout:}  
+\input{rules/op_to.tex}
+\noindent When $\zeta = (\env,  e_1\ \textbf{timeout}  [d] \ e_2) {\rightarrow^*} (\env^\prime, ()) $, 
+there are two possibilities:
+
+- \code{e_1} started before time limit \code{d}, by applying rules \code{[to_2]}, \code{[to_3]} and \code{[to_1]}, 
+it produces the concrete sequence [\anyevent{A}; \code{\varphi(e_1^\prime)}], and \anyevent{A} takes less than \codeme{d} time-units. \\
+By \code{[FV\text{-}Timeout]}, $\vdash  \s{\env, \epsilon} \ e_1\ \textbf{timeout}  [d] \ e_2\  
+\s{\env \wedge (t{\leq}d), \anyevent{A}\mysharp t \cdot (\es_{e_1^\prime})}$. \\
+Then \code{\env \wedge (t{\leq}d) \wedge \anyevent{A}\mysharp t \cdot (\es_{e_1^\prime})} is 
+the witness such that \code{d, \env, [\anyevent{A}; \code{\varphi(e_1^\prime)}]  
+\models (\env \wedge (t{\leq}d) \wedge \anyevent{A}\mysharp t \cdot (\es_{e_1^\prime})}. 
+\\
+- \code{e_1} never started, by applying rules \code{[to_4]}, 
+it produces the concrete sequence [\code{\varphi(e_2)}], and it takes more than \codeme{d} time-units. \\
+By \code{[FV\text{-}Timeout]}, $\vdash  \s{\env, \epsilon} \ e_1\ \textbf{timeout}  [d] \ e_2\  
+\s{\env \wedge (t{>}d), (\es_2 \mysharp t)}$. \\
+Then \code{\env \wedge (t{>}d) \wedge (\es_2 \mysharp t)} is 
+the witness such that \code{d, \env, [\varphi(e_2)]  
+\models (\env \wedge (t{>}d) \wedge (\es_2 \mysharp t)}. 
+
+
+
+\item \textbf{Deadline:}  
+\input{rules/op_ddl.tex}
+When $\zeta = (\env,  \textbf{deadline}  [d]\ e) {\rightarrow^*} (\env^\prime, ()) $, 
+by applying rules \code{[ddl_1]}, \code{[ddl_2]}, 
+it produces the concrete sequence [\code{\varphi(e)}], and it takes less than \codeme{d} time-units. \\
+By \code{[FV\text{-}Deadline]}, $\vdash  \s{\env, \epsilon} \ \textbf{deadline}[d]\ e 
+\ \s{\env \wedge (t{<}d), \es(e)\mysharp t}$. \\
+Then \code{\env \wedge (t{<}d) \wedge \es(e)\mysharp t} is the witness such that 
+\code{d, \env, [\code{\varphi(e)}]  \models (\env \wedge (t{<}d) \wedge \es(e)\mysharp t)}. \\
+
+
+\item We omit the primitives which are not related to the timing.  
+
+  \end{enumerate}
+   
+ \end{proof}
+ 
+
+
+\section{Termination  of the TRS}  \label{proof:TerminationProof}
 
 \begin{proof}\label{proof:termination} 
 Let Set[\inclusion] be a data structure representing the sets of inclusions. 
@@ -3052,15 +3066,17 @@ And each rule either increases \code{|H|} (Unfolding) or, otherwise, reduces \co
  \end{proof}
 
 
-\section{Soundness Proof} 
+\section{Soundness  of the TRS} 
  \label{proof:SoundnessProof}
  
 
  
 
-\begin{proof}
+
   For each inference rules, if inclusions in their premises are valid, and their side conditions are satisfied, then goal inclusions in their conclusions are valid.
   
+  \begin{proof}
+    ~\\
   \begin{enumerate}
   \item \textbf{Axiom Rules:} 
   \input{rules/rule1}
