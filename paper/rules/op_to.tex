@@ -1,0 +1,21 @@
+{{\small\begin{flalign*}
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  %%   timeout                 %%
+  %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \code{\frac{
+    (\env,e_1) \xrightarrow[]{\anyevent{A}} (\env^\prime,e_1^\prime)
+  }{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\anyevent{A}} (\env^\prime,e^\prime)}\ [tot_1]} 
+  \quad  
+  \code{\frac{
+    (\env,e_1) \xrightarrow[]{\tau} (\env^\prime,e_1^\prime)  
+  }{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env^\prime, e_1^\prime\ \textbf{timeout}[d]\ e_2 )}\ [tot_2]} 
+  %\end{flalign*}}}
+  %{{\small\begin{flalign*}
+    \\
+  \code{\frac{
+    (\env,e_1) \xrightarrow[]{\text{t}} (\env,e_1^\prime)  \quad (t {\leq} d) 
+  }{(\env, e_1\ \textbf{timeout}  [d] \ e_2) \xrightarrow[]{\text{t}} (\env,e_1^\prime\ \textbf{timeout} \  [d\text{-}t] \ e_2)}\ [tot_3]} 
+  \quad  
+  \code{\frac{
+  }{(\env, e_1\ \textbf{timeout}   [0] \ e_2) \xrightarrow[]{\tau} (\env, e_2)}\ [tot_4]} 
+  \end{flalign*}}}
