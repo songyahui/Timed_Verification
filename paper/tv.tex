@@ -123,7 +123,7 @@
 \definecolor{darklavender}{rgb}{0.45, 0.31, 0.59}
 \definecolor{deepcerise}{rgb}{0.85, 0.2, 0.53}
 \newcommand\figref[1]{Fig. \textcolor{black}{\ref{#1}}.}
-\newcommand\tabref[1]{Table \textcolor{black}{\ref{#1}}.}
+\newcommand\tabref[1]{Table \textcolor{black}{\ref{#1}}}
 \newcommand\secref[1]{Sec. \textcolor{black}{\ref{#1}}}
 \newcommand{\timedL}{\code{C^{t}}}
 
@@ -365,7 +365,8 @@ in metric temporal logic (MTL), reads \textit{"within one second,
 \anyevent{Done} finally happens"}. 
 
 Moreover, the time bounds 
-can be dependent on the program inputs, demonstrated in \figref{fig:Value_dependent_intro}, we mark the precondition and postcondition
+can be dependent on the program inputs, demonstrated in 
+\figref{fig:Value_dependent_intro}; we mark the precondition and postcondition
 using keywords {\color{darklavender}\code{\emph{req:}}} and {\color{darklavender}\code{\emph{ens:}}} respectively. 
 
 
@@ -403,8 +404,8 @@ Therefore, the time spent on adding one portion of the sugar is
 no less than one time unit. Note that {\color{darklavender}\code{\emph{emp\#t}}} 
 refers to an empty trace which takes time \codem{t}. 
 
-Both preconditions require no arithmetic constrains,   
-and  have no temporal constrains upon 
+Both preconditions require no arithmetic constraints,   
+and  have no temporal constraints upon 
 the history traces. 
 The postcondition of \codem{addNSugar(n)} indicates that  the method 
 generates a finite trace where \anyevent{Sugar} takes a no 
@@ -466,7 +467,7 @@ checking the inclusion/entailment between the concrete program effects \code{\ef
 
 Since the expressiveness of \timedEffects\ goes beyond 
 finite-state automata, it is neither sufficient nor efficient to 
- translation them 
+translate them 
 into Timed Automata and reply on the solving engines of Timed Automata.
 Therefore we 
 develop a novel TRS, 
@@ -598,7 +599,8 @@ function, this history trace must contain the event
 do not satisfy the precondition lead to a failure of the verification. 
 \codem{makeCoffee} sets a 
 five time-units deadline while calling 
-\codem{addNSugar} (defined in \figref{fig:Value_dependent_intro}),
+\codem{addNSugar} (defined in 
+Fig. \textcolor{black}{\ref{fig:Value_dependent_intro}}),
  with argument \codem{n}; then emits event \anyevent{Coffee} with
  a three time-units deadline. 
 
@@ -614,7 +616,7 @@ no more than eight time-units to hit the final event.
 
 
 \timedEffects\ supports more features such as \emph{disjunctions}, 
-\emph{guards} and \emph{parallelism}, etc, which can be found in 
+\emph{guards} and \emph{parallelism}, etc., which can be found in 
 \secref{subsec:Specification_language} and 
 \secref{subsec:Specification_Semantics}.  
 Note that directly from the specifications, we are aware of:  
@@ -762,7 +764,7 @@ After these states transformations, steps (3) and (11) check the
 satisfiability of the inferred effects against the declared 
 postcondition by invoking the TRS. 
 
-Note that the prior effects in precondition is new regarding 
+Note that the prior effects in precondition are new regarding 
 the existing real-time verification. 
 
 
@@ -910,7 +912,7 @@ As shown in \tabref{tab:rewriting_tree_send}, step
 the name clashes between the antecedent and the consequent.  
 Step \textcircled{2} splits the proof tree into two 
 branches, according to the different 
-arithmetic constrains, by rule  $\codeme{[LHS\text{-}OR]}$. 
+arithmetic constraints, by rule  $\codeme{[LHS\text{-}OR]}$. 
 
 In the first branch, step \textcircled{3} takes the rule 
 $\codeme{[UNFOLD]}$ to eliminate the head of the antecedent. 
@@ -934,7 +936,7 @@ At the end of the rewriting, step \textcircled{7} manages to prove that
 %(\code{\{Go\} \Rightarrow \_})
 %(\code{\{Ready\} \Rightarrow \_}, \code{t_L^2 \Rightarrow true})
 Termination is guaranteed because the set of derivatives to be considered is finite, and possible cycles are detected using 
-\emph{memorization} \cite{DBLP:conf/tableaux/Brotherston05}, cf., \tabref{tab:reoccur}. 
+\emph{memorization} \cite{DBLP:conf/tableaux/Brotherston05}, cf.\ \tabref{tab:reoccur}. 
 
 
 \subsection{Verifying the Fischer’s Mutual Exclusion Protocol}
@@ -965,12 +967,12 @@ void main ()
 { proc(0) || proc(1) || proc(2); }
 \end{lstlisting}  
   %\vspace{-1mm}
-  \caption{Fischer's mutual exclusion algorithm.}\label{fig:overview_ficher}
+  \caption{Fischer's mutually exclusion algorithm.}\label{fig:overview_ficher}
     % \vspace{-2mm}
 \end{wrapfigure}
 
 \figref{fig:overview_ficher} presents the classical 
-Fischer's mutual exclusion algorithm. 
+Fischer's mutually exclusion algorithm. 
 where \codem{d1} and \codem{d2} are two integer constants
  with \codem{d1<d2}; 
 \codem{x} and \codem{ct} are global variables. The protocol is 
@@ -1083,7 +1085,7 @@ We here formally define the syntax of \code{\timedL}, as shown in \figref{fig:co
 \end{figure}
 }
 
-Here, \code{c} and \code{b} are for integer and boolean constants, 
+Here, \code{c} and \code{b} are for integer and Boolean constants, 
  \code{mn} and \code{x} are for meta-variables.  
  \textbf{var} represents the countably infinite set of arbitrary distinct identifiers. 
 
@@ -1140,7 +1142,7 @@ $e_1$ shall occur before d time units elapse (since the process starts).
 Otherwise, $e_2$ takes over control after exactly $d$ time units elapse. 
 Note that the usage of timeout in \figref{fig:Value_dependent_intro} is a 
 special case of the primitive presented here, where \code{e_1} never starts. 
-Process $\textbf{deadline} [d]\ e$ constrains $e$ to terminate before $d$ time units. 
+Process $\textbf{deadline} [d]\ e$ constraints $e$ to terminate before $d$ time units. 
 
 
 In this setting, clock variables are 
@@ -1343,14 +1345,14 @@ The  syntax of the \timedEffects\ is formally defined in
 Timed sequences comprise \textit{nil} ($\bot $);
  an empty trace $ \epsilon$;
 a single event \code{ev};
-  %where \anyevent{a} is an element from a finite set of events, donated by \code{\Sigma};
+  %where \anyevent{a} is an element from a finite set of events, denoted by \code{\Sigma};
 %parametrized event \code{ \anyevent{a}.\iota} where \code{\iota} is a list pattern expressing a possibly infinite list (for example, \code{\anyevent{a}.[1,2,3,4]},  \code{\anyevent{a}.[1 .. 4]} and \code{\anyevent{a}.[1, 2.. 4]} all refer to the finite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot \anyevent{a}.4},
 %while \code{\anyevent{a}.[1 ..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot}..., and \code{\anyevent{a}.[1, 3..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.3 \cdot \anyevent{a}.5\cdot}...);
  sequences concatenation \code{\es_1\cdot \es_2};
 disjunction  \code{\es_1\vee \es_2};
 parallel composition of two processes is written as \code{\es_1 || \es_2}, where \code{\es_1} and \code{\es_2} 
 may communicate via multi-party event synchronization or shared variables;
-a blocking waiting for a certain of constraint to be satisfied \code{\pi ?}; 
+a blocking waiting for a certain constraint to be satisfied \code{\pi ?}; 
 We introduce a new operator \code{\mysharp }, and the effects 
 \code{\es \mysharp t} represents that a trace takes real-time 
 \code{t} to complete, where \code{t} is a \emph{term}. 
@@ -1369,15 +1371,14 @@ labeled using \anyevent{A}; and a wildcard \code{\_}, which matches to all the e
 
 
 
-We use \code{{\pi}} to donate a pure formula which captures the (Presburger) arithmetic conditions on terms or program parameters. 
+We use \code{{\pi}} to denote a pure formula which captures the (Presburger) arithmetic conditions on terms or program parameters. 
 We use \code{{A(}{t_1, t_2}{)}} to represent atomic formulas of two terms (including $  {=},
    \ {>},
    \ {<},
    \ {\geq}\ $ and $ {\leq} $).
 %e.g. the equality between constant 0 and an integer variable \code{x}.
 A term can be a constant integer value \code{c}, an integer variable \code{n} which is an input parameter of the program and can be constrained by a pure formula. 
-A term also allows simple computations of terms, \code{t_1{+}t_2} and \code{t_1\text{-}t_2}. To abstract the elapsed time, the default and implicit pure constraints of all the terms is to be greater or e
-qual to  0. 
+A term also allows simple computations of terms, \code{t_1{+}t_2} and \code{t_1\text{-}t_2}. To abstract the elapsed time, the default and implicit pure constraints of all the terms is to be greater or equal to  0. 
 
 
 \subsection{Semantic Model of Timed Effects}
@@ -1813,9 +1814,9 @@ then parallel merges the effects from these two branches.
 
 
 The \code{[FV\text{-}If\text{-}Else]} computes an 
-over-approximation of the program states, by adding different constrains into 
+over-approximation of the program states, by adding different constraints into 
 different branches. \code{\Pi \wedge v} enforces 
-\code{v} into the pure constraints of every traces in the state, same 
+\code{v} into the pure constraints of every trace in the state, same 
 for \code{\Pi \wedge \neg v }.
 
 {{\small\begin{gather*}
@@ -1846,7 +1847,7 @@ for \code{\Pi \wedge \neg v }.
 
 
 
-Rule \code{[FV\text{-}Event]} simply constructs an new event and 
+Rule \code{[FV\text{-}Event]} simply constructs a new event and 
 concatenates it to the current program states. 
 Rule \code{[FV\text{-}Delay]} creates a trace \code{\epsilon\mysharp t}
 , where \code{t} is fresh, and concatenates it to the current program states, 
@@ -1872,7 +1873,7 @@ together with the additional constraint \code{t{=}d}.
 
 Rule \code{[FV\text{-}Timeout]} computes the effects from \code{e_1} and \code{e_2}
 using the starting state \code{\s{\Pi, \epsilon}}. The final states are the union 
-of these effects with their corresponding time variables and arithmetic constrains. 
+of these effects with their corresponding time variables and arithmetic constraints. 
 Note that, \code{hd(\Theta_1)} and \code{tl(\Theta_1)} return the head and the tail of 
 \code{\Theta_1} respectively. 
 
@@ -1974,12 +1975,12 @@ Rule \code{[FV\text{-}Call]} first checks whether the instantiated
 
 
 The TRS  is an automated entailment checker to prove language 
-inclusions between \timedEffects, cf., \defref{Inclusion} and 
+inclusions between \timedEffects, cf. \defref{Inclusion} and 
 \tabref{tab:rewriting_tree_send} It is triggered i) prior to 
 temporal property assertions; ii) prior to function calls for the 
 precondition checking; and iii) at the end of verifying a function 
 for the post condition checking. Given two effects 
-\code{\effect_1} and \code{\effect_2}, TRS decides if the inclusion \code{\effect_1 \CONTAIN  \effect_2 } is valid. 
+\code{\effect_1} and \code{\effect_2}, the TRS decides if the inclusion \code{\effect_1 \CONTAIN  \effect_2 } is valid. 
 
 During the effects rewriting process, the inclusions are in the form of \code{\Gamma \vdash  \effect_1 \CONTAIN^{\effect}  \effect_2 }, a shorthand for: \code{\Gamma \vdash  \effect \cdot \effect_1 \CONTAIN   \effect \cdot  \effect_2}. To prove such inclusions is to check whether all the possible timed traces in the antecedent \code{\effect_1} are legitimately allowed  in the possible timed traces from the consequent \code{\effect_2}.
 \code{\Gamma} is the proof context, i.e., a set of effects inclusion hypothesis, \code{\effect} is the history effects from the antecedent that have been used to match the effects from the consequent.
@@ -2009,7 +2010,7 @@ in prior work \cite{DBLP:conf/fsttcs/KeilT14}.
 %as the key novelties of this work. 
 %More detail implementations can be found in the extended technical report\citeref{Demo}.
 } of Nullable, First and Derivative respectively. Intuitively, 
-the Nullable function \code{\delta_{{\pi}}(\es)} returns a boolean 
+the Nullable function \code{\delta_{{\pi}}(\es)} returns a Boolean 
 value indicating whether \code{{\pi} \wedge \es} contains the empty 
 trace; the First function \code{fst_{{\pi}}( \es)} computes a set of 
  initial \emph{heads}, denoted as \code{h},  of \code{{\pi} \wedge \es}; and the Derivative 
@@ -2017,7 +2018,7 @@ function \code{D^{\pi}_{h}(\es)} computes a next-state
 effects after eliminating the head  \code{h} from the current 
 effects \code{{\pi} \wedge \es}. 
 
-%\subsection{closure of clock constrains}
+%\subsection{closure of clock constraints}
 %how to eliminate the unobservable transitions. 
 %
 %we allow the $ \epsilon$transitions without carrying constraints and resetting clocks at the same time. 
@@ -2068,7 +2069,7 @@ We define recursively:
 
 \vspace{2mm}
 \begin{definition}[Heads]\label{Heads}
-If \code{h} is a head of \code{\pi \wedge \es}, then there exists 
+If \code{h} is a head of \code{\pi \wedge \es}, then there exist 
 \code{\pi^\prime} and \code{\es^\prime}, 
 such that \code{\pi \wedge \es} {=} \code{\pi^\prime \wedge h \cdot \es^\prime}. 
    %We adopt the following naming convention for transition labels: 
@@ -2081,7 +2082,7 @@ A head can be  $t$, denoting a pure time passing;
 \vspace{2mm}
 \begin{definition}[First]\label{First}
   Given any \code{\effect {=} \pi \wedge \es},
-  \code{fst_{{\pi}}(\es)} return a set of heads, be the set of initial elements   
+  \code{fst_{{\pi}}(\es)} returns a set of heads, be the set of initial elements   
   derivable from effects \code{\pi \wedge \es}, where: 
     { 
    \begin{gather*} 
@@ -2232,7 +2233,7 @@ Thirdly, we iterate each element \code{h \in H}, and compute the
 partial derivatives (\emph{next-state} effects) of both the 
 antecedent and consequent w.r.t \code{h}. The proof 
 of the original inclusion succeeds if all the derivative 
-inclusions succeeds.
+inclusions succeed.
 \input{rules/rule4}
 
 
@@ -2454,7 +2455,7 @@ insights from prior TRS-based works \cite{DBLP:conf/icfem/SongC20,DBLP:journals/
 which suggest that TRS is a better average-case algorithm than 
 those based on the comparison of automata.  
 
-We summary: a TRS is efficient because 
+As a summary: a TRS is efficient because 
 \emph{it only constructs automata as far as it needs}, which makes 
 it more efficient when disproving incorrect specifications, as we can 
 disprove it earlier without constructing the whole automata. In other 
@@ -2667,10 +2668,11 @@ antecedent succeeds if both disjunctions entail the consequent,
 shown in step {\textcircled{1}}.  
  
 In step \textcircled{2} of the first sub-tree, in order to eliminate the first event 
-\code{  B  }, \code{  A  ^\star \mysharp  t_R} has to be reduced to \code{\epsilon}, therefore 
+\code{  B  }, \code{  A  ^\star \mysharp  t_R} has to be reduced to~\code{\epsilon}, therefore 
 the time constraints have nothing to do in this branch. 
 Then in steps \textcircled{4}, we
-can simply prove it with the side constraint entailment \code{\textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True}} succeed.
+can simply prove it with the side constraint entailment \code{\textcolor {darkred}{True} \Rightarrow  \textcolor {darkred}{True}} 
+succeed.
 
 
 Looking at the second sub-tree, in step \textcircled{5}, \code{t_L} and \code{t_R} are firstly split 
@@ -2802,7 +2804,7 @@ specifications \code{n{>} 0 \wedge m{>} 0 \wedge
 \code{\cdot \anyevent{Green}\mysharp{n})^\star}, which specifies that  
 (i) all the colors will occur at each life circle; and 
 (ii) the duration of the green light and the red light is 
-always the same. Moreover, these effects can not be translated 
+always the same. Moreover, these effects cannot be translated 
 into linear bounded automata (LBA) either, which equivalents to 
 context-sensitive grammar, as LBA are only capable of expressing 
 finite traces.  
@@ -3054,7 +3056,7 @@ Consider the following partial ordering \code{\succ} on pairs \code{\langle S, H
 \code{\langle S_1, H_1 \rangle \succ \langle S_2, H_2 \rangle}\ \ \text{iff}\ \ \code{|H_1| < |H_2| \vee 
 (|H_1| = |H_2| \wedge |S_1| > |S_2|)}. 
 \end{gather*}
-where \code{|X|} stands for the cardinality of a set \code{X}.  Let \code{\Rightarrow} donate the rewrite relation, then \code{\Rightarrow^*} denotes its reflexive transitive closure. For any given \code{S_0}, \code{H_0}, this ordering is well founded on the set of pairs \code{\{\langle S, H \rangle | \langle S_0, H_0 \rangle \Rightarrow^* \langle S, H \rangle \}}, due to the fact that \code{H} is a subset of the finite set of pairs of all possible derivatives in initial inclusion.
+where \code{|X|} stands for the cardinality of a set \code{X}.  Let \code{\Rightarrow} denote the rewrite relation, then \code{\Rightarrow^*} denotes its reflexive transitive closure. For any given \code{S_0}, \code{H_0}, this ordering is well founded on the set of pairs \code{\{\langle S, H \rangle | \langle S_0, H_0 \rangle \Rightarrow^* \langle S, H \rangle \}}, due to the fact that \code{H} is a subset of the finite set of pairs of all possible derivatives in initial inclusion.
 
 
 Inference rules in our TRS given in \secref{InferenceRules} transform current pairs \code{\langle S, H \rangle} to new pairs \code{\langle S^\prime, H^\prime \rangle}. 

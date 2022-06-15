@@ -1127,7 +1127,7 @@ Timed sequences comprise \textit{nil} ($\bott$);
  an empty trace $\empt$;
 a single time instance represented by \code{I};
 a waiting for a single signal \code{\textbf{S}?};
-  %where \anyevent{a} is an element from a finite set of events, donated by \code{\Sigma};
+  %where \anyevent{a} is an element from a finite set of events, denoted by \code{\Sigma};
 %parametrized event \code{ \anyevent{a}.\iota} where \code{\iota} is a list pattern expressing a possibly infinite list (for example, \code{\anyevent{a}.[1,2,3,4]},  \code{\anyevent{a}.[1 .. 4]} and \code{\anyevent{a}.[1, 2.. 4]} all refer to the finite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot \anyevent{a}.4},
 %while \code{\anyevent{a}.[1 ..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot}..., and \code{\anyevent{a}.[1, 3..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.3 \cdot \anyevent{a}.5\cdot}...);
  sequences concatenation \code{\es_1\cdot \es_2};
@@ -1146,7 +1146,7 @@ The default state of signals in a new time instance is absent.
 A time instance \code{I} is a set of signals; and it can be possible empty sets \code{ \{ \}}, indicating that there is no signal constraints for the time instance.
 
 
-We use \code{\pure{\pi}} to donate a pure formula which captures the (Presburger) arithmetic conditions on terms or program parameters. 
+We use \code{\pure{\pi}} to denote a pure formula which captures the (Presburger) arithmetic conditions on terms or program parameters. 
 We use \code{\pure{A(}{t_1, t_2}\pure{)}} to represent atomic formulas of two terms (including $  {=},
    \ {>},
    \ {<},
@@ -1658,7 +1658,6 @@ Intuitively, the Nullable function \code{\delta(\es)} returns a boolean value in
 
 
 
-%\subsection{closure of clock constrains}
 %how to eliminate the unobservable transitions. 
 %
 %we allow the $\empt$transitions without carrying constraints and resetting clocks at the same time. 
@@ -2546,7 +2545,7 @@ due to the reasons that forgetting to emit {\textbf{C}} (In JavaScript, it could
       \vspace{-2mm}
 To further demonstrate the expressiveness of our timed effects, we use an example shows in \figref{fig:case_study_finit_infinit}
 It declares a recursive module named \code{send}, making a deterministic choice depending on input \code{n}: in one case it emits one  signal  \anyevent{Done}; otherwise it emits a signal 
-\anyevent{Send}, then makes a recursive call with parameter \code{n{-}1}.  Note that the post condition contains both finite effects and infinite effects in one single formula, separated by arithmetic constrains. 
+\anyevent{Send}, then makes a recursive call with parameter \code{n{-}1}.  Note that the post condition contains both finite effects and infinite effects in one single formula, separated by arithmetic constraints. 
 
 
 
@@ -3068,7 +3067,7 @@ Consider the following partial ordering \code{\succ} on pairs \code{\langle S, H
 \code{\langle S_1, H_1 \rangle \succ \langle S_2, H_2 \rangle}\ \ \text{iff}\ \ \code{|H_1| < |H_2| \vee 
 (|H_1| = |H_2| \wedge |S_1| > |S_2|)}. 
 \end{gather*}
-where \code{|X|} stands for the cardinality of a set \code{X}.  Let \code{\Rightarrow} donate the rewrite relation, then \code{\Rightarrow^*} denotes its reflexive transitive closure. For any given \code{S_0}, \code{H_0}, this ordering is well founded on the set of pairs \code{\{\langle S, H \rangle | \langle S_0, H_0 \rangle \Rightarrow^* \langle S, H \rangle \}}, due to the fact that \code{H} is a subset of the finite set of pairs of all possible derivatives in initial inclusion.
+where \code{|X|} stands for the cardinality of a set \code{X}.  Let \code{\Rightarrow} denote the rewrite relation, then \code{\Rightarrow^*} denotes its reflexive transitive closure. For any given \code{S_0}, \code{H_0}, this ordering is well founded on the set of pairs \code{\{\langle S, H \rangle | \langle S_0, H_0 \rangle \Rightarrow^* \langle S, H \rangle \}}, due to the fact that \code{H} is a subset of the finite set of pairs of all possible derivatives in initial inclusion.
 
 
 Inference rules in our TRS given in \secref{InferenceRules} transform current pairs \code{\langle S, H \rangle} to new pairs \code{\langle S^\prime, H^\prime \rangle}. 
