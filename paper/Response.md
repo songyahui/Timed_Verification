@@ -19,7 +19,7 @@ following change list.
 |1 | Typos       | Mentioned in the reviews  | Already Done| 
 |2 | Related work | [Song & Chin 2020]  | 5 days (Partly done in by responding to our Reviewers) |
 |3 | Evaluation data | Have a table detailing summary statistics | 5-10 days |
-|4 | Writing polishing | Find a buddy to check the writings | 5 days | 
+|4 | Paper polishing | Find a buddy to check the writings | 5 days | 
 |  | In total  | | 15 - 20 days
 
 Other minor adjustments below can be done within a couple of days :
@@ -33,22 +33,64 @@ In total, we plan to finish all the changes within one month.
 
 # RESPONSE: 
 
+## Common Questions Upon the Evaluation
+
+### Q1. Where do the models come from?  
+
+The evaluation benchmark (16 selected programs) was created by ourselves. 
+We developed a set of testing programs (~70 programs) during the development process.
+The testing programs were designed in a functionality-oriented way, where each 
+forward rules in Sec. 4.1 has 3-8 testing testing programs. The rest ~20 programs 
+are mixed combinations of different constructs and some stress tests.  
+
+Our selected programs were from the last ~20 programs varying from lines of code. 
+
+### Q2. We like to explain why not choosing existing benchmarks:
+
+Model checkers like Uppaal take timed automata directly as their inputs, 
+which is not feasible for our tool. 
+
+Model checkers like PAT take timed process algebras as their inputs are more 
+feasible. We indeed included some tests from their examples into our tests, 
+such as the Fischer’s Mutual Exclusion Protocol (cf Fig. 4).
+But they do not support value dependent bounds in their timed behavioral patterns.
+However, we take the `value dependent bounds` to be one of our main novelties, therefore 
+most programs in our benchmark are created ourselves, and 
+have value dependent time bounds. 
+
+### Q3. What kinds of specifications you check and comparison with PAT?  
+
+All the specifications are with value-depended constructors. 
+For each program, the very first specification is its strongest postcondition 
+(which should be valid). Then we derived the rest specifications by 
+adding various mutations (or mixture of the mutations) into the strongest postcondition, such as: 
+disjunctions, negation of certain events, modification of the clock constraints, 
+inserting parallel traces etc. 
+
+For the programs we included from PAT benchmark, we validate the verification 
+results against PAT implementation (as in given the same logic model and the same 
+specification, our tool and PAT return the same verification results). 
+For the rest  specifications, we manually label the expected verification results. 
+And all the results presented in Table. 3 were as expected. 
+
+
+### Q4. Do the authors plan to make their tool and experiments publicly available? 
+
+Yes. In fact the source code is open sourced now. We 
+plan to release the benchmark after further documentation. 
+
+
 ## To Reviewer A
 
-### Q1. Was there any actual comparison with another tool (e.g. PAT)?
-
-### Q2. Where do the models come from? Do the authors plan to make their tool and experiments publicly available? (e.g. as part as an artifact)
-
-
-### Q3. Does this mean that the time is discrete, or does this mean that the time bounds are integer-valued (while time can still be continuous)?
+### Q1. Does this mean that the time is discrete, or does this mean that the time bounds are integer-valued (while time can still be continuous)?
 Time is continuous. The current implementation makes use of SMT in 
 integer numbers domain.
 It is not hard to adapt it into real numbers given the suitable SMT solver. 
 
-### Q4. I find the event name Sugar slightly misleading: if this denotes the completion of the sugar addition phase, perhaps EndSugar would be more appropriate? 
+### Q2. I find the event name Sugar slightly misleading: if this denotes the completion of the sugar addition phase, perhaps EndSugar would be more appropriate? 
 `Sugar` denotes the completion of the sugar addition phase, we will change it to `EndSugar`. Thanks!
 
-### Q5. "our effects provide more detailed information than traditional timed verification, and in fact, it cannot be fully captured by any prior works " This requires some discussion, and does not seem obvious to me, especially when compared with Uppaal.
+### Q3. "our effects provide more detailed information than traditional timed verification, and in fact, it cannot be fully captured by any prior works " This requires some discussion, and does not seem obvious to me, especially when compared with Uppaal.
 
 Using the example $\Phi_{addNSuggar(n)} = n{<}3 \wedge n{=}t \wedge Sugar\# t $, 
 there are two main advantages shown comparing the proposed Effects with timed-automata based modelling:
@@ -56,18 +98,18 @@ there are two main advantages shown comparing the proposed Effects with timed-au
 during the execution. 
 2. the time-bounds can be a range of values (possibly an infinite set). In this example, Sugar\# t is an integration of Sugar\# 0 or Sugar\# 1 or Sugar\# 2. 
 
-### Q6. why isn't there any rule that "gets rid of" deadline? 
+### Q4. why isn't there any rule that "gets rid of" deadline? 
 
 It should have. We will need to add a rule where 
 e reduced to a value within the deadline. Then we can "gets rid of" the deadline. 
 
-### Q7. Section 3.4: is the notation [[\pi]]_s defined? 
+### Q5. Section 3.4: is the notation [[\pi]]_s defined? 
 
 $\llbracket {\pi} \rrbracket_s {=}  
 {True}$ stands that: with the current stack state $s$,
 the arithmetic constraint ${\pi}$ holds. 
 
-### Q8. "We validate the front-end forward verifier against the state-of-the-art PAT" This does not seem to appear in the experiments. 
+### Q6. "We validate the front-end forward verifier against the state-of-the-art PAT" This does not seem to appear in the experiments. 
 
 Sorry about the confusion. The validation here refers 
 to the correctness of our forward verifier. The 
@@ -205,16 +247,36 @@ after exactly 𝑑 time units elapse.
 So it's either $e_1$ or $e_2$ to be executed. The formal semantics can 
 be found in $[to_1]$ to $[to_4]$ (on top of the page 8).
 
-### +P16
+### +P16 
 
 ### +P18 Is there a definition of when $\Phi \sqsubseteq \Phi’$ is valid? 
 
 Definition 2.2 (TimEffs Inclusion), at line 211. 
 
-### +P19 Can you describe the 16 $C^t$ programs used in the benchmark in section 6?
 
 
 
 ## To Reviewer C
 
-### Q1. Which aspects of 
+### Q1. Please comment on the related work I cite.
+
+
+
+### Q2. Please comment on some of the technical questions I raised 
+
+(why talk about trace leading to a method in preconditions, 
+are quantified Presburger conditions used in your benchmarks?)
+
+Can't you not express loop invariants using specifications and reason with programs using verification conditions written for iteration-free code snippets, like in Floyd-style verification?
+
+
+### Q3. Do you capture the strongest post? 
+
+Yes, it is meant to capture the strongest post. 
+
+
+### Q4. Are there any relative completeness results that you can show that narrow the space where your reasoning is incomplete?
+
+
+
+### Q5. Can you give some (simple) examples where your technique does not work?
