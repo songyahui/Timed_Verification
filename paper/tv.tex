@@ -1390,6 +1390,14 @@ To define the model,
 \code{\es} is the set of event sequences (or event multi-trees, per se), 
 indicating the sequencing constraints on temporal behaviors.
 
+Let \code{d, s, \varphi \models \effect} denote the model relation, i.e., 
+the effects \code{\effect} take \code{d} time units to complete; 
+the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
+temporal effects \code{\effect}, with \code{d}, \code{s}, \code{\varphi} 
+from the following concrete domains: \code{d}  :\  \code{\mathbb{N}}, 
+\code{s}  :\  \code{var {\rightarrow} val } and \code{\varphi}   :\ \code{\es} \ .
+
+
 \begin{figure}[!ht]
   %\vspace{-3mm}
   \renewcommand{\arraystretch}{1.2}
@@ -1445,30 +1453,30 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    block         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models {\pi} \wedge \pi_1 ? es}  &\m{iff}\quad & 
+&\code{d, s, \varphi \models {\pi} \wedge \pi_1 ? \es}  &\m{iff}\quad & 
 \code{\llbracket \pi_1  \rrbracket_{s} {=}  
- {True} }, \ \code{d, s, \varphi \models {\pi}  \wedge es}\ or  \ 
+ {True} }, \ \code{d, s, \varphi \models {\pi}  \wedge \es}\ or  \ 
   \code{\llbracket \pi_1 \rrbracket_{s} {=}  
 {False} }, 
-\  \code{d, s, \varphi \models {\pi} \wedge \pi_1 ? es}\\
+\  \code{d, s, \varphi \models {\pi} \wedge \pi_1 ? \es}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    t times         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models {\pi}  \wedge es\mysharp  t}  &\m{iff}\quad &
+&\code{d, s, \varphi \models {\pi}  \wedge \es\mysharp  t}  &\m{iff}\quad &
  \code{\llbracket {\pi}  \wedge t {=} 0 \rrbracket_{s} {=}  
  {True} }, \ \code{d, s, \varphi \models {\pi}  \wedge  \epsilon}\ or  \\
 & & &  \code{\llbracket {\pi}\wedge t {>} 0 \rrbracket_{s} {=}  
 {True} }, 
-\  \exists \code{\es_1,\es_2}. \  \code{\es_1  \cdot  \es_2 {=} es}, \  \m{fresh}\ t_1, t_2,\\
+\  \exists \code{\es_1,\es_2}. \  \code{\es_1  \cdot  \es_2 {=} \es}, \  \m{fresh}\ t_1, t_2,\\
 &&& \qquad  s.t. \ \code{d, s, \varphi {\models} {(\pi 
  \wedge  t_1{\geq}0 \wedge t_2{\geq}0  \wedge  t_1{+} t_2{=}t)} \wedge 
 (\es_1\mysharp t_1)  \cdot  (\es_2\mysharp t_2) } \\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    star         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-&\code{d, s, \varphi \models {\pi}\wedge es^\star}  &\m{iff}\quad & 
+&\code{d, s, \varphi \models {\pi}\wedge \es^\star}  &\m{iff}\quad & 
 \code{d, s, \varphi \models {\pi}  \wedge  \epsilon}\ or \ 
-\code{d, s, \varphi \models {\pi}  \wedge es  \cdot  es^\star}\\
+\code{d, s, \varphi \models {\pi}  \wedge \es  \cdot  \es^\star}\\
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%    FALSE         %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1483,12 +1491,6 @@ or\ \code{d, s, \varphi \models \effect_2 }  \\
 
 
 
-Let \code{d, s, \varphi \models \effect} denote the model relation, i.e., 
-the effects \code{\effect} take \code{d} time units to complete; 
-the stack \code{s} and linear temporal events \code{\varphi} satisfy the 
-temporal effects \code{\effect}, with \code{d}, \code{s}, \code{\varphi} 
-from the following concrete domains: \code{d}  {\defeq}\  \code{\mathbb{N}}, 
-\code{s}  \defeq\  \code{var {\rightarrow} val } and \code{\varphi}   \defeq\ \code{\es} \ .
 
 
 
@@ -1722,9 +1724,11 @@ The meaning of the transition rules, can be described as:
 
 
 \vspace{2mm}
-\qquad\qquad\quad \code{\s{ \Pi^\prime, \Theta^\prime } = 
+\qquad \code{\s{ \Pi^\prime, \Theta^\prime } = 
 \wbigcup_{i{=}0}^{|\s{ \Pi, \Theta }| \text{-} 1}  
-\s{\pi_i^\prime, \es_i^\prime} \ \ where\ \ 
+\s{\pi_i^\prime, \es_i^\prime}  \ \ where\ \ \code{
+  \s{\pi_i, \es_i} {\in} \s{ \Pi^\prime, \Theta^\prime }
+}  \ \m{and} \ 
  \vdash  \s{\pi_i, \es_i} \ e \ \s{\pi_i^\prime, \es_i^\prime}.} 
 \footnote{\code{|\s{ \Pi, \Theta }|} is the 
 size of \code{\s{ \Pi, \Theta }}.}
@@ -1884,7 +1888,7 @@ Note that, \code{hd(\Theta_1)} and \code{tl(\Theta_1)} return the head and the t
       \qquad 
       \vdash \{ \Pi, \epsilon \}\ e_2 \ \{  \Pi_2, \Theta_2 \} 
       \\
-      \s{\Theta_f, \Pi_f} {=} \s{\Pi_1  \wedge t_1{\leq}d, (hd(\Theta_1)\mysharp t \cdot tl(\Theta_1))}
+      \s{\Pi_f, \Theta_f} {=} \s{\Pi_1  \wedge t_1{\leq}d, (hd(\Theta_1)\mysharp t \cdot tl(\Theta_1))}
       \cup 
   \s{\Pi_2  \wedge t_2{>}d,  (\Theta_2\mysharp t)}   
   \quad (t_1, t_2\ are\ fresh)     
