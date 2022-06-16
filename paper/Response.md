@@ -3,11 +3,11 @@
 Many thanks to our reviewers for their interest 
 and appreciation of certain aspects of our work. 
 
-We acknowledge our weaknesses upon related work and evaluations. 
+We acknowledge our weaknesses in related work and evaluations. 
 Thanks again for the time and effort in pointing out our typos 
-and giving out constructive suggestions. 
+and giving constructive suggestions. 
 
-We took all the valuable comments into account and made the 
+We considered all the valuable comments and made the 
 following change list. 
 
 
@@ -17,7 +17,7 @@ following change list.
 | | Changes     | Description | Timeline (Working days)    |
 | ---  | ----------- | ----------- | ----------- |
 |1 | Typos       | Mentioned in the reviews  | Already Done| 
-|2 | Related work | [Song & Chin 2020]  | 5 days (Partly done in the response) |
+|2 | Related work | Further compare our work with i) other rewriting systems for timed verification; ii) dynamic clock manipulations for timed automata, and iii) [Song & Chin 2020].   | 5 days (Partly done in the response) |
 |3 | Evaluation data | Add more detailed explanations for the evaluation and make the benchmark and documentation public | 5-10 days |
 |4 | Paper polishing | Find a buddy to check the writings | 5 days | 
 |  | In total  | | 15 - 20 days
@@ -34,45 +34,45 @@ In total, we plan to finish all the changes within one month.
 #### Q1. Where do the models come from?  
 
 The evaluation benchmark (16 selected programs) was created by ourselves. 
-We developed a set of testing programs (~70 programs) during the development process.
-The testing programs were designed in a functionality-oriented way, where each 
-forward rules in Sec. 4.1 has 3-8 testing testing programs. The rest ~20 programs 
+We developed a set of testing programs (~70) during the development process.
+The testing programs were designed functionality-oriented, where each 
+forward rule in Sec. 4.1 has 3-8 testing programs. The rest ~20 programs 
 are mixed combinations of different constructs and some stress tests.  
 
 Our selected programs were from the last ~20 programs varying from lines of code. 
 
-#### Q2. We like to explain why not choosing existing benchmarks:
+#### Q2. We like to explain why not to choose existing benchmarks:
 
 Model checkers like Uppaal take timed automata directly as their inputs, 
 which is not feasible for our tool. 
 
 Model checkers like PAT take timed process algebras as their inputs are more 
-feasible. We indeed included some tests from their examples into our tests, 
+feasible. We indeed included some tests from their examples in our tests, 
 such as the Fischer’s Mutual Exclusion Protocol (cf Fig. 4).
-But they do not support value dependent bounds in their timed behavioral patterns.
-However, we take the `value dependent bounds` to be one of our main novelties, therefore 
-most programs in our benchmark are created ourselves, and 
-have value dependent time bounds. 
+But they do not support value-dependent bounds in their timed behavioral patterns.
+However, we take the `value-dependent bounds` as one of our main novelties. Therefore 
+most programs in our benchmark are created ourselves and 
+have value-dependent time bounds. 
 
-#### Q3. What kinds of specifications you check and any comparisons with PAT?  
+#### Q3. What kinds of specifications do you check and any comparisons with PAT?  
 
 All the specifications are with value-depended constructors. 
 For each program, the very first specification is its strongest postcondition 
 (which should be valid). Then we derived the rest specifications by 
-adding various mutations (or mixture of the mutations) into the strongest postcondition, such as: 
-disjunctions, negation of certain events, modification of the clock constraints, 
+adding various mutations (or a mixture of the mutations) into the strongest postcondition, such as: 
+disjunctions, the negation of certain events, modification of the clock constraints, 
 inserting parallel traces etc. 
 
-For the programs we included from PAT benchmark, we validate the verification 
+For the programs we included from the PAT benchmark, we validate the verification 
 results against PAT implementation (as in given the same logic model and the same 
 specification, our tool and PAT return the same verification results). 
-For the rest  specifications, we manually label the expected verification results. 
-And all the results presented in Table. 3 were as expected. 
+For the rest specifications, we manually label the expected verification results. 
+And all the results are presented in Table. 3 were as expected. 
 
 
-#### Q4. Do the authors plan to make their tool and experiments publicly available? 
+#### Q4. Do the authors plan to make their tools and experiments publicly available? 
 
-Yes. In fact the source code is open sourced now. We 
+Yes. The source code is open-sourced now. We 
 plan to release the benchmark after further documentation. 
 
 
@@ -86,23 +86,23 @@ out and add comparisons accordingly.
 #### Q1. Does this mean that the time is discrete, or does this mean that the time bounds are integer-valued (while time can still be continuous)?
 Time is continuous. The current implementation makes use of SMT in 
 integer numbers domain.
-It is not hard to adapt it into real numbers given the suitable SMT solver. 
+Given the suitable SMT solver, it is not hard to adapt it to real numbers. 
 
 #### Q2. I find the event name Sugar slightly misleading: if this denotes the completion of the sugar addition phase, perhaps EndSugar would be more appropriate? 
-`Sugar` denotes the completion of the sugar addition phase, we will change it to `EndSugar`. Thanks!
+`Sugar` denotes the completion of the sugar addition phase; we will change it to `EndSugar`. Thanks!
 
-#### Q3. "our effects provide more detailed information than traditional timed verification, and in fact, it cannot be fully captured by any prior works " This requires some discussion, and does not seem obvious to me, especially when compared with Uppaal.
+#### Q3. "our effects provide more detailed information than traditional timed verification, and in fact, it cannot be fully captured by any prior works " This requires some discussion and does not seem obvious to me, especially when compared with Uppaal.
 
 Using the example $\Phi_{addNSuggar(n)} = n{<}3 \wedge n{=}t \wedge Sugar\# t $, 
 there are two main advantages shown comparing the proposed Effects with timed-automata based modelling:
-1. The time-bounds can be depended on the function inputs. The specifications are dynamically instantiated 
+1. The time bounds can be depended on the function inputs. The specifications are dynamically instantiated 
 during the execution. 
 2. the time-bounds can be a range of values (possibly an infinite set). In this example, Sugar\# t is an integration of Sugar\# 0 or Sugar\# 1 or Sugar\# 2. 
 
 #### Q4. why isn't there any rule that "gets rid of" deadline? 
 
-It should have. We will need to add a rule where 
-e reduced to a value within the deadline. Then we can "gets rid of" the deadline. 
+It should have. We need to add a rule where 
+e is reduced to a value within the deadline. Then we can "get rid of" the deadline. 
 
 #### Q5. Section 3.4: is the notation [[\pi]]_s defined? 
 
@@ -114,14 +114,15 @@ the arithmetic constraint ${\pi}$ holds.
 
 Sorry about the confusion. The validation here refers 
 to the correctness of our forward verifier. The 
-experiments is about the efficiency of our implementation. 
+experiment is about the performance of our implementation. 
+
 
 
 ---
 
 ###  To Reviewer B
 
-#### Q1. The significant overlap with the work in [Song & Chin 2020].
+#### Q1. The a significant overlap with the work in [Song & Chin 2020].
 
 The major overlapping parts are:
 1. they both integrate arithmetic constraints with 
@@ -149,8 +150,8 @@ bound 5. This difference can be spotted in the specification semantics models of
 in current work, the specification supports $\pi?$ (stands for a blocking waiting for a certain 
 constraint to be satisfied) and the concurrency constructor || 
 (cf Fig. 6). These are generally essential 
-in timed verification (or more generally, for asynchronous programming), 
-which are simply not supported in [Song & Chin 2020]. 
+in timed verification (or, more generally, for asynchronous programming), 
+which are not supported in [Song & Chin 2020]. 
 
 (III) Thirdly, if the TRS in [Song & Chin 2020] wished to 
 support the inclusion checking 
@@ -158,22 +159,22 @@ of $TimEffs$ in this work, it needs to deal
 with the different semantics of the logic and extra operators. 
 These achievements are considered to be the contributions 
 of the TRS in the current paper. The detailed technical differences 
-can be spotted in the rewriting rules in each paper (Sec. 5 in current paper vs. Sec. 5 in [Song & Chin 2020]). 
+can be spotted in the rewriting rules in each paper (Sec. 5 in the current paper vs. Sec. 5 in [Song & Chin 2020]). 
 
-Lastly, we acknowledge that our current work is an extensions 
-of [Song & Chin 2020], and we sincerely thank our reviews of pointing 
-it out, which should have explained better in the submission. 
+Lastly, we acknowledge that our current work is an extension 
+of [Song & Chin 2020], and we sincerely thank our reviews for pointing 
+it out, which should have been explained better in the submission. 
 
-#### +P1: The code in Fig. 1 says that addNSugar will emit the event Sugar after at least n time units. But the text (lines 63-68) seems to indicate that n portions of Sugar will be added, ie Sugar will be emitted n times.
+#### +P1: The code in Fig. 1 says that addNSugar will emit the event Sugar after at least n time units. But the text (lines 63-68) indicates that n portions of Sugar will be added, i.e., Sugar will be emitted n times.
 
 Event `Sugar` denotes the completion of the whole sugar addition phase (which adds n portions of Sugar in total). 
 We will change `Sugar` to `EndSugar` (as suggested by our review A) and revise the explanations. 
 
 #### +P2: line 90 “valid traces \Phi' … why “valid”? I thought that \Phi' is the specification of the program. Are some traces invalid? If so, where is the term "invalid trace" defined?
 
-$\Phi^\prime$ indeed is the specification of the program. In another word, 
-it is an over-approximation (or superset per se) of all the desired/expected behaviours. 
-We consider any unexpected traces  are `invalid`. 
+$\Phi^\prime$ indeed is the specification of the program. In other words, 
+it is an over-approximation (or superset per se) of all the desired/expected behaviors. 
+We consider any unexpected traces are `invalid`. 
 
 #### P4 line 312, you are talking of assignments \alpha^*, but you do not define them anywhere.
 
@@ -182,23 +183,23 @@ $\alpha$ is defined in Fig. 5 (assignment), and $\alpha^*$ is a list of $\alpha$
 #### +P5 line 318. What happens if e does not terminate on time? Does the program abort?
 
 Like other modeling languages, the timed constructs 
-are used in a abstract modeling way, where e must terminate 
-before the deadline. If e is possibly go beyond the deadline, it should 
-be modelled using conditionals where the other possibilities are explicitly modeled. 
+are used in an abstract modeling way, where e must terminate 
+before the deadline. If e possibly goes beyond the deadline, it should 
+be modeled using conditionals where the other possibilities are explicitly modeled. 
 
 #### +P6 line 320 “potentially allows efficient clock manipulation”. I am not clear what you mean. Where does this clock manipulation happen? 
 
-This comes from the context of how people usually make uses of the timed automata. 
-For example, to use the model checker Uppaal, uses need to draw the automata 
+This comes from the context of how people usually make use of the timed automata. 
+For example, to use the model checker Uppaal, users need to draw the automata 
 themselves, including the clock naming, clock constrains annotation, 
 transition constrains annotation. And this process most likely is not the most 
-efficient way of manipulating the clocks, which leads to redundant clocks/constrains or bugs. 
+efficient way of manipulating the clocks, which leads to redundant clocks/constraints or bugs. 
 
 #### +P7 line 346, rule $[tot_1]$ should the conclusion say $(V, e_1’)$ rather than $(V, e’)$?
 
-That's right, sorry about the confusion and thanks for pointing it out. Already fixed. 
+That's right; sorry about the confusion, and thanks for pointing it out. It is already fixed. 
 
-#### +P8 line 360. Are we missing a rule to eliminate $\textbf{deadline}$ when the execution of $e$ hs terminated and the deadline has not been reached.
+#### +P8 line 360. Are we missing a rule to eliminate $\textbf{deadline}$ when the execution of $e$ is terminated, and the deadline has not been reached?
 
 That's right. We will need to add a rule where e reduced to a value within the deadline. 
 
@@ -263,12 +264,24 @@ Definition 2.2 (TimEffs Inclusion), at line 211.
 #### Q1. Please comment on the related work I cite.
 
 
-Specification of real-time and hybrid systems in rewriting logic, by Olveczky and Meseguer.
+[1] Deductive Verification of Real-Time Systems Using STEP, by Bjorner, Manna, Sipma, Uribe proposes
+[2] Specification of real-time and hybrid systems in rewriting logic, by Olveczky and Meseguer.
+[3] Specification and Analysis of Real-Time and Hybrid Systems in Rewriting Logic - Olveczky (PhD thesis) 
+[4] Verification of clocked and hybrid systems - Kesten, Manna, Pnueli
 
-Specification and Analysis of Real-Time and Hybrid Systems in Rewriting Logic - Olveczky (PhD thesis) 
-See also: Verification of clocked and hybrid systems- Kesten, Manna, Pnueli
+Thanks for pointing out the very related works, which used rewriting strategies to 
+solve difference problems upon different format of the logics. 
+[1,4] mention rewriting linear temporal logic formula; 
+[2,3] mention rewriting timed automata, or timed extensions of Petri net;
+and our work is rewriting extended regular expressions. 
 
-You are also missing references to work done by Cook and Koskinen and others on LTL/CTL verification of programs, which also include reductions to standard Hoare-style verification.
+We think the main differences get back to the expressiveness of the logics.
+As we presented in the paper, we aim at studying more practical and expressive 
+logics, therefore it leads to the creation/rewriting of our TimEffs. 
+The dependent values and putting timed traces into the precondition are novel 
+comparing to prior works. 
+Together with the cited papers, we certainly show the applicability of 
+rewriting systems.  
 
 
 
