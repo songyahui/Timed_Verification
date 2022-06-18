@@ -360,3 +360,88 @@ However, we did not include it because it seems to be leading to other incomplet
 
 #### Q6. Am I reading it correctly that your system is able to prove all valid properties and disprove all invalid ones?
 Yes. cf  Q3 in `Common Questions Upon the Evaluation`. 
+
+
+#### +P16 Theorem 4.1: You are saying “produces a concrete execution time d, and event sequence" …. But the operational semantics does not produce one execution time. Perhaps it produces a sequence of execution times and event, and then you obtain d through the sum of all execution times, and π by distilling all the events? I could not find the definition in the paper, but even som such a definition would allow me to distinguish important cases (eg delay(2).Sugar.delay(1).Sugar from delay(3).Sugar.Sugar).
+
+-> `Perhaps it produces a sequence of execution times and event, and then you 
+obtain d through the sum of all execution times`
+
+That' right. If we use `|-|` to denote one time unit, and `S` denotes the emission of Sugar, then
+
+delay(2).Sugar.delay(1).Sugar is 
+```
+0 1 2 3 4
+|-|-|-|-|--> d
+    S S
+```
+
+and delay(3).Sugar.Sugar is 
+```
+0 1 2 3 4
+|-|-|-|-|--> d
+      S 
+      S
+```
+
+In the semantic of effects, Fig.7 line 423, we defined the emission of a single event takes 0 time. 
+
+#### +P16 Proof of Theorem 4.1. I had a look in the appendix, and have several questions
+
+a. It is not clear whether the proof is by induction on the number of steps 
+  or the shape of the expression. Looking at the proof it seems that it is by 
+  the latter, but if so the proof would not go through, because method call 
+  increases the expression.
+
+c. Proof is missing method call, and the proof of this requires, 
+
+Answer for a and c:
+It is induction on the shape of the expression. 
+
+Informally, the operation semantics rule for method call is:
+```
+mn(x^*)[P, Q]{e} {\in} P    
+the history traces should entail P
+e[v*/x*] ==> e'
+------------------------------- [op-call]
+(V, mn(v*)) --> (V, e')
+```
+The promise of [op-call] assumes mn(x^*) is verified, i.e., |- {P} e {Q} is valid. 
+(P, Q are the pre/post-condition of mn) 
+
+The forward rule of call [FV-Call] is defined at line 520. 
+
+Based on Theorem 4.1:
+Given configuration (V, mn(v*)), it equals to (V, e[v*/x*]). 
+
+There are two cases: 
+
+i) $\{V, \epsilon \} \in P$, by [FV-Call], 
+|- {$\{V, \epsilon \}$} e[v*/x*] {$\{V, \epsilon \} \cdot$  Q[v*/x*]}, 
+prove by induction;
+
+ii) $\{V, \epsilon \} \notin P$, both execution and forward rule got stuck. 
+
+
+---
+
+b. The proof for timeout does not cover the case where e1​
+  started but times out, and we continue with e2
+
+This is a similar question to +P15. 
+As we have answered, the semantics of $e_1$ timeout[𝑑] $e_2$ is, 
+if the initial events (written as $hd(\Theta_1)$ in the rule $[FV\text{-}Timeout]$ at line 508) 
+of $e_1$ happened before time d, then $e_1$ continues to take the control; 
+otherwise, i.e., $e_1$ never started within time d, $e_2$ takes the control. 
+
+Therefore `the case where e1​
+  started but times out, and we continue with e2` should never happen. 
+
+
+---
+
+d. I think Theorem 5.7 Proof is missing the inductive step
+ In line 1046, the proof for the unfold is the inductive step. 
+ The rule adds the current inclusion into the hypostasis, then proves the inclusion 
+ of its derivatives. 
+
