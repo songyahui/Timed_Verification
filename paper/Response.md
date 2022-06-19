@@ -14,16 +14,16 @@ following change list.
 # CHANGE LIST: 
 
 
-| | Changes     | Description | Timeline (Working days)    |
+| | Changes     | Description | Timeline    |
 | ---  | ----------- | ----------- | ----------- |
 |1 | Typos       | Mentioned in the reviews  | Already Done| 
-|2 | Related work | Further compare our work with i) other rewriting systems for timed verification; ii) dynamic clock manipulations for timed automata, and iii) [Song & Chin 2020].   | 5 days (Partly done in the response) |
-|3 | Evaluation data | Add more detailed explanations for the evaluation and make the benchmark and documentation public | 5-10 days |
+|2 | Related work | Further compare our work with i) other rewriting systems for timed verification; ii) dynamic clock manipulations for timed automata, and iii) [Song & Chin 2020].   | 3 days (Partly done in the response) |
+|3 | Evaluation data | Add more detailed explanations for the evaluation and make the benchmark and documentation public | 3-6 days |
 |4 | Paper polishing | Find a buddy to check the writings | 5 days | 
-|  | In total  | | 15 - 20 days
+|  | In total  | | 11 - 14 days
 
 
-In total, we plan to finish all the changes within one month.  
+In total, we plan to finish all the changes within two weeks.  
 
 
 
@@ -93,7 +93,7 @@ Given the suitable SMT solver, it is not hard to adapt it to real numbers.
 
 #### Q3. "our effects provide more detailed information than traditional timed verification, and in fact, it cannot be fully captured by any prior works " This requires some discussion and does not seem obvious to me, especially when compared with Uppaal.
 
-Using the example $\Phi_{addNSuggar(n)} = n{<}3 \wedge n{=}t \wedge Sugar\# t $, 
+Using the example $\Phi_{addNSuggar(n)} = n{<}3 \wedge n{=}t \wedge Sugar\# t$, 
 there are two main advantages shown comparing the proposed Effects with timed-automata based modelling:
 1. The time bounds can be depended on the function inputs. The specifications are dynamically instantiated 
 during the execution. 
@@ -303,7 +303,7 @@ Just like particular requirements of the input values, there are possible
 requirements upon the history traces. 
 For example, before reading a file, we wish to make sure the file was actually opened 
 (and not yet closed) is the history. This can be written in precondition as:
-$\Phi_{pre} = \_^\star {\cdot} Open {\cdot} ({\overline{Close}})^\star $. 
+$\Phi_{pre} = \_^\star {\cdot} Open {\cdot} ({\overline{Close}})^\star$. 
 Such examples extend to the timed processes in different contexts. 
 
 
@@ -339,20 +339,18 @@ actual execution.
 We like to answer Q4 and Q5 together.
 
 For example, while proving this following (expected to be valid) inclusion: 
-$ t_1 {<}3 {\wedge} t_2 {<}4 {\wedge}  (\epsilon \# t_1) {\cdot} (\epsilon \# t_2) 
+$t_1 {<}3 {\wedge} t_2 {<}4 {\wedge}  (\epsilon \# t_1) {\cdot} (\epsilon \# t_2) 
 \sqsubseteq  t {<}7 {\wedge} (\epsilon \# t)$ 
 
-The current rewriting would simple unify $t_1$ and $t$ leaving $t_2$ behind, which 
+The current rewriting would simple unifies $t_1$ and $t$ leaving $t_2$ behind, which 
 leads to the next step:
 
-$ t_2 {<}4 {\wedge}  (\epsilon \# t_2) 
-\sqsubseteq   \epsilon $, then eliminate $(\epsilon \# t_2) $ from the both side, 
+$t_2 {<}4 {\wedge}  (\epsilon \# t_2) \sqsubseteq   \epsilon$, then eliminates $(\epsilon \# t_2)$ from the both side, 
 leads to the next step:
 
 $True {\wedge} \epsilon \sqsubseteq   \bot$, then disproves this inclusion. 
 
-This can be solved by adding an axiom: $(\epsilon \# t_1) {\cdot} (\epsilon \# t_2) = 
-(\epsilon \# (t_1{+}t_2))$. 
+This can be solved by adding an axiom: $(\epsilon \# t_1) {\cdot} (\epsilon \# t_2) = (\epsilon \# (t_1{+}t_2))$. 
 However, we did not include it because it seems to be leading to other incomplete situations. 
 
 
