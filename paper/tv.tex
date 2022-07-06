@@ -1,6 +1,6 @@
 
 %\documentclass[acmsmall,review,anonymous]{acmart}\settopmatter{printfolios=true,printccs=false,printacmref=false}
-\documentclass[acmsmall,10pt,review]{acmart}
+\documentclass[acmsmall,10pt,review,anonymous]{acmart}
 
 
 %%
@@ -254,7 +254,7 @@ and efficiently solve constraints on the clocks.
 We formally define 
 a core language \timedL, generalizing the real-time systems, modeled 
 using mutable variables and timed behavioral patterns, 
-such as \emph{delay}, \emph{timeout}, \emph{deadline}. 
+such as \emph{delay}, \emph{timeout}, \emph{interrupt}, \emph{deadline}. 
 Secondly, to capture real-time specifications, 
 we introduce \timedEffects, a new effects logic, 
 that extends 
@@ -1024,56 +1024,72 @@ We here formally define the syntax of \code{\timedL}, as shown in \figref{fig:co
     \m{(Program)} &  \code{\mathcal{P} }&\code{  ::= }&
     \code{%{datat^*}  \  
    (\alpha^*, {meth^*})} 
-%\qquad   \qquad\quad 
- %   \m{(Basic\ Types)} \qquad  \code{b} \code{\quad  ::= \quad }
-  %   \code{int\ |\ bool\ |\ void}
     \\
-    \m{(Assignment)} &  \code{\alpha }&\code{  ::= }&
-    \code{x:=v} 
-   \\
-    
+
+
+    \m{(Basic\ Types)} &   \code{\iota} &\code{  ::=  }&
+     \code{int\ |\ bool\ |\ void}
+
+    \\
 %     \m{(Data\ Struct.)} &  \code{datat}&\code{  ::= }&
  %    \code{\textbf{struct}\ d\ \{ {(t\ f)^*} \}}  
  %   \\
 
-%     \m{(Types)} &  \code{t}&\code{  ::= }&
-% \code{d\ |\ \tau} 
-% \\    
-  \m{(Method\ Def.)} &  \code{meth}&\code{  ::= }&
-  \code{ mn  \ {(x)^*}\ \{\textbf{req}\ \effect_{pre}\ \textbf{ens}\  \effect_{post}\} \ \{ e \}}
+  
+  \m{(Method\ Def.)} &  \code{meth}&\code{ ::= }&
+  \code{\iota\  mn  \ {(\iota\ x)^*}\ \{\textbf{req}\ \effect_{pre}\ \textbf{ens}\  \effect_{post}\} \ \{ e \}}
   \\
   \m{(Values)} & \code{v} &\code{  ::= } & ()\ |\ c \ | \ b \ |\ x\  
   \\
+
+
+  \m{(Assignment)} &  \code{\alpha }&\code{  ::= }&
+  \code{x:=v} 
+ \\
   \m{(Expressions)} &  \code{e}&\code{  ::= }&
-    \code{ v \ | \ 
+    \code{ v \ 
+    | \ \alpha \ | \ 
     [b]\ e \ |\ mn({v^*}) \ }
-  \code{| 
- % v.f:=e \ | 
- \ e_1;e_2\ | \ e_1 || e_2 \ 
+  \code{|  \ e_1;e_2\ | \ e_1 || e_2 \ 
   |\ {if}\ b\ {then}\ e_1\ {else}\ e_2 \
  }  \\
 
  &   & & \code{
-  |\ \textbf{event} [\anyevent{A}(v, \alpha^*)] 
-  | \ \textbf{delay} [d] \ 
-  | \ e_1\ \textbf{timeout} [d] \  e_2 \ 
-  | \ \textbf{deadline}  [d] \ e \  
+  |\ \textbf{event} [\anyevent{A}(v, \alpha^*)] \ 
+  | \ \textbf{delay} [t] \ 
+  | \ e_1\ \textbf{interrupt} [t] \  e_2 \ 
   }  \\
-  ~\\
+  
+  &   & & \code{
+    | \ e_1\ \textbf{timeout} [t] \  e_2 \ 
+    | \ e \ \textbf{deadline}  [t] \ 
+    | \ e \ \textbf{waituntil} [t]  \ 
+    }  \\
+
+    \m{(Real\text{-}Time\ Terms)}  & \code{t} &\code{  ::= }&
+    \code{ c
+    \ | \  x
+    \ | \  t_1{+}t_2
+    \ | \  t_1\text{-}t_2
+   }
+  
+    \\
+    ~\\
+
  
  
     \multicolumn{4}{c}{
  % \code{k^\tau:constant\ of\ type\ \tau\ } 
  % \qquad\quad
 \code{c  \in \mathbb{Z}}
-\qquad \ 
+\qquad \qquad 
 \code{b  \in \mathbb{B}}
-\qquad \  
-\code{x, mn  ::\in \textbf{var}}  
-\qquad\ 
+\qquad \qquad  
+\code{x, mn  \in \textbf{var}}  
+\qquad \qquad 
  \code{(Action\ labels)\ \anyevent{A}  \in \Sigma %\cup \{\tau\}
-\qquad\ 
-\m{(Time\ Bounds)}\ \code{d} \code{\in \mathbb{N}}    
+%\qquad\ 
+%\m{(Time\ Bounds)}\ \code{d} \code{\in \mathbb{N}}    
 }   
     }\\  
     \hline
@@ -1296,15 +1312,15 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
    \ |  {{\pi_1}} {\vee} \code{{\pi}}_2
    \ |  \neg\code{{\pi}}
   \  |   {{\pi_1}} {\Rightarrow} {{\pi_2}}
-   \ |  \forall x. \code{{\pi}}
-   \ |  \exists x. \code{{\pi}}
+  % \ |  \forall x. \code{{\pi}}
+  %s \ |  \exists x. \code{{\pi}}
 
     
     \\
     
 
     
-    \m{(Real\text{-}Time\ Term)}  & \code{t} &\code{  ::= }&
+    \m{(Real\text{-}Time\ Terms)}  & \code{t} &\code{  ::= }&
     \code{ c
     \ | \  x
     \ | \  t_1{+}t_2
@@ -1316,9 +1332,9 @@ condition. %\code{es_{pre}} and the postcondition \code{es_{post}}.
     \multicolumn{4}{c}{
      % \code{(Events)  \anyevent{A} ::\in \Sigma}   
    %\qquad
-    \code{c ::\in \mathbb{Z}} 
+    \code{c \in \mathbb{Z}} 
      \qquad \qquad 
-           \code{x  ::\in \textbf{var} } 
+           \code{x  \in \textbf{var} } 
            \qquad\qquad 
 
      \m{(Real\ Time\ Bound)}\ \code{\mysharp }
@@ -1345,9 +1361,6 @@ The  syntax of the \timedEffects\ is formally defined in
 Timed sequences comprise \textit{nil} ($\bot $);
  an empty trace $ \epsilon$;
 a single event \code{ev};
-  %where \anyevent{a} is an element from a finite set of events, denoted by \code{\Sigma};
-%parametrized event \code{ \anyevent{a}.\iota} where \code{\iota} is a list pattern expressing a possibly infinite list (for example, \code{\anyevent{a}.[1,2,3,4]},  \code{\anyevent{a}.[1 .. 4]} and \code{\anyevent{a}.[1, 2.. 4]} all refer to the finite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot \anyevent{a}.4},
-%while \code{\anyevent{a}.[1 ..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.2 \cdot \anyevent{a}.3 \cdot}..., and \code{\anyevent{a}.[1, 3..]} refers to the infinite event sequence \code{\anyevent{a}.1 \cdot \anyevent{a}.3 \cdot \anyevent{a}.5\cdot}...);
  sequences concatenation \code{\es_1\cdot \es_2};
 disjunction  \code{\es_1\vee \es_2};
 parallel composition of two processes is written as \code{\es_1 || \es_2}, where \code{\es_1} and \code{\es_2} 
