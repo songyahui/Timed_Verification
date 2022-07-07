@@ -211,7 +211,9 @@ let rec nullable (pi :pure) (es:es) : bool=
   | Event _ -> false 
   | Cons (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
 	| ESOr (es1 , es2) -> (nullable pi es1) || (nullable pi es2)
-  | Ttimes (es1, t) ->  askZ3 (PureAnd(pi, Eq(t, Number 0))) 
+  | Ttimes (es1, t) ->  
+    let pure = (PureAnd(pi, Eq(t, Number 0)))  in 
+    askZ3 pure
   | Kleene es1 -> true
   | Par (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
   | Guard (pi1) -> false 
@@ -313,11 +315,15 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 
   | Ttimes (Ttimes (es1, t1) , t2 ) -> 
     let (es1_der, side1) = derivitive pi (Ttimes (es1, t1)) f in 
+    if compareTerm t1 t2 then (es1_der, side1)
+    else 
     (es1_der, Some (optionPureAndHalf side1 (Eq(t1, t2))))
 
   | Ttimes (Emp, tIn) -> 
 		(match f with 
-		| T  t -> (Emp,  Some (Eq(t , tIn)))
+		| T  t -> 
+      if compareTerm t tIn then (Emp, None)
+      else (Emp,  Some (Eq(t , tIn)))
 		| Ev (ev, t) -> (Bot, None)
 		| Instant ev -> (Bot, None)
 		)
@@ -403,10 +409,8 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
   let normalFormR = normalEffect effR in
   let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side))  in
   (*  print_string (showEntail^"\n");*)
-  if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
-    (Node (showEntail ^ showRule DISPROVE,[] ), false)
 
-  else 
+
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
       let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
         let (subtreeIn, reIn) = 
@@ -414,7 +418,10 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
             (print_string (showPure pL ^"\n");
             (Node (showEntail ^ " [PURE ER LHS] ", []), false)) else 
           *)
-          if reoccur (esL) (esR) !delta then 
+          if nullable pL esL  = true &&  (nullable  (PureAnd(pL, pR)) esR  = false) then   
+            ([Node (showEntail ^ showRule DISPROVE,[] )], false)
+        
+          else if reoccur (esL) (esR) !delta then 
             ([Node (showEntail ^ showRule REOCCUR,[])], true)
             (*if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
             else   
@@ -427,7 +434,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
             if List.length (fstSet) == 0 then 
               if comparePure pR TRUE then ([Node (showEntail ^ " [NO FST1]",[] )], true)
               else 
-                if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ " [NO FST2]", [] )], true)
+                if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ " [PROVE]", [] )], true)
                 else ([Node (showEntail ^ " [PURE ER3] ", [])], false)
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 

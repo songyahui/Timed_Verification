@@ -30,11 +30,11 @@ let rec convertPure (pi:pure) (acc:string):string =
   | GtEq (t1, t2) -> 
       let temp1 = convertTerm t1 in
       let temp2 = convertTerm t2 in
-      acc ^ "(≥" ^ temp1 ^ temp2 ^")"
+      acc ^ "(>=" ^ temp1 ^ temp2 ^")"
   | LtEq (t1, t2) -> 
       let temp1 = convertTerm t1 in
       let temp2 = convertTerm t2 in
-      acc ^ "(≤" ^ temp1 ^ temp2 ^")"
+      acc ^ "(<=" ^ temp1 ^ temp2 ^")"
   | Eq (t1, t2) -> 
       let temp1 = convertTerm t1 in
       let temp2 = convertTerm t2 in
@@ -133,7 +133,7 @@ let askZ3 pi =
   let assertions = addAssert (convertPure (pi) "") in
   let oc = open_out inFile in    (* 新建或修改文件,返回通道 *)
       (*print_string (declear^assertions^"\n************\n");   (* 写一些东西 *)
-*)
+      *)
       fprintf oc "%s\n" (declear^assertions);   (* 写一些东西 *)
       close_out oc;                (* 写入并关闭通道 *)
       ignore (Sys.command ("z3 -smt2 "^ inFile ^" > " ^ outFile));

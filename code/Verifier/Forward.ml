@@ -369,7 +369,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
 
     "[Proving   Time] " ^ printing proves ^
     "[Disprove  Time] " ^ printing disproves ^"\n" 
-    ^ (List.fold_left (fun acc (_, _, a) -> acc ^ "\n" ^ printTree ~line_prefix:"* " ~get_name ~get_children a) "" results)
+    ^ (List.fold_left (fun acc (_, _, a) -> acc  ^ printTree ~line_prefix:"* " ~get_name ~get_children a ^ "\n") "" results)
     
 
 
