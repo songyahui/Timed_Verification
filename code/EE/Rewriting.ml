@@ -410,10 +410,12 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
       let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
         let (subtreeIn, reIn) = 
-          if askZ3 pL == false then (Node (showEntail ^ " [PURE ER LHS] ", []), false) else 
-
+          (*if askZ3 pL == false then 
+            (print_string (showPure pL ^"\n");
+            (Node (showEntail ^ " [PURE ER LHS] ", []), false)) else 
+          *)
           if reoccur (esL) (esR) !delta then 
-            (Node (showEntail ^ showRule REOCCUR,[] ), true)
+            ([Node (showEntail ^ showRule REOCCUR,[])], true)
             (*if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
             else   
               if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ showRule REOCCUR,[] ), true)
@@ -423,78 +425,81 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
           else 
             let fstSet = fst pL esL  in
             if List.length (fstSet) == 0 then 
-              if comparePure pR TRUE then (Node (showEntail ^ " [NO FST1]",[] ), true)
+              if comparePure pR TRUE then ([Node (showEntail ^ " [NO FST1]",[] )], true)
               else 
-                if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ " [NO FST2]", [] ), true)
-                else (Node (showEntail ^ " [PURE ER3] ", []), false)
+                if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ " [NO FST2]", [] )], true)
+                else ([Node (showEntail ^ " [PURE ER3] ", [])], false)
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
-            let (derL, sideL) = derivitive pL esL f  in 
-            let (derR, sideR) = derivitive pR esR f  in 
-            let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
-            let _ = delta := ((esL, esR) :: !delta) in 
-            let (subtree, result) = containment side' [(pL, derL)] [(pR, derR)]  in 
-            (List.append accT [subtree], accR && result) 
+              let (derL, sideL) = derivitive pL esL f  in 
+              let (derR, sideR) = derivitive pR esR f  in 
+              let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
+              let _ = delta := ((esL, esR) :: !delta) in 
+              let (subtree, result) = containment side' [(pL, derL)] [(pR, derR)]  in 
+              (List.append accT [subtree], accR && result) 
             ) ([], true) fstSet in 
-            (Node (showEntail ^ showRule UNFOLD, subtrees ), re)
+            (subtrees, re)
 
           in 
-        (subtreeIn::accInT, reIn || accInR)  
+        (List.append subtreeIn accInT, reIn || accInR)  
       ) ([], false) normalFormR in 
       (List.append subtree accT, re && accR)
 
     ) ([], true) normalFormL in 
     if List.length (finalTress) == 1 then 
-      (List.hd finalTress, finalRe)
+      (Node (showEntail ^ showRule UNFOLD, finalTress), finalRe)
     else 
       (Node (showEntail ^ " [SPLITLHS] ", finalTress), finalRe)
 
 
-  
-
-  
-
   ;;
 
-let rec reNameTerms t str: terms = 
+let rec existNameAgr (li:string list) (name:string): bool = 
+  match li with
+  | [] -> false 
+  | x :: xs -> if String.compare x name == 0 then true else existNameAgr xs name 
+;;
+
+let rec reNameTerms (list_parm:param) t str: terms = 
 match t with
   Var name -> 
-    if (String.compare name "n" == 0 || String.compare name "d1" == 0 || String.compare name "d2" == 0 || String.compare name "x" == 0 || String.compare name "y" == 0) then Var name
+    let list_Arg = List.map (fun (_, a) -> a) list_parm in 
+    if (existNameAgr list_Arg name ) then Var name
     else 
     Var (str^name)
 | Number n -> t
-| Plus (t1, t2) -> Plus (reNameTerms t1 str, reNameTerms t2 str)
-| Minus (t1, t2) -> Minus (reNameTerms t1 str, reNameTerms t2 str)
+| Plus (t1, t2) -> Plus (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
+| Minus (t1, t2) -> Minus (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
 
 ;; 
 
 
-let rec reNamePure p str : pure =
+let rec reNamePure (list_parm:param) p str : pure =
   match p with
-| Gt (t1, t2) -> Gt (reNameTerms t1 str, reNameTerms t2 str)
-| Lt (t1, t2) ->  Lt (reNameTerms t1 str, reNameTerms t2 str)
-| GtEq (t1, t2) ->  GtEq (reNameTerms t1 str, reNameTerms t2 str)
-| LtEq (t1, t2) ->  LtEq (reNameTerms t1 str, reNameTerms t2 str)
-| Eq (t1, t2) ->  Eq (reNameTerms t1 str, reNameTerms t2 str)
-| PureOr (p1, p2) -> PureOr (reNamePure p1 str, reNamePure p2 str)
-| PureAnd (p1, p2) -> PureAnd (reNamePure p1 str, reNamePure p2 str)
-| Neg p1 -> Neg (reNamePure p1 str)
+| Gt (t1, t2) -> Gt (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
+| Lt (t1, t2) ->  Lt (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
+| GtEq (t1, t2) ->  GtEq (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
+| LtEq (t1, t2) ->  LtEq (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
+| Eq (t1, t2) ->  Eq (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
+| PureOr (p1, p2) -> PureOr (reNamePure list_parm p1 str, reNamePure list_parm p2 str)
+| PureAnd (p1, p2) -> PureAnd (reNamePure list_parm p1 str, reNamePure list_parm p2 str)
+| Neg p1 -> Neg (reNamePure list_parm p1 str)
 | _ -> p 
 ;; 
 
-let rec reNameEs es str =
+let rec reNameEs (list_parm:param) es str =
   match es with
-| Cons (es1, es2) -> Cons (reNameEs es1 str, reNameEs es2 str)
+| Cons (es1, es2) -> Cons (reNameEs list_parm es1 str, reNameEs list_parm es2 str)
 
-| ESOr (es1, es2) -> ESOr (reNameEs es1 str, reNameEs es2 str)
-| Ttimes (es1, t) -> Ttimes (reNameEs es1 str, reNameTerms t str) 
-| Kleene es1 -> Kleene (reNameEs es1 str )
-| Par (es1, es2) -> Par (reNameEs es1 str, reNameEs es2 str)
+| ESOr (es1, es2) -> ESOr (reNameEs list_parm es1 str, reNameEs list_parm es2 str)
+| Ttimes (es1, t) -> Ttimes (reNameEs list_parm es1 str, reNameTerms list_parm t str) 
+| Kleene es1 -> Kleene (reNameEs list_parm es1 str )
+| Par (es1, es2) -> Par (reNameEs list_parm es1 str, reNameEs list_parm es2 str)
 | _ -> es 
 ;;
 
-let reNameEffect (eff:effect) str: effect = 
-  List.map (fun (p, es) -> (reNamePure p str, reNameEs es str )) eff
+let reNameEffect (list_parm:param) (eff:effect) str: effect = 
+  List.map (fun (p, es) -> (reNamePure list_parm p str, reNameEs list_parm es str )) eff
 ;;
 
 
@@ -519,7 +524,7 @@ let gatherTTerms (eff:effect) : terms list =
 
 let addPureToEff p eff = List.map (fun (pi, es) ->(PureAnd (pi, p), es)) eff ;;
 
-let printReportHelper lhs rhs : (binary_tree * bool) = 
+let printReportHelper (list_parm:param) lhs rhs : (binary_tree * bool) = 
   
   (*
   let normalFormL = normalEffect lhs in 
@@ -533,8 +538,8 @@ let printReportHelper lhs rhs : (binary_tree * bool) =
   let a : hypotheses ref = ref [] in 
 
   let _ = (delta: hypotheses ref) := !a in 
-  let renamedLHS = reNameEffect lhs "l"  in  
-  let renamedRHS = reNameEffect rhs "r"  in 
+  let renamedLHS = reNameEffect list_parm lhs "l"  in  
+  let renamedRHS = reNameEffect list_parm rhs "r"  in 
   let alltheTVar = (gatherTTerms renamedRHS) in 
 
 
@@ -545,10 +550,10 @@ let printReportHelper lhs rhs : (binary_tree * bool) =
   ;;
 
 
-let printReport lhs rhs :string =
+let printReport (list_parm:param) lhs rhs :string =
   let _ = initialise () in 
   let startTimeStamp = Sys.time() in
-  let (tree, re) =  printReportHelper lhs rhs  in
+  let (tree, re) =  printReportHelper list_parm lhs rhs  in
   let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
   let result = printTree ~line_prefix:"* " ~get_name ~get_children tree in
   let buffur = ( "===================================="^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n") ^verification_time^" \n\n"^ result)
@@ -742,8 +747,8 @@ let rec containment_concrete valuation (effL:effect) (effR:effect) : (binary_tre
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
       let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
         let (subtreeIn, reIn) = 
-          if askZ3 pL == false then (Node (showEntail ^ " [PURE ER LHS] ", []), false) else 
-
+          (*if askZ3 pL == false then (Node (showEntail ^ " [PURE ER LHS] ", []), false) else 
+          *)
           if reoccur (esL) (esR) !delta then 
             (Node (showEntail ^ showRule REOCCUR,[] ), true)
              

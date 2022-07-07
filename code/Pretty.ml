@@ -128,7 +128,7 @@ let rec showEffect (e:effect) :string =
   match e with 
   | [] -> ""
   | [(p, es)] ->  showPure p  ^ " ∧ " ^   showES es 
-  | (p, es):: rest ->  showPure p  ^ " ∧ " ^  showES es  ^ " ∨ "  ^ showEffect rest 
+  | (p, es):: rest ->  "("^showPure p  ^ " ∧ " ^  showES es  ^ ") ∨ ("  ^ showEffect rest ^")"
   ;;
 
 let rec printType (ty:_type) :string =

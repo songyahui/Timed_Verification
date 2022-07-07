@@ -105,12 +105,9 @@ let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_ty
 
 
 
-let checkPrecondition (state:effect) (pre:effect)  = 
-  let reverseState =  ( state) in
-  let reversePre =  ( pre) in 
-  (*check containment*)
-  let (result_tree, result) =  Rewriting.printReportHelper reverseState reversePre in 
-  let tree = Node (showEntailmentEff reverseState reversePre, [result_tree]) in
+let checkPrecondition (list_parm:param) (state:effect) (pre:effect)  = 
+  let (result_tree, result) =  Rewriting.printReportHelper list_parm state pre in 
+  let tree = Node (showEntailmentEff state pre, [result_tree]) in
 
   if result == false then 
   let printTree = printTree ~line_prefix:"* " ~get_name ~get_children tree in
@@ -170,37 +167,25 @@ let prependESToEFF es eff =
   List.map (fun (pi, es1) -> (pi, Cons(es, es1))) eff ;;
 
 
-let rec verifier (caller:string) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
+let rec verifier (caller:string) (list_parm:param) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
   | EventRaise (ev, p, ops) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present (ev, p, ops) )))) current
   | Seq (e1, e2) -> 
-    let eff1 = verifier caller e1 precondition current prog in 
-    verifier caller e2 precondition eff1 prog
+    let eff1 = verifier caller list_parm e1 precondition current prog in 
+    verifier caller list_parm e2 precondition eff1 prog
 
   | IfElse (e1, e2, e3) -> 
     let condIf = condToPure e1 in 
     if relatedToGlobalV e1 prog
     then
 
-    let eff1 = verifier caller e2 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
-    let eff2 = verifier caller e3 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
+    let eff1 = verifier caller list_parm e2 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
+    let eff2 = verifier caller list_parm e3 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let eff_new = List.map (fun ((pi1, es1), (pi2, es2)) -> 
       PureAnd(pi1, pi2), ESOr (Cons(Event(Tau condIf), es1), Cons(Event(Tau (Neg condIf)),es2) )) 
       (List.combine eff1 eff2) in 
     concatEffEff current eff_new
 
-(*
-      List.flatten (
-        List.map ( fun (pi_c, es_c) ->
-          let eff1 = verifier caller e2 (concatEffEff precondition current) [(pi_c, Event(Tau condIf))] prog in 
-          let eff2 = verifier caller e3 (concatEffEff precondition current) [(pi_c, Event(Tau (Neg condIf)))] prog in 
-          List.append (prependESToEFF es_c eff1) (prependESToEFF es_c eff2)
-  
-
-
-        ) current
-      )
-*)
 
 
 
@@ -208,13 +193,13 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
       let condElse = Neg condIf in 
       let state_C_IF  = addConstrain current condIf in 
       let state_C_ELSE  = addConstrain current condElse in 
-      List.append (verifier caller e2 precondition state_C_IF prog) (verifier caller e3 precondition state_C_ELSE prog)
+      List.append (verifier caller list_parm e2 precondition state_C_IF prog) (verifier caller list_parm e3 precondition state_C_ELSE prog)
 
   (*| Assign (v, e) -> verifier caller e precondition current prog  *)
   | Timeout (e, n) -> 
     List.flatten (
       List.map ( fun (pi_c, es_c) -> 
-        let eff = verifier caller e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+        let eff = verifier caller list_parm e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
         let x = verifier_getAfreeVar () in 
         let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, valueToTerm n)), Ttimes(es, Var x))) eff in 
         prependESToEFF es_c addABound
@@ -228,7 +213,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
   | Deadline (e, n) -> 
     List.flatten (
       List.map ( fun (pi_c, es_c) -> 
-        let eff = verifier caller e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+        let eff = verifier caller list_parm e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
         let x = verifier_getAfreeVar () in 
         let addABound = List.map (fun (pi, es) -> (PureAnd(pi, PureAnd (Gt(Var x, Number 0), LtEq(Var x, valueToTerm n))), Ttimes(es, Var x))) eff in 
         
@@ -242,18 +227,18 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
     let x = verifier_getAfreeVar () in 
     List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, valueToTerm n)), Cons (es, Ttimes (Emp, Var x)))) current
 
-  | LocalDel (t, v , e) ->   verifier caller e precondition current prog      
+  | LocalDel (t, v , e) ->   verifier caller ((t, v) :: list_parm) e precondition current prog      
   | Assertion eff ->   
     let his_cur =  (concatEffEff precondition current) in 
-    let (result, tree) = checkPrecondition (his_cur) eff in 
+    let (result, tree) = checkPrecondition list_parm (his_cur) eff in 
     if result == true then current 
     else raise (Foo ("Assertion " ^ showEffect eff ^" does not hold!"))
 
   | Parallel (e1, e2) -> 
       List.flatten (
         List.map ( fun (pi_c, es_c) ->
-          let eff1 = verifier caller e1 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
-          let eff2 = verifier caller e2 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+          let eff1 = verifier caller list_parm e1 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+          let eff2 = verifier caller list_parm e2 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
           let pair = List.combine eff1 eff2 in 
           let new_Eff = List.map (fun ((pi1, es1), (pi2, es2)) -> (normalPure (PureAnd (pi1, pi2)), Par (es1, es2))) pair in 
 
@@ -280,18 +265,10 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
             let subPre = substituteEffWithAgrs pre exprList list_parm in 
             let subPost = substituteEffWithAgrs (List.hd post) exprList list_parm in
             
-            (*print_string ("======\n");
-            print_string (List.fold_left (fun acc a -> acc ^ printExpr a) "" exprList);
-            print_string ("\n");
-            print_string (List.fold_left (fun acc (_, a) -> acc ^  a) "" list_parm);
-
-            print_string ("\n" ^ showEffect pre^ "\n" ^ showEffect subPre^ "\n\n") ;
-            print_string (showEffect post^ "\n" ^ showEffect subPost^ "\n") ;
-*)
 
             let his_cur =  (concatEffEff precondition current) in 
 
-            let (result, tree) = checkPrecondition (his_cur) subPre in 
+            let (result, tree) = checkPrecondition list_parm (his_cur) subPre in 
             (*print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree));*)
             
             if result then 
@@ -310,7 +287,7 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
     | GuardE (pi, e1) -> 
       List.flatten (
         List.map ( fun (pi_c, es_c) -> 
-        let eff1 = verifier caller e1 (concatEffEff precondition current) [(pi_c, Guard pi)] prog in 
+        let eff1 = verifier caller list_parm e1 (concatEffEff precondition current) [(pi_c, Guard pi)] prog in 
         prependESToEFF es_c eff1
 
         ) current
@@ -338,7 +315,7 @@ let verify_Main startTimeStamp (auguments) (prog: program): string =
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
     let postcon = "[Postcondition: "^ (string_of_list_effect ( post)) ^ "]\n" in 
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
-    let acc =  (verifier mn expression (pre) start prog) in 
+    let acc =  (verifier mn list_parm expression (pre) start prog) in 
     let forward_time = "[Forward Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
     let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalEffect acc) in 
     
@@ -362,7 +339,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     if String.compare mn "main" == 0 then verify_Main startTimeStamp (t, mn , list_parm, PrePost (pre, post), expression) prog 
     else 
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
-    let acc =  (verifier mn expression (pre) start prog) in 
+    let acc =  (verifier mn list_parm expression (pre) start prog) in 
     let forward_time_number = (Sys.time() -. startTimeStamp) *. 1000.0 in 
     let _ = inferenceTime := !inferenceTime +. forward_time_number in 
 
@@ -373,7 +350,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     *)
     let results = List.map (fun eff -> 
       let startTimeStamp1 = Sys.time() in
-      let (result_tree, result) = Rewriting.printReportHelper  (acc') eff in 
+      let (result_tree, result) = Rewriting.printReportHelper list_parm (acc') eff in 
       let verification_time_number = (Sys.time() -. startTimeStamp1) *. 1000.0 in 
       (verification_time_number, result, result_tree)
       ) post in 
