@@ -28,8 +28,12 @@ let verifier_getAfreeVar () :string  =
 
 
 
-let string_of_list_effect eff = List.fold_left (fun acc a -> acc ^ "\n" ^ showEffect a) "" eff ;; 
-
+let rec string_of_list_effect eff = 
+  match eff with 
+  | [] -> ""
+  | [a] -> showEffect a
+  | a :: xs -> showEffect a ^ "∨" ^ string_of_list_effect xs 
+;;
 
 let rec printSpec (s:spec ) :string = 
   match s with 
@@ -287,10 +291,10 @@ let rec verifier (caller:string) (expr:expression) (precondition:effect) (curren
 
             let his_cur =  (concatEffEff precondition current) in 
 
-            (*let (result, tree) = checkPrecondition (his_cur) subPre in *)
+            let (result, tree) = checkPrecondition (his_cur) subPre in 
             (*print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree));*)
             
-            if true then 
+            if result then 
               (
                 (*print_string ("[Precondition holds] when " ^caller ^" is calling " ^ mn ^"\n\n");*)
               let newState = ( (concatEffEff ( current) ( subPost))) in
@@ -357,18 +361,13 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
   | Method (Meth (t, mn , list_parm, PrePost (pre, post), expression)) -> 
     if String.compare mn "main" == 0 then verify_Main startTimeStamp (t, mn , list_parm, PrePost (pre, post), expression) prog 
     else 
-    let head = "[Verification for method: "^mn^"]\n"in 
-    let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
-    let postcon = "[Postcondition: "^ (string_of_list_effect ( post)) ^ "]\n" in 
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
     let acc =  (verifier mn expression (pre) start prog) in 
     let forward_time_number = (Sys.time() -. startTimeStamp) *. 1000.0 in 
     let _ = inferenceTime := !inferenceTime +. forward_time_number in 
-    let forward_time = "[Forward Time: " ^ string_of_float (forward_time_number) ^ " ms]\n" in
 
     let acc' = (normalEffect acc) in 
     
-    let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
 
     (*let varList = (*append*) (getAllVarFromEff acc) (*(getAllVarFromEff post)*) in  
     *)
@@ -393,8 +392,9 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
 
     "[Proving   Time] " ^ printing proves ^
     "[Disprove  Time] " ^ printing disproves ^"\n" 
-    (*^ printTree ~line_prefix:"* " ~get_name ~get_children (List.hd (List.map (fun (_, _, c) -> c) results)) 
-*)
+    ^ (List.fold_left (fun acc (_, _, a) -> acc ^ "\n" ^ printTree ~line_prefix:"* " ~get_name ~get_children a) "" results)
+    
+
 
     (*
     let (result_tree, result) =  Rewriting.printReportHelper  (acc') post in 

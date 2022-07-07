@@ -24,8 +24,9 @@ chmod 755 compile
 ```
 opam switch create 4.10.2
 eval $(opam env)
-sudo apt-get install menhir
-sudo apt-get install z3
+opam install menhir.20211128
+# sudo apt-get install menhir
+# sudo apt-get install z3
 ```
 
 ### Examples:

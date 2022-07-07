@@ -1,2 +1,2 @@
-TRUE /\ (A.B.C.D) + (A.C.B.D) |- TRUE /\ (A.B)||(C.D);
+TRUE ∧ (A.B.C.D) + (A.C.B.D) |- TRUE ∧ (A.B)||(C.D);
 

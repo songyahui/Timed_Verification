@@ -80,12 +80,13 @@ let rec showPure (p:pure):string =
   | FALSE -> "false"
   | Gt (t1, t2) -> (showTerms t1) ^ ">" ^ (showTerms t2)
   | Lt (t1, t2) -> (showTerms t1) ^ "<" ^ (showTerms t2)
-  | GtEq (t1, t2) -> (showTerms t1) ^ ">=" ^ (showTerms t2)
-  | LtEq (t1, t2) -> (showTerms t1) ^ "<=" ^ (showTerms t2)
+  | GtEq (t1, t2) -> (showTerms t1) ^ "≥" ^ (showTerms t2)
+  | LtEq (t1, t2) -> (showTerms t1) ^ "≤" ^ (showTerms t2)
   | Eq (t1, t2) -> (showTerms t1) ^ "=" ^ (showTerms t2)
-  | PureOr (p1, p2) -> "("^showPure p1 ^ "\\/" ^ showPure p2^")"
-  | PureAnd (p1, p2) -> showPure p1 ^ "/\\" ^ showPure p2
-  | Neg p -> "(~" ^ "(" ^ showPure p^"))"
+  | PureOr (p1, p2) -> "("^showPure p1 ^ "∨" ^ showPure p2^")"
+  | PureAnd (p1, p2) -> showPure p1 ^ "∧" ^ showPure p2
+  | Neg (Eq (t1, t2)) -> (showTerms t1) ^ "≠" ^ (showTerms t2)
+  | Neg p -> "(!" ^ showPure p^")"
   ;; 
 
 
@@ -99,7 +100,8 @@ let rec showES (es:es):string =
         | None -> ""
         | Some v -> "(" ^ string_of_value v ^ ")"
       )in 
-      (String.make 1 (String.get str 0 )) ^ print_param (* ^ 
+      str
+      (*String.make 1 (String.get str 0 )*) ^ print_param (* ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
       print_ops *)
     | Absent str -> "~" ^ str
@@ -108,7 +110,7 @@ let rec showES (es:es):string =
   in 
   match es with
     Bot -> "_|_"
-  | Emp -> "emp"
+  | Emp -> "ε"
   | Event (ev) -> string_of_event ev 
   | Guard (pi) ->  "[" ^ showPure pi ^ "]?" 
   | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
@@ -125,8 +127,8 @@ let rec showES (es:es):string =
 let rec showEffect (e:effect) :string = 
   match e with 
   | [] -> ""
-  | [(p, es)] -> "(" ^ showPure p  ^ ")/\\" ^   showES es 
-  | (p, es):: rest -> "(" ^ showPure p  ^ ")/\\" ^  showES es  ^ " \\/ "  ^ showEffect rest 
+  | [(p, es)] -> "(" ^ showPure p  ^ ")∧" ^   showES es 
+  | (p, es):: rest -> "(" ^ showPure p  ^ ")∧" ^  showES es  ^ " ∨ "  ^ showEffect rest 
   ;;
 
 let rec printType (ty:_type) :string =

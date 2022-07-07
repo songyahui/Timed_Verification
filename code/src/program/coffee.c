@@ -2,8 +2,8 @@
 
 void oneSugar() 
 /*
-req: TRUE/\(_^*).emp
-ens: (t1>1)/\ (emp # t1)
+req: TRUE∧(_^*).ε
+ens: (t>1)∧ (ε # t)
 */
 {
     timeout (() , 1);
@@ -11,8 +11,8 @@ ens: (t1>1)/\ (emp # t1)
 
 void addSugar (int n) 
 /*
-req: TRUE/\(_^*)
-ens:  (t>=n)/\ (Sugar #t)
+req: TRUE∧(_^*)
+ens:  (t>=n)∧ (Sugar #t)
 */
 {
 
@@ -27,8 +27,8 @@ ens:  (t>=n)/\ (Sugar #t)
 
 void makeCoffee (int n)
 /*
-req: TRUE/\(_^*) . Cup
-ens: (t<=5/\t>=n/\t1<=3)/\(Sugar#t).(Coffee#t1)
+req: TRUE∧(_^*) . Cup
+ens: (t<=5∧t>=n∧t1<=3)∧(Sugar#t).(Coffee#t1)
 */
 {
     deadline (addSugar(n), 5);
@@ -37,8 +37,8 @@ ens: (t<=5/\t>=n/\t1<=3)/\(Sugar#t).(Coffee#t1)
 
 int main ()
 /*
-    req: TRUE /\emp
-    ens: (t<=8)/\ ((((~Done)^*))#t).Done 
+    req: TRUE ∧ ε
+    ens: (t<=8)∧ ((((~Done)^*))#t).Done 
     */
 {
     event["Cup"];

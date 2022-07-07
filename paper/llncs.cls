@@ -10,7 +10,7 @@
 %%   Dollar        \$     Percent       \%     Ampersand     \&
 %%   Acute accent  \'     Left paren    \(     Right paren   \)
 %%   Asterisk      \*     Plus          \+     Comma         \,
-%%   Minus         \-     Point         \.     Solidus       \/
+%%   Minus         \-     Point         \.     Solidus       ∨
 %%   Colon         \:     Semicolon     \;     Less than     \<
 %%   Equals        \=     Greater than  \>     Question mark \?
 %%   Commercial at \@     Left bracket  \[     Backslash     \\
@@ -97,7 +97,7 @@
 \def\contriblistname{List of Contributors}
 \def\listfigurename{List of Figures}
 \def\listtablename{List of Tables}
-\def\mailname{{\it Correspondence to\/}:}
+\def\mailname{{\it Correspondence to∨}:}
 \def\noteaddname{Note added in proof}
 \def\notename{Note}
 \def\partname{Part}
@@ -109,7 +109,7 @@
 \def\remarkname{Remark}
 \def\seename{see}
 \def\solutionname{Solution}
-\def\subclassname{{\it Subject Classifications\/}:}
+\def\subclassname{{\it Subject Classifications∨}:}
 \def\tablename{Table}
 \def\theoremname{Theorem}}
 \switcht@albion
@@ -138,7 +138,7 @@
  \def\contriblistname{Liste des contributeurs}
  \def\listfigurename{Liste des figures}%
  \def\listtablename{Liste des tables}%
- \def\mailname{{\it Correspondence to\/}:}
+ \def\mailname{{\it Correspondence to∨}:}
  \def\noteaddname{Note ajout\'ee \`a l'\'epreuve}%
  \def\notename{Remarque}%
  \def\partname{Partie}%
@@ -150,7 +150,7 @@
  \def\remarkname{Remarque}%
  \def\seename{voir}
  \def\solutionname{Solution}%
- \def\subclassname{{\it Subject Classifications\/}:}
+ \def\subclassname{{\it Subject Classifications∨}:}
  \def\tablename{Tableau}%
  \def\theoremname{Th\'eor\`eme}%
 }
@@ -177,7 +177,7 @@
  \def\contriblistname{Mitarbeiter}
  \def\listfigurename{Abbildungsverzeichnis}%
  \def\listtablename{Tabellenverzeichnis}%
- \def\mailname{{\it Correspondence to\/}:}
+ \def\mailname{{\it Correspondence to∨}:}
  \def\noteaddname{Nachtrag}%
  \def\notename{Anmerkung}%
  \def\partname{Teil}%
@@ -189,7 +189,7 @@
  \def\remarkname{Anmerkung}%
  \def\seename{siehe}
  \def\solutionname{L\"osung}%
- \def\subclassname{{\it Subject Classifications\/}:}
+ \def\subclassname{{\it Subject Classifications∨}:}
  \def\tablename{Tabelle}%
 %\def\theoremname{Theorem}%
 }

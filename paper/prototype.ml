@@ -70,8 +70,8 @@ let rec string_of_pure (p:pure):string =
   | GtEq (t1, t2) -> (string_of_terms t1) ^ ">=" ^ (string_of_terms t2)
   | LtEq (t1, t2) -> (string_of_terms t1) ^ "<=" ^ (string_of_terms t2)
   | Eq (t1, t2) -> (string_of_terms t1) ^ "=" ^ (string_of_terms t2)
-  | PureOr (p1, p2) -> "("^string_of_pure p1 ^ "\\/" ^ string_of_pure p2^")"
-  | PureAnd (p1, p2) -> "("^string_of_pure p1 ^ "/\\" ^ string_of_pure p2^")"
+  | PureOr (p1, p2) -> "("^string_of_pure p1 ^ "∨" ^ string_of_pure p2^")"
+  | PureAnd (p1, p2) -> "("^string_of_pure p1 ^ "∧" ^ string_of_pure p2^")"
   | Neg p -> "(!" ^ "(" ^ string_of_pure p^"))"
 ;;
 
@@ -100,7 +100,7 @@ let rec string_of_spec (li:spec): string =
   match li with 
   | [] -> "No Spec"
   | [a] -> string_of_single_spec a
-  | a::xs -> (string_of_single_spec a) ^ "\n \\/ \n" ^  string_of_spec xs 
+  | a::xs -> (string_of_single_spec a) ^ "\n ∨ \n" ^  string_of_spec xs 
 
 let vTot (v:value) : terms =
   match v with

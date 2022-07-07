@@ -667,7 +667,7 @@ As shown in \figref{fig:overview_eg1}, we define Hoare-triple style specificatio
 \begin{lstlisting}[columns=fullflexible]
 hiphop module authenticate(var d, var name, var passwd, in Tick, out Connecting, out Connected)
 /*@ requires d>3000 : {}^*.{Login} @*/
-/*@ ensures	(3000<t/\t<d : {Connecting}#t.{Connected}) \/ (t=d :  {Connecting}#t) @*/
+/*@ ensures	(3000<t∧t<d : {Connecting}#t.{Connected}) ∨ (t=d :  {Connecting}#t) @*/
 {
    abort count(d, Tick) { // Abort the execution at d milliseconds
       async Connected {
@@ -696,7 +696,7 @@ As for another example, shown in \figref{fig:overview_eg2}, the module {\ttfamil
 spawns two threads running in  parallel.
 The first thread firstly waits for the signal \anyevent{Ready}, then emits  \anyevent{Go}. 
 The second thread firstly emits  \anyevent{Prep}, then calls the function {\ttfamily{cook}} asynchronously. 
-The precondition of {\ttfamily{main}} requires no arithmetic constraints on its input values (expressed as \code{\m{true}}), neither any pre-traces  (expressed as \code{\m{emp}} or \code{\epsilon}, indicating an empty trace). The postcondition ensures a trace, where the second time instance contains at least one signal \code{\anyevent{Cook}} and finishes within 3000 milliseconds after the completion of the first time instance. Then we do not care about the rest of the trace (\code{\{\}} is similar to a wildcard). 
+The precondition of {\ttfamily{main}} requires no arithmetic constraints on its input values (expressed as \code{\m{true}}), neither any pre-traces  (expressed as \code{\m{ε}} or \code{\epsilon}, indicating an empty trace). The postcondition ensures a trace, where the second time instance contains at least one signal \code{\anyevent{Cook}} and finishes within 3000 milliseconds after the completion of the first time instance. Then we do not care about the rest of the trace (\code{\{\}} is similar to a wildcard). 
 %We omit the implementation of \code{cook} here, while provide the specifications of it. 
 Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is presented in the following sub-section. \emph{(See a demo from \cite{CODE2})}
 
@@ -704,19 +704,19 @@ Taking {\ttfamily{main}} as an example, the work flow of the forward verifier is
       \vspace{-2mm}
 \begin{lstlisting}[columns=fullflexible]
 hiphop module main (out Prep, in Tick, out Ready, out Go, out Cook)
-/*@ requires true : emp @*/
-/*@ ensures  0<=t/\t<3000 : {}.({Cook})#t.{}^* @*/
+/*@ requires true : ε @*/
+/*@ ensures  0<=t∧t<3000 : {}.({Cook})#t.{}^* @*/
 {
 	fork{ // The effects of the first thread is true : Ready?.{Go}
 		await Ready; emit Go; 
 	}par{ // The effects of the second thread is 0<t<3000 : {Prep, Cook}#t.{Ready}
 		emit Prep;
 		async Ready { run cook (3000, Tick, Cook); }}}
-// The final effects for main is  0<=t/\t<3000 : ({Prep}.{Cook})#t.{Ready}.{Go} 
+// The final effects for main is  0<=t∧t<3000 : ({Prep}.{Cook})#t.{Ready}.{Go} 
       
 hiphop module cook (var d, in Tick, out Cook)
 /*@ requires d>2000  : {}^*.{Prep} @*/
-/*@ ensures  0<=t/\t<d : ({}.{Cook})#t @*/
+/*@ ensures  0<=t∧t<d : ({}.{Cook})#t @*/
 {	abort count(d, Tick) { yield; emit Cook; }}
 \end{lstlisting}  
       \vspace{-1mm}
@@ -743,8 +743,8 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
   \item  \code{\key{fork}\{    } 
                  \textcolor{mGray}{  \emph{(– initialize the current effects state using the module precondition –)}}
   \\
- \code{\langle  \textcolor{darklavender}{true : emp} \rangle }
-                  \textcolor{mGray}{  \emph{(– emp indicates an empty trace –)}}
+ \code{\langle  \textcolor{darklavender}{true : ε} \rangle }
+                  \textcolor{mGray}{  \emph{(– ε indicates an empty trace –)}}
   \item    \code{~\qquad \key{await}\ Ready;}
    \\
  \code{\langle  \textcolor{darklavender}{true : Ready? \cdot\{\} } \rangle }
@@ -758,7 +758,7 @@ As shown in \figref{fig:forward_example}, we demonstrate the forward verificatio
   \item \code{ \} \key{par}\{ }
        \textcolor{mGray}{  \emph{(– initialize the current effects state using the module precondition –)}}
   \\
- \code{\langle  \textcolor{darklavender}{true : emp} \rangle }
+ \code{\langle  \textcolor{darklavender}{true : ε} \rangle }
   \item    \code{~\qquad \key{emit}\ Prep; }
      \\
  \code{\langle  \textcolor{darklavender}{true : \{Prep\}} \rangle }
@@ -882,16 +882,16 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 }  \Rightarrow 
 \textcolor {darkred}{t_R {<}3}
 } \qquad
-\code{emp  \CONTAIN  \{\}^\star}
+\code{ε  \CONTAIN  \{\}^\star}
 }
 \Infer[dashed]1[{\siderule{\textcircled{8}[PROVE]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
 {\wedge}   t_L^2 {=} t_R
-} :  emp
+} :  ε
  \CONTAIN \textcolor {darkred}{t_R {<}3} : \bot \vee \{\}^\star}}
 \Infer[dashed]1[{\siderule{\textcircled{7}[UNFOLD]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
 {\wedge}   t_L^2 {=} t_R
 } :  \cancel{\{Go\}}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{emp} \vee \cancel{\{\}} \cdot \{\}^\star}}
+ \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{ε} \vee \cancel{\{\}} \cdot \{\}^\star}}
 \Infer[dashed]1[{\siderule{\textcircled{6}[Normalization]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L 
 {\wedge}   t_L^2 {=} t_R
 } :  \{Go\}
@@ -900,7 +900,7 @@ We mark the rewriting rules (cf. \secref{sec:Entailment_Prover}) in \textcolor{m
 {\wedge}   t_L^2 {=} t_R
 } 
 :  \cancel{\{ Ready\}} \cdot \{Go\}
- \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{emp} \vee \cancel{\{\}} \cdot \{\}^\star}}
+ \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{ε} \vee \cancel{\{\}} \cdot \{\}^\star}}
 \Infer[dashed]1[{\siderule{\textcircled{4}[UNFOLD{-}UNIFY]}}]{\code{ \textcolor {darkred}{t_L {<}3  {\wedge} t_L^1 {+} t_L^2 {=}t_L
  } : \cancel{\{Cook\} \# t_L^2} \cdot \{ Ready\} \cdot \{Go\}
  \CONTAIN \textcolor {darkred}{t_R {<}3} : \cancel{\{Cook\}\# t_R}\cdot\{\}^\star}  }
@@ -933,7 +933,7 @@ In step \code{\textcircled{2}}, we design a new rule \code{[SPLIT]} to accommoda
 extends the previous constraint \code{t_L {<} 3} with constraints  \code{t_L^1 {+} t_L^2 {=} t_L}. Then \code{t_L^1} and \code{t_L^2} mark the real-time constraints for time instances  \code{\{Prep\}} and \code{\{Cook\}} respectively. 
 Then in step \code{\textcircled{3}}, we eliminate \code{\{Prep\}} from the LHS and \code{\{\}} from the RHS, as the instances entailment  \code{\{Prep\} \subseteq \{\}} holds.  
 In step \code{\textcircled{4}}, in order to conduct a further unfolding, we unify time variables \code{t_L^2} and \code{t_R} by adding the constraint \code{t_L^2 {=} t_R}. 
-In step \code{\textcircled{5}}, from the RHS, since \code{\{\}^\star {=} emp \vee \{\} \cdot \{\}^\star}, eliminating one time instance \code{\{Ready\}} from it will lead to \code{\bot \vee \{\}^\star}, which can be normalised into \code{\{\}^\star} in step \code{\textcircled{6}}.
+In step \code{\textcircled{5}}, from the RHS, since \code{\{\}^\star {=} ε \vee \{\} \cdot \{\}^\star}, eliminating one time instance \code{\{Ready\}} from it will lead to \code{\bot \vee \{\}^\star}, which can be normalised into \code{\{\}^\star} in step \code{\textcircled{6}}.
 At the end of the rewriting, we manage to prove that \code{(t_L {<}3 {\wedge} t_L^1 {+} t_L^2 {=}t_L {\wedge}t_L^2 {=} t_R)  \Rightarrow  t_R {<} 3} \footnote{The proof obligations generated by the verifier are discharged using constraint solver Z3 \cite{de2008z3}.}; therefore, the proof succeed.
 
 %(\code{\{Go\} \Rightarrow \{\}})
@@ -2272,7 +2272,7 @@ Finally, upon each assignment of inputs, programs have none or multiple output t
    \begin{enumerate}
   \item  \code{\key{abort} } 
     \\
- \code{\langle  \textcolor{darklavender}{true : emp} \rangle }     
+ \code{\langle  \textcolor{darklavender}{true : ε} \rangle }     
        \item  \code{~\qquad \key{yield}}  
            \\
  \code{\langle  \textcolor{darklavender}{true : \{\}} \rangle }
@@ -2554,9 +2554,9 @@ It declares a recursive module named \code{send}, making a deterministic choice 
       \vspace{-2mm}
 \begin{lstlisting}[columns=fullflexible]
 hiphop module send (var n, out Send, out Done)
-/*@ requires true : emp @*/
+/*@ requires true : ε @*/
 /*@ ensures	(n>=0 : {}^*. {Done}) 
-          \/ (n<0   : {Send}^w)  @*/
+          ∨ (n<0   : {Send}^w)  @*/
 {
 	if (n==0) { emit Done; }
 	else {
@@ -2592,11 +2592,11 @@ The inclusion checking process on the \code{send}'s postcondition is demonstrate
 \begin{prooftree}
 \Hypo{
 \code{
-\textcolor {darkred}{n{=}0} \Rightarrow \textcolor {darkred}{n{\geq}0} \qquad emp \subseteq \{\}^\star \qquad  \code{\siderule{[PROVE]}}
+\textcolor {darkred}{n{=}0} \Rightarrow \textcolor {darkred}{n{\geq}0} \qquad ε \subseteq \{\}^\star \qquad  \code{\siderule{[PROVE]}}
 }
 }
-\Infer[dashed]1[]{\code{ \textcolor {darkred}{n{=}0} : emp
- \CONTAIN \textcolor {darkred}{n{\geq}0} :  \bot \vee \{\}^\star \vee emp }  
+\Infer[dashed]1[]{\code{ \textcolor {darkred}{n{=}0} : ε
+ \CONTAIN \textcolor {darkred}{n{\geq}0} :  \bot \vee \{\}^\star \vee ε }  
  }
 \Infer[dashed]1[]{\code{ \textcolor {darkred}{n{=}0} : {\{Done\}} 
  \CONTAIN \textcolor {darkred}{n{\geq}0} : \{\}^\star \cdot\{Done\} }  

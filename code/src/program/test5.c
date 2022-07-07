@@ -2,9 +2,9 @@
 
 void callee () 
 /*
-req: TRUE/\(_^*)
-ens: TRUE/\(A . B)
-ens: TRUE/\(A )
+req: TRUE∧(_^*)
+ens: TRUE∧(A . B)
+ens: TRUE∧(A )
 */
 {
     event["A"];
@@ -13,9 +13,9 @@ ens: TRUE/\(A )
 
 void callee1 () 
 /*
-req: TRUE/\(_^*)
-ens: TRUE/\(C . D)
-ens: TRUE/\(A )
+req: TRUE∧(_^*)
+ens: TRUE∧(C . D)
+ens: TRUE∧(A )
 */
 {
     event["C"];
@@ -24,9 +24,9 @@ ens: TRUE/\(A )
 
 void callee2 () 
 /*
-req: TRUE/\(_^*)
-ens: TRUE/\(C . D)
-ens: TRUE/\(A )
+req: TRUE∧(_^*)
+ens: TRUE∧(C . D)
+ens: TRUE∧(A )
 */
 {
     event["C"];
@@ -36,9 +36,9 @@ ens: TRUE/\(A )
 
 void callee3 () 
 /*
-req: TRUE/\(_^*)
-ens: TRUE/\(C . D)
-ens: TRUE/\(A )
+req: TRUE∧(_^*)
+ens: TRUE∧(C . D)
+ens: TRUE∧(A )
 */
 {
     event["C"];
@@ -48,9 +48,9 @@ ens: TRUE/\(A )
 
 void callee4 () 
 /*
-req: TRUE/\(_^*)
-ens: TRUE/\(C . D)
-ens: TRUE/\(A )
+req: TRUE∧(_^*)
+ens: TRUE∧(C . D)
+ens: TRUE∧(A )
 */
 {
     event["C"];
@@ -59,22 +59,22 @@ ens: TRUE/\(A )
 
 void process() 
 /*
-req: TRUE/\(_^*)
-ens: (x=1)/\(C . (D . (C . (D . (C . (D . (C . D))))))) \/ (~(x=1))/\(C . (D . (C . (D . (C . (D . (C . D)))))))
-ens: (x=1)/\(_^*) \/ (~(x=1))/\(_^*)
-ens: (x=1)/\(C . (D . (C . (D . (C . (D . (C . D))))))) \/ (~(x=1))/\(C . (D . (C . (D . (C . (D . (C . D)))))))
-ens: (x=1)/\(C . (D . (C . (D . (C . (D . (C . D))))))) \/ (~(x=1))/\(C . (D . (C . (D . (C . (D . (C . D)))))))
-ens: (x=1)/\(C . (D . (C . (D . (C . (D . (C . D))))))) \/ (~(x=1))/\(C . (D . (C . (D . (C . (D . (C . D)))))))
-ens: (x=1)/\(C . (D . (C . (D . (C . (D . (C . D))))))) \/ (~(x=1))/\(C . (D . (C . (D . (C . (D . (C . D)))))))
-ens: (x=1)/\(C . (D . (C . (D . (C . (D . (C . D))))))) \/ (~(x=1))/\(C . (D . (C . (D . (C . (D . (C . D)))))))
+req: TRUE∧(_^*)
+ens: (x=1)∧(C . (D . (C . (D . (C . (D . (C . D))))))) ∨ (~(x=1))∧(C . (D . (C . (D . (C . (D . (C . D)))))))
+ens: (x=1)∧(_^*) ∨ (~(x=1))∧(_^*)
+ens: (x=1)∧(C . (D . (C . (D . (C . (D . (C . D))))))) ∨ (~(x=1))∧(C . (D . (C . (D . (C . (D . (C . D)))))))
+ens: (x=1)∧(C . (D . (C . (D . (C . (D . (C . D))))))) ∨ (~(x=1))∧(C . (D . (C . (D . (C . (D . (C . D)))))))
+ens: (x=1)∧(C . (D . (C . (D . (C . (D . (C . D))))))) ∨ (~(x=1))∧(C . (D . (C . (D . (C . (D . (C . D)))))))
+ens: (x=1)∧(C . (D . (C . (D . (C . (D . (C . D))))))) ∨ (~(x=1))∧(C . (D . (C . (D . (C . (D . (C . D)))))))
+ens: (x=1)∧(C . (D . (C . (D . (C . (D . (C . D))))))) ∨ (~(x=1))∧(C . (D . (C . (D . (C . (D . (C . D)))))))
 
-ens: (t <20)/\ ((A.B) # t)
-ens: (t <21)/\ ((~A.B) # t)
-ens: ((t1+t2) <21)/\ (~A#t1). (B # t2)
-ens: ((t1+t2) <21)/\ (A#t1). (~B # t2)
-ens: (t <21)/\ ((A.~B) # t)
-ens:  ((x=1))/\(C . (D . (C . (D . (C . (D . (C . D)))))))
-ens: (x=1)/\(C . (D . (C . (D . (C . (D . (C . D))))))) 
+ens: (t <20)∧ ((A.B) # t)
+ens: (t <21)∧ ((~A.B) # t)
+ens: ((t1+t2) <21)∧ (~A#t1). (B # t2)
+ens: ((t1+t2) <21)∧ (A#t1). (~B # t2)
+ens: (t <21)∧ ((A.~B) # t)
+ens:  ((x=1))∧(C . (D . (C . (D . (C . (D . (C . D)))))))
+ens: (x=1)∧(C . (D . (C . (D . (C . (D . (C . D))))))) 
 */
 {
    if (x==1) {
