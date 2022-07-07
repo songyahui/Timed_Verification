@@ -213,6 +213,7 @@ let rec nullable (pi :pure) (es:es) : bool=
 	| ESOr (es1 , es2) -> (nullable pi es1) || (nullable pi es2)
   | Ttimes (es1, t) ->  
     let pure = (PureAnd(pi, Eq(t, Number 0)))  in 
+    print_string (showPure pure ^ ", " ^ string_of_bool ( askZ3 pure) ^ "\n");
     askZ3 pure
   | Kleene es1 -> true
   | Par (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
@@ -432,10 +433,13 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
           else 
             let fstSet = fst pL esL  in
             if List.length (fstSet) == 0 then 
-              if comparePure pR TRUE then ([Node (showEntail ^ " [NO FST1]",[] )], true)
+              (* SYH to compute weather rhs is overlapping side *)
+              if comparePure (Ast.TRUE) (normalPure side) then ([Node (showEntail ^ " [PROVE]",[] )], true)
               else 
-                if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ " [PROVE]", [] )], true)
+                (if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ " [PROVE]", [] )], true)
                 else ([Node (showEntail ^ " [PURE ER3] ", [])], false)
+                )
+
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
               let (derL, sideL) = derivitive pL esL f  in 
@@ -445,12 +449,12 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
               let (subtree, result) = containment side' [(pL, derL)] [(pR, derR)]  in 
               (List.append accT [subtree], accR && result) 
             ) ([], true) fstSet in 
-            (subtrees, re)
+            ([Node(showEntailmentEff [(pL, esL)] [(pR, esR)], subtrees)], re)
 
           in 
-        (List.append subtreeIn accInT, reIn || accInR)  
+        (List.append accInT subtreeIn , reIn || accInR)  
       ) ([], false) normalFormR in 
-      (List.append subtree accT, re && accR)
+      (List.append accT subtree , re && accR)
 
     ) ([], true) normalFormL in 
     if List.length (finalTress) == 1 then 
@@ -547,12 +551,14 @@ let printReportHelper (list_parm:param) lhs rhs : (binary_tree * bool) =
   let _ = (delta: hypotheses ref) := !a in 
   let renamedLHS = reNameEffect list_parm lhs "l"  in  
   let renamedRHS = reNameEffect list_parm rhs "r"  in 
-  let alltheTVar = (gatherTTerms renamedRHS) in 
 
 
+  (*
+    let alltheTVar = (gatherTTerms renamedRHS) in 
   let side = if List.length alltheTVar == 0 then Ast.TRUE else
     List.fold_left (fun acc a -> Ast.PureAnd (acc , Ast.GtEq( a, Number 0))) (Ast.GtEq(List.hd alltheTVar, Number 0)) (List.tl alltheTVar) in 
-  containment (normalPure side) (renamedLHS) (renamedRHS)    
+  *)
+  containment (*normalPure side*) (Ast.TRUE) (renamedLHS) (renamedRHS)    
 
   ;;
 
@@ -777,7 +783,7 @@ let rec containment_concrete valuation (effL:effect) (effR:effect) : (binary_tre
           in 
         (subtreeIn::accInT, reIn || accInR)  
       ) ([], false) normalFormR in 
-      (List.append subtree accT, re && accR)
+      (List.append  accT subtree, re && accR)
 
     ) ([], true) normalFormL in 
     if List.length (finalTress) == 1 then 

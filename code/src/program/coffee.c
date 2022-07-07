@@ -11,8 +11,8 @@ ens: (t>1)∧ (ε # t)
 
 void addSugar (int n) 
 /*
-req: TRUE∧(_^*)
-ens:  (t≥n)∧ (Sugar #t)
+req: n≥0 ∧(_^*)
+ens: t≥n ∧ (Sugar #t)
 */
 {
 
