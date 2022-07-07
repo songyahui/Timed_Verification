@@ -605,8 +605,8 @@ and unnecessary promises, which are mostly caused by using promises without suff
 \begin{varwidth}{.5\textwidth}
 \begin{lstlisting}
 function enableLoginButton(){
-  return (Rname.length >= 2 
-	   && Rpasswd.length >= 2);}
+  return (Rname.length ≥ 2 
+	   && Rpasswd.length ≥ 2);}
 function nameKeypress(value){
   Rname = value;
   RenableLogin=enableLoginButton();}
@@ -622,8 +622,8 @@ hiphop module Identity(
 			out enableLogin){
   do{
 	  emit enableLogin(
-		  		name.length >= 2 
-		  	 && passwd.length >= 2); 
+		  		name.length ≥ 2 
+		  	 && passwd.length ≥ 2); 
   } every(name || passwd)
 }
 \end{lstlisting}  
@@ -2555,7 +2555,7 @@ It declares a recursive module named \code{send}, making a deterministic choice 
 \begin{lstlisting}[columns=fullflexible]
 hiphop module send (var n, out Send, out Done)
 /*@ requires true : ε @*/
-/*@ ensures	(n>=0 : {}^*. {Done}) 
+/*@ ensures	(n≥0 : {}^*. {Done}) 
           ∨ (n<0   : {Send}^w)  @*/
 {
 	if (n==0) { emit Done; }

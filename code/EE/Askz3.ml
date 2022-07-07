@@ -30,11 +30,11 @@ let rec convertPure (pi:pure) (acc:string):string =
   | GtEq (t1, t2) -> 
       let temp1 = convertTerm t1 in
       let temp2 = convertTerm t2 in
-      acc ^ "(>=" ^ temp1 ^ temp2 ^")"
+      acc ^ "(≥" ^ temp1 ^ temp2 ^")"
   | LtEq (t1, t2) -> 
       let temp1 = convertTerm t1 in
       let temp2 = convertTerm t2 in
-      acc ^ "(<=" ^ temp1 ^ temp2 ^")"
+      acc ^ "(≤" ^ temp1 ^ temp2 ^")"
   | Eq (t1, t2) -> 
       let temp1 = convertTerm t1 in
       let temp2 = convertTerm t2 in

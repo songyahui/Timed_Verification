@@ -4,7 +4,7 @@ pc := -1;
 
 void process (int i)
 /* req: (d1>0∧d2>d1) ∧ (_^*) 
-   ens: (t1<=d1∧t2=d2) ∧ (([x=-1]? . (Update(i){x := i}#t1) . (ε#t2) . (([x=i] . Critical(i){ct := (ct + 1); pc:=i} . Exit(i){ct := (ct-1); x := -1; pc:= -1} ) + [(~(x=i))])) ^*) */
+   ens: (t1≤d1∧t2=d2) ∧ (([x=-1]? . (Update(i){x := i}#t1) . (ε#t2) . (([x=i] . Critical(i){ct := (ct + 1); pc:=i} . Exit(i){ct := (ct-1); x := -1; pc:= -1} ) + [(~(x=i))])) ^*) */
 {
   [x=-1] 
   deadline (event["Update"(i)]{x := i}, d1);

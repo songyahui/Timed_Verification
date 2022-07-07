@@ -76,8 +76,8 @@ let rec string_of_assigns li : string =
 (*To pretty print pure formulea*)
 let rec showPure (p:pure):string =   
   match p with
-    TRUE -> "true"
-  | FALSE -> "false"
+    TRUE -> "⊤"
+  | FALSE -> "⊥"
   | Gt (t1, t2) -> (showTerms t1) ^ ">" ^ (showTerms t2)
   | Lt (t1, t2) -> (showTerms t1) ^ "<" ^ (showTerms t2)
   | GtEq (t1, t2) -> (showTerms t1) ^ "≥" ^ (showTerms t2)
@@ -104,16 +104,16 @@ let rec showES (es:es):string =
       (*String.make 1 (String.get str 0 )*) ^ print_param (* ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
       print_ops *)
-    | Absent str -> "~" ^ str
+    | Absent str -> "!" ^ str
     | Any -> "_"
     | Tau p -> "[" ^ showPure p^"]"
   in 
   match es with
-    Bot -> "_|_"
+    Bot -> "⊥"
   | Emp -> "ε"
   | Event (ev) -> string_of_event ev 
   | Guard (pi) ->  "[" ^ showPure pi ^ "]?" 
-  | Cons (es1, es2) -> "("^(showES es1) ^ " . " ^ (showES es2)^")"
+  | Cons (es1, es2) -> (showES es1) ^ " . " ^ (showES es2)
   | ESOr (es1, es2) ->  "("^(showES es1) ^ " + " ^ (showES es2)^")"
   | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
   | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
@@ -127,8 +127,8 @@ let rec showES (es:es):string =
 let rec showEffect (e:effect) :string = 
   match e with 
   | [] -> ""
-  | [(p, es)] -> "(" ^ showPure p  ^ ")∧" ^   showES es 
-  | (p, es):: rest -> "(" ^ showPure p  ^ ")∧" ^  showES es  ^ " ∨ "  ^ showEffect rest 
+  | [(p, es)] ->  showPure p  ^ " ∧ " ^   showES es 
+  | (p, es):: rest ->  showPure p  ^ " ∧ " ^  showES es  ^ " ∨ "  ^ showEffect rest 
   ;;
 
 let rec printType (ty:_type) :string =

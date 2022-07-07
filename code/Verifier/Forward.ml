@@ -125,8 +125,8 @@ let condToPure (expr :expression) :pure =
   match expr with 
     Cond (Variable v, Integer n, "==")  -> Eq (Var v, Number n)
   | Cond (Variable v, Variable n, "==")  -> Eq (Var v, Var n)
-  | Cond (Variable v, Integer n, "<=")  -> PureOr(Eq (Var v, Number n),Lt (Var v, Number n))
-  | Cond (Variable v, Integer n, ">=")  -> PureOr(Eq (Var v, Number n),Gt (Var v, Number n))
+  | Cond (Variable v, Integer n, "≤")  -> PureOr(Eq (Var v, Number n),Lt (Var v, Number n))
+  | Cond (Variable v, Integer n, "≥")  -> PureOr(Eq (Var v, Number n),Gt (Var v, Number n))
   | Cond (Variable v, Integer n, ">")  -> Gt (Var v, Number n)
   | Cond (Variable v, Integer n, "<")  -> Lt (Var v, Number n)
   | _ -> raise (Foo ("exception in condToPure"^ printExpr expr))
@@ -150,8 +150,8 @@ let condToString (expr :expression) : string =
   match expr with 
     Cond (Variable v, Integer n, "==")  -> v
   | Cond (Variable v, Variable n, "==")  -> v
-  | Cond (Variable v, Integer n, "<=")  -> v
-  | Cond (Variable v, Integer n, ">=")  -> v
+  | Cond (Variable v, Integer n, "≤")  -> v
+  | Cond (Variable v, Integer n, "≥")  -> v
   | Cond (Variable v, Integer n, ">")  -> v
   | Cond (Variable v, Integer n, "<")  -> v
   | _ -> raise (Foo ("exception in condToString"^ printExpr expr))

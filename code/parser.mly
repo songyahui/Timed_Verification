@@ -90,8 +90,8 @@ expres_help :
 
 cond:
 | e1 = value  EQEQ e2 = value {Cond (e1, e2 ,"==")}
-| e1 = value  LTEQ e2 = value {Cond (e1, e2 ,"<=")}
-| e1 = value  GTEQ e2 = value {Cond (e1, e2 ,">=")}
+| e1 = value  LTEQ e2 = value {Cond (e1, e2 ,"≤")}
+| e1 = value  GTEQ e2 = value {Cond (e1, e2 ,"≥")}
 | e1 = value  GT e2 = value {Cond (e1, e2 ,">")}
 | e1 = value  LT e2 = value {Cond (e1, e2 ,"<")}
 

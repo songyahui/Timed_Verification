@@ -67,8 +67,8 @@ let rec string_of_pure (p:pure):string =
   | FALSE -> "false"
   | Gt (t1, t2) -> (string_of_terms t1) ^ ">" ^ (string_of_terms t2)
   | Lt (t1, t2) -> (string_of_terms t1) ^ "<" ^ (string_of_terms t2)
-  | GtEq (t1, t2) -> (string_of_terms t1) ^ ">=" ^ (string_of_terms t2)
-  | LtEq (t1, t2) -> (string_of_terms t1) ^ "<=" ^ (string_of_terms t2)
+  | GtEq (t1, t2) -> (string_of_terms t1) ^ "≥" ^ (string_of_terms t2)
+  | LtEq (t1, t2) -> (string_of_terms t1) ^ "≤" ^ (string_of_terms t2)
   | Eq (t1, t2) -> (string_of_terms t1) ^ "=" ^ (string_of_terms t2)
   | PureOr (p1, p2) -> "("^string_of_pure p1 ^ "∨" ^ string_of_pure p2^")"
   | PureAnd (p1, p2) -> "("^string_of_pure p1 ^ "∧" ^ string_of_pure p2^")"

@@ -7,7 +7,7 @@
 
 void addSugar(int n)
 // requires n>0 ∧ Cup 
-// ensures  t>=n ∧ Sugar # t
+// ensures  t≥n ∧ Sugar # t
 {
     if n == 0 then event[Sugar] 
     else {
@@ -18,7 +18,7 @@ void addSugar(int n)
 
 void makeCoffee (int n)
 // requires n>0 ∧ ε 
-// ensures  5>t>=n∧ t1<3 ∧ Cup.(Sugar # t).(Coffee # t1).Done
+// ensures  5>t≥n∧ t1<3 ∧ Cup.(Sugar # t).(Coffee # t1).Done
 {
     event[Cup];
     deadline (getSugar(n), 5);
@@ -43,7 +43,7 @@ t<3 ∧ (A) [0-3] |- t<4 ∧ (A) #t
 
 t<1 ∧ t <2 ∧ t<3 ∧ (A#t) |- t<3 ∧ (A) #t
 
-t<5000  <== d \in [0, 5000] ∧ (t < d)
+t<5000  ≤= d \in [0, 5000] ∧ (t < d)
 
 A -> B <-> (not A ∨ B)
 
