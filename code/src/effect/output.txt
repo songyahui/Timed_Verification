@@ -1,58 +1,9 @@
 ====================================
-[Result] Succeed
-[Verification Time: 2.421 ms]
+[Result] Fail
+[Verification Time: 3.323 ms]
  
 
-* lt>5∧(A#lt) |- rt>5∧(A#rt)  ***> true [UNFOLD] 
-* └─ lt>5∧ε |- rt>5∧ε  ***> (rt=lt∧lt=lt) [NO FST]
-
-====================================
-[Result] Succeed
-[Verification Time: 1.231 ms]
- 
-
-* lt>5∧((A#lt)^*) |- rt>5∧((A#rt)^*)  ***> true [UNFOLD] 
-* └─ lt>5∧((A#lt)^*) |- rt>5∧((A#rt)^*)  ***> (rt=lt∧lt=lt) [REOCCUR] 
-
-====================================
-[Result] Succeed
-[Verification Time: 2.428 ms]
- 
-
-* lt1<10∧(B#lt1) |- rt1<30∧(B#rt1)  ***> true [UNFOLD] 
-* └─ lt1<10∧ε |- rt1<30∧ε  ***> (rt1=lt1∧lt1=lt1) [NO FST]
-
-====================================
-[Result] Succeed
-[Verification Time: 10.502 ms]
- 
-
-* (lt>5∧lt1<10)∧((A#lt) . (B#lt1)) |- (rt1<30∧rt>5)∧((A#rt) . (B#rt1))  ***> true [UNFOLD] 
-* └─ (lt1<10∧lt>5)∧(B#lt1) |- (rt>5∧rt1<30)∧(B#rt1)  ***> (rt=lt∧lt=lt) [UNFOLD] 
-*     └─ (lt>5∧lt1<10)∧ε |- (rt1<30∧rt>5)∧ε  ***> (rt=lt∧(rt1=lt1∧lt=lt)) [NO FST]
-
-====================================
-[Result] Succeed
-[Verification Time: 16.018 ms]
- 
-
-* (lt>5∧lt1<10)∧((A#lt) + ((A#lt) . (B#lt1))) |- (rt1<30∧rt>5)∧((A#rt) + ((A#rt) . (B#rt1)))  ***> true [UNFOLD] 
-* ├─ (lt1<10∧lt>5)∧(ε + (B#lt1)) |- (rt>5∧rt1<30)∧(ε + (B#rt1))  ***> (rt=lt∧lt=lt) [UNFOLD] 
-* │   └─ (lt>5∧lt1<10)∧ε |- (rt1<30∧rt>5)∧ε  ***> (rt=lt∧(rt1=lt1∧lt=lt)) [NO FST]
-* └─ (lt1<10∧lt>5)∧(ε + (B#lt1)) |- (rt>5∧rt1<30)∧(ε + (B#rt1))  ***> (rt=lt∧lt=lt) [UNFOLD] 
-*     └─ (lt>5∧lt1<10)∧ε |- (rt1<30∧rt>5)∧ε  ***> (rt=lt∧(rt1=lt1∧lt=lt)) [NO FST]
-
-====================================
-[Result] Succeed
-[Verification Time: 17.351 ms]
- 
-
-* lt>5∧(((A#lt)^*) . A) |- rt>5∧(((A#rt)^*) . (A + B))  ***> true [UNFOLD] 
-* ├─ lt>5∧((((A#lt)^*) . A) + ε) |- rt>5∧((((A#rt)^*) . (A + B)) + ε)  ***> (rt=lt∧lt=lt) [UNFOLD] 
-* │   ├─ lt>5∧((((A#lt)^*) . A) + ε) |- rt>5∧((((A#rt)^*) . (A + B)) + ε)  ***> (rt=lt∧lt=lt) [REOCCUR] 
-* │   └─ lt>5∧(((ε#lt) . (((A#lt)^*) . A)) + ε) |- rt>5∧(((ε#rt) . (((A#rt)^*) . (A + B))) + ε)  ***> (rt=lt∧(lt>5∧(rt>5∧lt=lt))) [UNFOLD] 
-* │       └─ lt>5∧(((A#lt)^*) . A) |- rt>5∧(((A#rt)^*) . (A + B))  ***> (lt>5∧(rt>5∧(lt=rt∧rt=lt))) [REOCCUR] 
-* └─ lt>5∧(((ε#lt) . (((A#lt)^*) . A)) + ε) |- rt>5∧(((ε#rt) . (((A#rt)^*) . (A + B))) + ε)  ***> (rt>5∧lt>5) [UNFOLD] 
-*     └─ lt>5∧(((A#lt)^*) . A) |- rt>5∧(((A#rt)^*) . (A + B))  ***> (rt>5∧(lt=rt∧lt>5)) [REOCCUR] 
+* lt>5 ∧ ((_^*)#lt) |- rt1>10 ∧ ((_^*)#rt1)  ***> ⊤ [UNFOLD] 
+* └─ lt>5 ∧ ((_^*)#t1) |- rt1>10 ∧ ((_^*)#t2)  ***> t0+t1=lt∧t1≥0∧t0+t2=rt1∧t2≥0 [REOCCUR PURE ER] 
 
 

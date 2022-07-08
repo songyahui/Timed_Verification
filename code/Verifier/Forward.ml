@@ -92,7 +92,7 @@ let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_ty
                               
 
   let formalArgs = List.map (fun (a, b) -> b) formal in 
-  let pairs = List.combine realArgs' formalArgs in 
+  let pairs = List.combine  realArgs' formalArgs in 
 
   let rec subArgOnebyOne (effIn:effect) (pairs:(expression * var ) list): effect = 
     (match pairs with 
@@ -183,7 +183,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
     let eff2 = verifier caller list_parm e3 (concatEffEff precondition current) [(TRUE, Emp)] prog in 
     let eff_new = List.map (fun ((pi1, es1), (pi2, es2)) -> 
       PureAnd(pi1, pi2), ESOr (Cons(Event(Tau condIf), es1), Cons(Event(Tau (Neg condIf)),es2) )) 
-      (List.combine eff1 eff2) in 
+      (shaffleZIP eff1 eff2) in 
     concatEffEff current eff_new
 
 
@@ -239,7 +239,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
         List.map ( fun (pi_c, es_c) ->
           let eff1 = verifier caller list_parm e1 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
           let eff2 = verifier caller list_parm e2 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
-          let pair = List.combine eff1 eff2 in 
+          let pair = shaffleZIP eff1 eff2 in 
           let new_Eff = List.map (fun ((pi1, es1), (pi2, es2)) -> (normalPure (PureAnd (pi1, pi2)), Par (es1, es2))) pair in 
 
           prependESToEFF es_c new_Eff
@@ -269,7 +269,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
             let his_cur =  (concatEffEff precondition current) in 
 
             let (result, tree) = checkPrecondition list_parm (his_cur) subPre in 
-            (*print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree));*)
+            print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree) ^ "\n\n");
             
             if result then 
               (
@@ -348,12 +348,13 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
 
     (*let varList = (*append*) (getAllVarFromEff acc) (*(getAllVarFromEff post)*) in  
     *)
-    let results = List.map (fun eff -> 
+    let results = [] in 
+      (*List.map (fun eff -> 
       let startTimeStamp1 = Sys.time() in
       let (result_tree, result) = Rewriting.printReportHelper list_parm (acc') eff in 
       let verification_time_number = (Sys.time() -. startTimeStamp1) *. 1000.0 in 
       (verification_time_number, result, result_tree)
-      ) post in 
+      ) post in *)
 
     let proves = List.filter (fun (_, b, _) -> b ==true ) results in 
     let disproves = List.filter (fun (_, b, _) -> b==false ) results in 

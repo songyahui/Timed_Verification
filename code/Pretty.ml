@@ -435,35 +435,9 @@ let rec splitConj (p:pure) :(pure list) =
   | _ -> [(p)] 
   ;;
 
-let rec normalPureToDisj (p:pure):pure = 
-  let listOfCONJ = splitConj p in 
-  let filterList = List.filter (fun p ->
-  match p with 
-  | TRUE -> false 
-  | _ -> true 
-    ) listOfCONJ in
-  if List.length filterList == 0 then TRUE 
-  else List.fold_left (fun acc a -> PureAnd(acc, a)) (List.hd filterList) (List.tl filterList) 
-  (*match p with 
-    PureAnd (p1, PureOr(pIn1, pIn2)) ->  
-      let dealP1 = normalPureToDisj p1 in
-      let temp1 = normalPureToDisj (PureAnd(dealP1, pIn1)) in 
-      let temp2 = normalPureToDisj (PureAnd(dealP1, pIn2)) in 
-      PureOr (temp1 , temp2 )
-  | PureAnd (PureOr(pIn1, pIn2), p2) ->  
-      let dealP2 = normalPureToDisj p2 in
-      let temp1 = normalPureToDisj (PureAnd(dealP2, pIn1)) in 
-      let temp2 = normalPureToDisj (PureAnd(dealP2, pIn2)) in 
-      PureOr (temp1 , temp2 )
-  | Neg pi -> Neg (normalPureToDisj pi)
-  | _ -> p
-  *)
-  ;;
 
-let rec deletePureOrInEff (eff:effect):effect = List.flatten (List.map (fun (pi, es) -> 
-  let disjPure = normalPureToDisj pi in
-  splitDisj disjPure es ) eff)
-  ;;
+
+
 
 let rec compareTerm (term1:terms) (term2:terms) : bool = 
   match (term1, term2) with 
@@ -550,6 +524,46 @@ let compareEvent ev1 ev2 : bool=
   ;;
 
 
+let rec removeredundant (li : pure list) : pure list = 
+  let rec redundent x xs : bool =
+    match xs with 
+    | [] -> false 
+    | y :: ys -> if comparePure x y then true else redundent x ys
+  in 
+  match li with 
+  | [] -> []
+  | x :: xs -> if redundent x xs then removeredundant xs else x :: (removeredundant xs)
+;;
+
+let rec normalPureToDisj (p:pure):pure = 
+  let listOfCONJ = removeredundant (splitConj p) in  
+  let filterList = List.filter (fun p ->
+  match p with 
+  | TRUE -> false 
+  | _ -> true 
+    ) listOfCONJ in
+  if List.length filterList == 0 then TRUE 
+  else List.fold_left (fun acc a -> PureAnd(acc, a)) (List.hd filterList) (List.tl filterList) 
+  (*match p with 
+    PureAnd (p1, PureOr(pIn1, pIn2)) ->  
+      let dealP1 = normalPureToDisj p1 in
+      let temp1 = normalPureToDisj (PureAnd(dealP1, pIn1)) in 
+      let temp2 = normalPureToDisj (PureAnd(dealP1, pIn2)) in 
+      PureOr (temp1 , temp2 )
+  | PureAnd (PureOr(pIn1, pIn2), p2) ->  
+      let dealP2 = normalPureToDisj p2 in
+      let temp1 = normalPureToDisj (PureAnd(dealP2, pIn1)) in 
+      let temp2 = normalPureToDisj (PureAnd(dealP2, pIn2)) in 
+      PureOr (temp1 , temp2 )
+  | Neg pi -> Neg (normalPureToDisj pi)
+  | _ -> p
+  *)
+  ;;
+
+let rec deletePureOrInEff (eff:effect):effect = List.flatten (List.map (fun (pi, es) -> 
+  let disjPure = normalPureToDisj pi in
+  splitDisj disjPure es ) eff)
+  ;;
 
 let rec aCompareES es1 es2 = 
   match (es1, es2) with 
@@ -572,7 +586,7 @@ let rec aCompareES es1 es2 =
 
 
   | (Kleene esL, Kleene esR) -> aCompareES esL esR
-  | (Ttimes (esL, t1), Ttimes (esR, t2)) -> aCompareES esL esR && stricTcompareTerm t1 t2 
+  | (Ttimes (esL, t1), Ttimes (esR, t2)) -> aCompareES esL esR && compareTerm t1 t2 
   | _ -> false
 ;;
  
@@ -646,3 +660,15 @@ let string_of_head h: string =
   | Instant ev -> string_of_event ev 
   | Ev (ev, t) -> "(" ^ string_of_event ev ^","^showTerms t ^ ")"
   | T   t -> showTerms t ;;
+
+
+let rec shaffleZIP li1 li2 = 
+  let rec aux a li = 
+    match li with 
+    | []-> []
+    | y :: ys -> (a, y) :: (aux a ys)
+  in 
+  match li1 with 
+  | [] -> []
+  | x ::xs -> List.append (aux x li2) (shaffleZIP xs li2) 
+;;

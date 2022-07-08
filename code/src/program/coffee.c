@@ -35,10 +35,10 @@ ens: (t≤5∧t≥n∧t1≤3)∧(Sugar#t).(Coffee#t1)
     deadline (event["Coffee"], 3);
 }
 
-int main ()
+int coffeeMachine ()
 /*
     req: TRUE ∧ ε
-    ens: (t≤8)∧ ((((!Done)^*))#t).Done 
+    ens: (t≤9)∧ ((((!Done)^*))#t).Done 
     */
 {
     event["Cup"];

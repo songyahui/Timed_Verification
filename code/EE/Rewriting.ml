@@ -437,13 +437,32 @@ let overlapterms (p1:pure) (p2:pure) : bool =
 
 let delta : hypotheses ref = ref []
 
+let rec gatherTTermsFromES (es:es) : terms list = 
+  match es with
+    Bot -> [] 
+  | Emp -> []
+  | Event _ -> [] 
+  | Cons (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
+	| ESOr (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
+  | Ttimes (es1, t) ->  [t]
+  | Kleene es1 -> (gatherTTermsFromES es1)
+  | Par (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
+  | Guard (pi1) -> [] 
+  ;;
 
+let gatherTTerms (eff:effect) : terms list =
+  List.flatten (List.map (fun (_, es) -> 
+    gatherTTermsFromES es 
+  ) eff) ;;
+
+
+let showEntailGneral normalFormL normalFormR side   =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side)) ;; 
 
 let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
   let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side))  in
-  (*  print_string (showEntail^"\n");*)
+  (*print_string (showEntail^"\n");*)
 
 
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
@@ -457,12 +476,25 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
             ([Node (showEntail ^ showRule DISPROVE,[] )], false)
         
           else if reoccur (esL) (esR) !delta then 
-            ([Node (showEntail ^ showRule REOCCUR,[])], true)
-            (*if comparePure pR TRUE then (Node (showEntail ^ showRule REOCCUR,[] ), true)
-            else   
-              if entailConstrains (PureAnd (pL, side)) pR then (Node (showEntail ^ showRule REOCCUR,[] ), true)
-              else (Node (showEntail ^ " [PURE ER2] ", []), false)
-              *)
+   
+            let t1Set = gatherTTermsFromES esL in 
+            let t2Set = gatherTTermsFromES esR in 
+            let pluseTerms tList = 
+              if List.length tList == 0 then None
+              else 
+              Some (List.fold_left (fun acc a -> Plus (acc, a) ) (List.hd tList) (List.tl tList))
+            in 
+            (match (pluseTerms t1Set, pluseTerms t2Set) with 
+            | Some (tttt1), Some(ttttt2) -> 
+
+              let side' =  PureAnd (side, Eq (tttt1, ttttt2)) in 
+
+              if entailConstrains (PureAnd (pL, side')) pR then ([Node (showEntailGneral [(pL, esL)] [(pR, esR)]  side' ^ showRule REOCCUR,[])], true)
+              else ([Node (showEntail ^ " [REOCCUR PURE ER] ", [])], false)
+            | _ -> 
+              print_string ("hahhahhah\n");
+              if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ showRule REOCCUR,[])], true)
+              else ([Node (showEntail ^ " [REOCCUR PURE ER] ", [])], false))
              
           else 
             let fstSet = fst pL esL  in
@@ -549,23 +581,6 @@ let reNameEffect (list_parm:param) (eff:effect) str: effect =
 
 
 
-let rec gatherTTermsFromES (es:es) : terms list = 
-  match es with
-    Bot -> [] 
-  | Emp -> []
-  | Event _ -> [] 
-  | Cons (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
-	| ESOr (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
-  | Ttimes (es1, t) ->  [t]
-  | Kleene es1 -> (gatherTTermsFromES es1)
-  | Par (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
-  | Guard (pi1) -> [] 
-  ;;
-
-let gatherTTerms (eff:effect) : terms list =
-  List.flatten (List.map (fun (_, es) -> 
-    gatherTTermsFromES es 
-  ) eff) ;;
 
 
 
