@@ -186,7 +186,8 @@ let rec normalESUnifyTime (es:es) (pi:pure) : (es * pure option ) =
   match es' with
   | Ttimes (Ttimes (es1, t1) , t2 ) -> 
     (*print_string (showES es ^"\n"); *)
-    (Ttimes (es1, t1), Some (Eq(t1, t2))) 
+    if stricTcompareTerm t1 t2 then (Ttimes (es1, t1), None)
+    else (Ttimes (es1, t1), Some (Eq(t1, t2))) 
   | Cons (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTime es1 pi in   
     let (es2', pi2) =   normalESUnifyTime es2 pi in   
@@ -213,7 +214,7 @@ let rec nullable (pi :pure) (es:es) : bool=
 	| ESOr (es1 , es2) -> (nullable pi es1) || (nullable pi es2)
   | Ttimes (es1, t) ->  
     let pure = (PureAnd(pi, Eq(t, Number 0)))  in 
-    print_string (showPure pure ^ ", " ^ string_of_bool ( askZ3 pure) ^ "\n");
+    (*print_string (showPure pure ^ ", " ^ string_of_bool ( askZ3 pure) ^ "\n");*)
     askZ3 pure
   | Kleene es1 -> true
   | Par (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
@@ -316,14 +317,14 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 
   | Ttimes (Ttimes (es1, t1) , t2 ) -> 
     let (es1_der, side1) = derivitive pi (Ttimes (es1, t1)) f in 
-    if compareTerm t1 t2 then (es1_der, side1)
+    if stricTcompareTerm t1 t2 then (es1_der, side1)
     else 
     (es1_der, Some (optionPureAndHalf side1 (Eq(t1, t2))))
 
   | Ttimes (Emp, tIn) -> 
 		(match f with 
 		| T  t -> 
-      if compareTerm t tIn then (Emp, None)
+      if stricTcompareTerm t tIn then (Emp, None)
       else (Emp,  Some (Eq(t , tIn)))
 		| Ev (ev, t) -> (Bot, None)
 		| Instant ev -> (Bot, None)
@@ -333,7 +334,9 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
       (Ttimes (Event ev1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
-		| Ev (ev, t) ->  if entailEvent ev ev1 then (Emp,Some ( Eq(tIn, t))) else (Bot, None)
+		| Ev (ev, t) ->  if entailEvent ev ev1 then 
+      (if stricTcompareTerm tIn t then (Emp, None)
+      else (Emp,Some ( Eq(tIn, t)))) else (Bot, None)
 
 		| Instant ev ->  if entailEvent ev ev1 then (Ttimes (Emp, tIn), None) else (Bot, None)
 		)
@@ -345,7 +348,8 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
 		| Ev (ev, t) ->  
 		  let (es1_der, side1) = derivitive pi es1 (Instant ev) in 
       (match normalES es1_der pi with 
-      | Emp -> (Emp, Some (optionPureAndHalf side1 (Eq(tIn, t))))
+      | Emp -> if stricTcompareTerm tIn t then (Emp, side1)
+        else (Emp, Some (optionPureAndHalf side1 (Eq(tIn, t))))
       | _ -> 
         let t_new = getAfreeVar () in 
         let p_new = optionPureAndHalf side1 (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
@@ -401,6 +405,36 @@ let reoccur lhs rhs delta : bool =
 
   ;;
 
+let rec gatherTermsFromPure (p:pure) : terms list =
+  match p with 
+  | Gt (t1, t2) 
+  | Lt (t1, t2)   
+  | GtEq (t1, t2)   
+  | LtEq (t1, t2)   
+  | Eq (t1, t2) ->  [t1;t2]
+  | PureOr (p1, p2)  
+  | PureAnd (p1, p2) -> List.append (gatherTermsFromPure p1) (gatherTermsFromPure p2)
+  | Neg p1 -> (gatherTermsFromPure p1)
+  | TRUE|FALSE -> []
+  ;;
+
+
+
+let overlapterms (p1:pure) (p2:pure) : bool = 
+  let t1List = gatherTermsFromPure p1 in 
+  let t2List = gatherTermsFromPure p2 in 
+  let rec aux t1 li = 
+    match li with 
+    | [] -> false 
+    | t2::xs -> if stricTcompareTerm t1 t2 then true else aux t1 xs 
+  in 
+  let rec helper li = 
+    match li with 
+    | [] -> false 
+    | x :: xs -> if aux x t2List then true else helper xs 
+  in  helper t1List
+;;
+
 let delta : hypotheses ref = ref []
 
 
@@ -434,7 +468,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
             let fstSet = fst pL esL  in
             if List.length (fstSet) == 0 then 
               (* SYH to compute weather rhs is overlapping side *)
-              if comparePure (Ast.TRUE) (normalPure side) then ([Node (showEntail ^ " [PROVE]",[] )], true)
+              if overlapterms pR (normalPure side) == false then ([Node (showEntail ^ " [PROVE]",[] )], true)
               else 
                 (if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ " [PROVE]", [] )], true)
                 else ([Node (showEntail ^ " [PURE ER3] ", [])], false)
@@ -449,7 +483,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
               let (subtree, result) = containment side' [(pL, derL)] [(pR, derR)]  in 
               (List.append accT [subtree], accR && result) 
             ) ([], true) fstSet in 
-            ([Node(showEntailmentEff [(pL, esL)] [(pR, esR)], subtrees)], re)
+            ([Node(showEntailmentEff [(pL, esL)] [(pR, esR)] ^ "  ***> " ^ (showPure (normalPure side)) ^ showRule UNFOLD , subtrees)], re)
 
           in 
         (List.append accInT subtreeIn , reIn || accInR)  
@@ -458,7 +492,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
 
     ) ([], true) normalFormL in 
     if List.length (finalTress) == 1 then 
-      (Node (showEntail ^ showRule UNFOLD, finalTress), finalRe)
+      (List.hd finalTress, finalRe)
     else 
       (Node (showEntail ^ " [SPLITLHS] ", finalTress), finalRe)
 
@@ -532,6 +566,8 @@ let gatherTTerms (eff:effect) : terms list =
   List.flatten (List.map (fun (_, es) -> 
     gatherTTermsFromES es 
   ) eff) ;;
+
+
 
 let addPureToEff p eff = List.map (fun (pi, es) ->(PureAnd (pi, p), es)) eff ;;
 
@@ -731,8 +767,8 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
 let compareHead h1 h2 : bool =
   match (h1, h2) with 
   | (Instant ev1, Instant ev2) -> compareEvent ev1 ev2 
-  |( Ev (ev1, t1), Ev (ev2, t2)) -> compareEvent ev1 ev2  && acompareTerms t1 t2 
-  | (T t1, T t2) -> acompareTerms t1 t2 
+  |( Ev (ev1, t1), Ev (ev2, t2)) -> compareEvent ev1 ev2  && compareTerm t1 t2 
+  | (T t1, T t2) -> compareTerm t1 t2 
   | _ -> false 
   ;;
 

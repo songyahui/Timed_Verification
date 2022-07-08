@@ -467,7 +467,7 @@ let rec deletePureOrInEff (eff:effect):effect = List.flatten (List.map (fun (pi,
 
 let rec compareTerm (term1:terms) (term2:terms) : bool = 
   match (term1, term2) with 
-    (Var s1, Var s2) -> String.compare s1 s2 == 0 
+    (Var s1, Var s2) -> true
   | (Number n1, Number n2) -> n1 == n2 
   | (Plus (tIn1, num1), Plus (tIn2, num2)) -> compareTerm tIn1 tIn2 && compareTerm num1  num2
   | (Minus (tIn1, num1), Minus (tIn2, num2)) -> compareTerm tIn1 tIn2 && compareTerm num1  num2
@@ -549,14 +549,6 @@ let compareEvent ev1 ev2 : bool=
   | _ -> false 
   ;;
 
-let rec acompareTerms t1 t2 : bool =
-  match (t1, t2) with 
-  | (Var _, Var _) -> true 
-  | (Number n1, Number n2) -> n1 = n2 
-  | (Plus (t11, t12), Plus (t21, t22)) -> acompareTerms t11 t21 && acompareTerms t12 t22
-  | (Minus (t11, t12), Minus (t21, t22)) -> acompareTerms t11 t21 && acompareTerms t12 t22
-  | _ -> false 
-;;
 
 
 let rec aCompareES es1 es2 = 
@@ -580,7 +572,7 @@ let rec aCompareES es1 es2 =
 
 
   | (Kleene esL, Kleene esR) -> aCompareES esL esR
-  | (Ttimes (esL, t1), Ttimes (esR, t2)) -> aCompareES esL esR && acompareTerms t1 t2 
+  | (Ttimes (esL, t1), Ttimes (esR, t2)) -> aCompareES esL esR && stricTcompareTerm t1 t2 
   | _ -> false
 ;;
  
