@@ -2,7 +2,7 @@
 
 void oneSugar() 
 /*
-req: TRUE∧(_^*).ε
+req: TRUE∧(_^*)
 ens: (t>1)∧ (ε # t)
 */
 {

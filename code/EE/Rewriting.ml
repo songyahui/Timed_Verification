@@ -37,8 +37,9 @@ let initialise () =
 ;;
 
 let getAfreeVar () :string  =
+  (*
   if !counter > 15 then raise (Foo "something wrong?")
-  else 
+  else *)
 
     let x = "t"^string_of_int (!counter) in 
     let _ = counter := !counter + 1 in 
@@ -464,7 +465,7 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
   let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side))  in
-  print_string (showEntail^"\n");
+  (*print_string (showEntail^"\n");*)
 
 
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
@@ -494,8 +495,9 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
               if entailConstrains (PureAnd (pL, side')) pR then ([Node (showEntailGneral [(pL, esL)] [(pR, esR)]  side' ^ showRule REOCCUR,[])], true)
               else ([Node (showEntailGneral [(pL, esL)] [(pR, esR)]  side'  ^ " [REOCCUR PURE ER] ", [])], false)
             | _ -> 
-              if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ showRule REOCCUR,[])], true)
-              else ([Node (showEntail ^ " [REOCCUR PURE ER] ", [])], false))
+              if overlapterms pR (normalPure side) == false then ([Node (showEntail ^ " [REOCCUR]",[] )], true)
+              else (if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ showRule REOCCUR,[])], true)
+                else ([Node (showEntail ^ " [REOCCUR PURE ER] ", [])], false)))
              
           else 
             let fstSet = fst pL esL  in
