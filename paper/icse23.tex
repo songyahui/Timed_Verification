@@ -1,0 +1,113 @@
+\documentclass[10pt,conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{comment}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\newcommand{\timedEffects}{\emph{TimEffs}}
+\newcommand\figref[1]{Fig. \textcolor{black}{\ref{#1}}.}
+\newcommand\tabref[1]{Table \textcolor{black}{\ref{#1}}}
+\newcommand\secref[1]{Sec. \textcolor{black}{\ref{#1}}}
+\newcommand{\timedL}{\code{C^{t}}}
+\newcommand{\anyevent}[1]{{\textcolor{darkred}
+{{\textbf{\small #1}}}}}
+\newcommand{\anynotevent}[1]{{\textcolor{darkred}
+{{\textbf{\footnotesize $\overline{\text{#1}}$}}}}}
+\newcommand{\code}[1]{{\tt{\ensuremath{\m{#1}}}}}
+\newcommand{\codeme}[1]{{\tt{\ensuremath{#1}}}}
+\newcommand{\CONTAIN}{\sqsubseteq}
+\newcommand{\underscore}{\textcolor{vividauburn}{\code{\_}}}
+\newcommand{\m}{\mathit} 
+\newcommand{\lappend}{\mathrel{\texttt{++}}}
+
+\newcommand{\mysharp}{{\mathrel{\texttt{\#}}}}
+
+
+\newcommand\theoref[1]{Theorem~\textcolor{blue}{\ref{#1}}}
+\newcommand\lemmaref[1]{Lemma~\textcolor{blue}{\ref{#1}}}
+\newcommand\appref[1]{Appendix~\textcolor{blue}{\ref{#1}}}
+\newcommand\defref[1]{Definition~\textcolor{blue}{\ref{#1}}}
+\newcommand\algoref[1]{Algorithm~\textcolor{blue}{\ref{#1}}}
+
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Automated Verification for Real-Time Systems 
+using Implicit Clocks and an Extended Antimirov Algorithm}
+
+\author{(Anonymous Authors)}
+
+\begin{comment}
+\author{\IEEEauthorblockN{1\textsuperscript{st} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Given Name Surname}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address or ORCID}
+}
+\end{comment}
+
+\maketitle
+
+\begin{abstract}
+    The correctness of real-time systems 
+    depends both on the correct functionalities and the realtime constraints.
+    To go beyond the existing Timed Automata based techniques, 
+    we propose a novel solution that integrates a 
+    modular Hoare-style forward verifier with a new term rewriting 
+    system (TRS) on \emph{Timed Effects} (\timedEffects).
+    The main purposes are to increase the expressiveness,  
+    dynamically create clocks, 
+    and efficiently solve constraints on the clocks.  
+    We formally define 
+    a core language \timedL, generalizing the real-time systems, modeled 
+    using mutable variables and timed behavioral patterns, 
+    such as \emph{delay}, \emph{timeout}, \emph{interrupt}, \emph{deadline}. 
+    Secondly, to capture real-time specifications, 
+    we introduce \timedEffects, a new effects logic, 
+    that extends 
+    \emph{Regular Expressions} with dependent
+    values and arithmetic constraints.
+    Thirdly,  the forward verifier infers temporal behaviors of given 
+    \timedL\ programs, expressed in \timedEffects. 
+    Lastly, we present a purely algebraic TRS, i.e., an extended \emph{Antimirov algorithm}, to 
+    efficiently prove language inclusions between 
+     \timedEffects. 
+    To demonstrate the feasibility of our proposals, 
+    we prototype the verification system; prove its 
+    soundness; report on case studies and the experimental results.     
+\end{abstract}
+
+\begin{IEEEkeywords}
+component, formatting, style, styling, insert
+\end{IEEEkeywords}
+
+\section{Introduction}
+This document is a model and instructions for \LaTeX.
+Please observe the conference page limits. 
+
+
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+%% Citation style
+%% Note: author/year citations are required for papers published as an
+%% issue of PACMPL.
+
+
+%%
+%% If your work has an appendix, this is the place to put it.
+\appendix
+
+\end{document}
