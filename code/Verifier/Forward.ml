@@ -192,9 +192,6 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
       (shaffleZIP eff1 eff2) in 
     concatEffEff current eff_new
 
-
-
-
     else  
       let condElse = Neg condIf in 
       let state_C_IF  = addConstrain current condIf in 
@@ -202,7 +199,27 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
       List.append (verifier caller list_parm e2 precondition state_C_IF prog) (verifier caller list_parm e3 precondition state_C_ELSE prog)
 
   | Assign a -> List.map ( fun (pi_c, es_c) -> (pi_c, Cons(es_c, Event (Present("TAO",None, [a])))) ) current
-  | Interrupt (e1, e2, t) -> current
+  | Interrupt (e1, e2, t) -> 
+    let rec interrupt_interleave (p, es) his:effect = 
+      let fstSet = fst p es in 
+      List.flatten(List.map (fun head -> 
+        let x = verifier_getAfreeVar () in 
+        let phi = (PureAnd(p, PureAnd (GtEq(Var x, Number 0), Lt(Var x, t))), Ttimes(his, Var x)) in 
+        let deri = derivitive p es head in 
+        match deri with 
+        | (esd, Some pd) -> phi :: (interrupt_interleave (PureAnd(p, pd), esd) (Cons(his, headToEs head)))
+        | (esd, None) -> phi :: (interrupt_interleave (p, esd) (Cons(his, headToEs head)))
+
+      ) fstSet)
+    in 
+    let delta: effect = List.flatten (
+      List.map ( fun (pi_c, es_c) -> 
+        let eff1 = verifier caller list_parm e1 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+        List.flatten(List.map (fun (p1, es1) -> 
+          interrupt_interleave  (p1, es1) Emp
+        ) eff1 )
+      ) current ) in 
+    verifier caller list_parm e2 (concatEffEff precondition current) delta prog 
 
 
   | Timeout (e1, e2, t) -> 
