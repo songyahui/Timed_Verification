@@ -1,6 +1,7 @@
 #include "primitives.c"
 
-void main() 
+// Should Succeed 
+void test_timeout1() 
 /*
 req: TRUE∧(_^*)
 ens: (t≥1)∧ (ε # t)

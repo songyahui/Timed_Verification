@@ -1,6 +1,6 @@
 #include "primitives.c"
 
-// Should Fail 
+// Should Succeed 
 void test_delay2() 
 /*
 req: TRUE∧(_^*)

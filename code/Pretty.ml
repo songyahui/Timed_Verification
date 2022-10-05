@@ -633,7 +633,7 @@ let rec normalPureDeep (pi:pure):pure =
   let rec connectPi li acc = 
     (match li with 
       [] -> acc 
-    | x :: xs -> if entailConstrains TRUE x then (connectPi xs acc) else PureAnd (x, (connectPi xs acc)) 
+    | x :: xs -> (*if entailConstrains TRUE x then (connectPi xs acc) else *) PureAnd (x, (connectPi xs acc)) 
     ) in 
   let filte_true = List.filter (fun ele-> not (comparePure ele TRUE)  ) finalPi in 
   if length filte_true == 0 then  TRUE
