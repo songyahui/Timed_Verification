@@ -162,6 +162,8 @@ let rec print_real_Param (params: expression list):string =
     pre ^ "," ^ print_real_Param xs ;;
 
 
+let string_of_cond  (e1, e2, str) = string_of_value e1 ^ str ^ string_of_value e2 ;; 
+
 
 let rec printExpr (expr: expression):string = 
   match expr with 
@@ -177,14 +179,14 @@ let rec printExpr (expr: expression):string =
     | None -> ""
     | Some v -> "("^ string_of_value v ^")"
   )^ string_of_assigns ops 
-  | Deadline (e, n) -> "deadline (" ^ printExpr e ^", " ^ string_of_value n ^")\n"
-  | Timeout (e, n) -> "timeout (" ^ printExpr e ^", " ^ string_of_value n ^")\n"
-
-  | Delay n -> "delay " ^  string_of_value n ^"\n"
-  | IfElse (e1, e2, e3) -> "if " ^ printExpr e1 ^ " then " ^ printExpr e2 ^ " else " ^ printExpr e3 
-  | Cond (e1, e2, str) -> string_of_value e1 ^ str ^ string_of_value e2 
+  | Deadline (e, n) -> "deadline (" ^ printExpr e ^", " ^ showTerms n ^")\n"
+  | Timeout (e1, e2, n) -> "timeout (" ^ printExpr e1 ^", " ^ printExpr e2 ^", " ^ showTerms n ^")\n"
+  | Interrupt (e1, e2, n) -> "interrupt (" ^ printExpr e1 ^", " ^ printExpr e2 ^", " ^ showTerms n ^")\n"
+  | Delay n -> "delay " ^  showTerms n ^"\n"
+  | IfElse (e1, e2, e3) -> "if " ^ string_of_cond e1 ^ " then " ^ printExpr e2 ^ " else " ^ printExpr e3 
   | BinOp (e1, e2, str) -> string_of_value e1 ^ str ^ string_of_value e2 
   | Assertion eff -> "Assert: " ^ showEffect eff 
+  | Assign a -> "Assign: " ^ string_of_assigns [a] 
   ;;
 
 

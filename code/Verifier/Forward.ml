@@ -118,15 +118,15 @@ let checkPrecondition (list_parm:param) (state:effect) (pre:effect)  =
   
   (result, tree);;
 
-let condToPure (expr :expression) :pure = 
+let condToPure (expr :condition) :pure = 
   match expr with 
-    Cond (Variable v, Integer n, "==")  -> Eq (Var v, Number n)
-  | Cond (Variable v, Variable n, "==")  -> Eq (Var v, Var n)
-  | Cond (Variable v, Integer n, "≤")  -> PureOr(Eq (Var v, Number n),Lt (Var v, Number n))
-  | Cond (Variable v, Integer n, "≥")  -> PureOr(Eq (Var v, Number n),Gt (Var v, Number n))
-  | Cond (Variable v, Integer n, ">")  -> Gt (Var v, Number n)
-  | Cond (Variable v, Integer n, "<")  -> Lt (Var v, Number n)
-  | _ -> raise (Foo ("exception in condToPure"^ printExpr expr))
+     (Variable v, Integer n, "==")  -> Eq (Var v, Number n)
+  |  (Variable v, Variable n, "==")  -> Eq (Var v, Var n)
+  |  (Variable v, Integer n, "≤")  -> PureOr(Eq (Var v, Number n),Lt (Var v, Number n))
+  |  (Variable v, Integer n, "≥")  -> PureOr(Eq (Var v, Number n),Gt (Var v, Number n))
+  |  (Variable v, Integer n, ">")  -> Gt (Var v, Number n)
+  |  (Variable v, Integer n, "<")  -> Lt (Var v, Number n)
+  | _ -> raise (Foo ("exception in condToPure"^ string_of_cond expr))
   ;;
 
 (*let concatanateEffEff eff1 eff2 : effect = 
@@ -143,18 +143,18 @@ let valueToTerm v : terms =
   | _ -> raise (Foo "not yet in valueToTerm ")
   ;;
 
-let condToString (expr :expression) : string = 
+let condToString (expr :condition) : string = 
   match expr with 
-    Cond (Variable v, Integer n, "==")  -> v
-  | Cond (Variable v, Variable n, "==")  -> v
-  | Cond (Variable v, Integer n, "≤")  -> v
-  | Cond (Variable v, Integer n, "≥")  -> v
-  | Cond (Variable v, Integer n, ">")  -> v
-  | Cond (Variable v, Integer n, "<")  -> v
-  | _ -> raise (Foo ("exception in condToString"^ printExpr expr))
+     (Variable v, Integer n, "==")  -> v
+  |  (Variable v, Variable n, "==")  -> v
+  |  (Variable v, Integer n, "≤")  -> v
+  |  (Variable v, Integer n, "≥")  -> v
+  |  (Variable v, Integer n, ">")  -> v
+  |  (Variable v, Integer n, "<")  -> v
+  | _ -> raise (Foo ("exception in condToString"^ string_of_cond expr))
   ;;
 
-let relatedToGlobalV (condIf:expression) (prog:program) : bool = 
+let relatedToGlobalV (condIf:condition) (prog:program) : bool = 
   let listAssign = List.flatten (List.map (fun a -> 
     match a with 
     | Global (ops, _) ->   [ops]
@@ -195,8 +195,8 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
       let state_C_ELSE  = addConstrain current condElse in 
       List.append (verifier caller list_parm e2 precondition state_C_IF prog) (verifier caller list_parm e3 precondition state_C_ELSE prog)
 
-  (*| Assign (v, e) -> verifier caller e precondition current prog  *)
-  | Timeout (e, n) -> 
+  (*| Assign (v, e) -> verifier caller e precondition current prog 
+  | Timeout (e1, e2, n) -> 
     List.flatten (
       List.map ( fun (pi_c, es_c) -> 
         let eff = verifier caller list_parm e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
@@ -226,7 +226,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
   | Delay n -> 
     let x = verifier_getAfreeVar () in 
     List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, valueToTerm n)), Cons (es, Ttimes (Emp, Var x)))) current
-
+ *)
   | LocalDel (t, v , e) ->   verifier caller ((t, v) :: list_parm) e precondition current prog      
   | Assertion eff ->   
     let his_cur =  (concatEffEff precondition current) in 

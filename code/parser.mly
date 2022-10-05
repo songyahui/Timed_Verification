@@ -9,9 +9,9 @@
 %token <bool> FALSEE
 %token EMPTY ASSERTKEY EVENTKEY CHOICE LPAR RPAR CONCAT  POWER MINUS TRUE FALSE DISJ CONJ   ENTIL INTT BOOLT VOIDT  (* OMEGA *)
 %token LBRACK RBRACK COMMA SIMI  IF ELSE REQUIRE ENSURE LSPEC RSPEC  LBrackets  RBrackets 
-%token EOF GT LT EQ GTEQ LTEQ INCLUDE SHARP EQEQ UNDERLINE KLEENE NEGATION
+%token EOF GT LT EQ GTEQ LTEQ INCLUDE SHARP EQEQ UNDERLINE KLEENE NEGATION 
 %token LILOR COLON GUARD 
-%token TimeoutKEY DeadlineKEY DelayKEY
+%token TimeoutKEY DeadlineKEY DelayKEY InterruptKEY
 
 %left CHOICE
 %left CONCAT
@@ -81,19 +81,20 @@ expres_help :
 | t = type_ name = VAR EQ e = expres_help {LocalDel (t, name, e)}
 | name = VAR LPAR vlist = real_param RPAR {Call (name, vlist)}
 | EVENTKEY LBrackets ev = STRING p=parm RBrackets ops = maybe_assign_list {EventRaise (ev,  p,  ops)}
-| TimeoutKEY LPAR e = expres_help COMMA t = value  RPAR  {Timeout(e, t)}
-| DeadlineKEY LPAR e = expres_help COMMA t = value  RPAR {Deadline(e, t)}
-| DelayKEY LPAR t = value RPAR {Delay t}
+| TimeoutKEY LPAR e1 = expres_help COMMA e2 = expres_help COMMA t = term  RPAR  {Timeout(e1, e2, t)}
+| InterruptKEY LPAR e1 = expres_help COMMA e2 = expres_help COMMA t = term  RPAR  {Interrupt(e1, e2, t)}
+
+| DeadlineKEY LPAR e = expres_help COMMA t = term  RPAR {Deadline(e, t)}
+| DelayKEY LPAR t = term RPAR {Delay t}
 | LBrackets p=pure RBrackets  e = expres_help {GuardE(p, e)}
-
 | ASSERTKEY LPAR eff = effect RPAR {Assertion eff}
-
+| a = assign {Assign a}
 cond:
-| e1 = value  EQEQ e2 = value {Cond (e1, e2 ,"==")}
-| e1 = value  LTEQ e2 = value {Cond (e1, e2 ,"≤")}
-| e1 = value  GTEQ e2 = value {Cond (e1, e2 ,"≥")}
-| e1 = value  GT e2 = value {Cond (e1, e2 ,">")}
-| e1 = value  LT e2 = value {Cond (e1, e2 ,"<")}
+| e1 = value  EQEQ e2 = value { (e1, e2 ,"==")}
+| e1 = value  LTEQ e2 = value { (e1, e2 ,"≤")}
+| e1 = value  GTEQ e2 = value { (e1, e2 ,"≥")}
+| e1 = value  GT e2 = value { (e1, e2 ,">")}
+| e1 = value  LT e2 = value { (e1, e2 ,"<")}
 
 
 expres:

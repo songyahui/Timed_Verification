@@ -39,6 +39,7 @@ rule token = parse
 | "deadline" {DeadlineKEY}
 | "delay" {DelayKEY}
 | "assert" {ASSERTKEY}
+| "interrupt" {InterruptKEY}
 (*| "return" {RETURN}*)
 | "|-" {ENTIL}
 | "TRUE" { TRUE }

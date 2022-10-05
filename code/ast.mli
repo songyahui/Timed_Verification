@@ -72,22 +72,26 @@ and value = Unit
 
 and assign =  (var * terms)  
 
+and condition = value * value * string
+
 
 and expression = 
           | Value of value
           | LocalDel of _type * var * expression 
           | Call of mn * expression list 
           | Seq of expression * expression
-          | Parallel of expression * expression
-          | EventRaise of (string * value option * assign list) 
-          | Timeout of (expression * value)  
-          | Deadline of (expression * value)
-          | Delay of value
-          | IfElse of expression * expression * expression
-          | Cond of value * value * string
+          | IfElse of condition * expression * expression 
           | BinOp of value * value * string
           | Assertion of effect
+(* timed related constructs *)
+          | Assign of assign
           | GuardE of pure * expression
+          | Parallel of expression * expression
+          | EventRaise of (string * value option * assign list) 
+          | Delay of terms 
+          | Deadline of (expression * terms)
+          | Timeout of (expression * expression * terms)  
+          | Interrupt of (expression * expression * terms)  
 
           
 
