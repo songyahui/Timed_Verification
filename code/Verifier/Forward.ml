@@ -417,8 +417,8 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     "[Final  Effects] " ^ showEffect ( acc') ^"\n"^
     "[Inferring Time] " ^ string_of_float (forward_time_number)^ " ms" ^"\n" ^
 
-    "[Proving   Time] " ^ printing proves ^
-    "[Disprove  Time] " ^ printing disproves ^"\n" 
+    "[Succeed  Cases] " ^ printing proves ^
+    "[Failure  Cases] " ^ printing disproves ^"\n" 
     ^ (List.fold_left (fun acc (_, _, a) -> acc  ^ printTree ~line_prefix:"* " ~get_name ~get_children a ^ "\n") "" results)
 
     (*
@@ -519,7 +519,7 @@ print_string (inputfile ^ "\n" ^ outputfile^"\n");*)
       
       print_string ("Time for inference    :" ^ string_of_float (!inferenceTime) ^"\n");
 
-      print_string (string_of_int (!Askz3.counter) ^"\n");
+      print_string ("[AskZ3 Count] " ^ string_of_int (!Askz3.counter) ^"\n");
       
 
       flush stdout;                (* 现在写入默认设备 *)
