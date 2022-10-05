@@ -88,8 +88,14 @@ rule token = parse
 | "≥" {GTEQ}
 | "≤" {LTEQ}
 | "||" {LILOR}
+| "//" { read_single_line_comment lexbuf }
 | _ { raise (SyntaxError ("Unexpected char: " ^ Lexing.lexeme lexbuf)) }
 | eof { EOF }
+
+and read_single_line_comment = parse
+  | newline { next_line lexbuf; token lexbuf } 
+  | eof { EOF }
+  | _ { read_single_line_comment lexbuf } 
 
 (* part 5 *)
 and read_string buf =

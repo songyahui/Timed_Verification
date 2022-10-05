@@ -229,6 +229,14 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
 
         let effAddBound = List.flatten (List.map (fun (effPure, effEs) -> 
           let fstSet = fst effPure effEs in 
+          if List.length fstSet == 0 then 
+            let x1 = verifier_getAfreeVar () in 
+            let eff2 = verifier caller list_parm e2 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+            let outBoundExtra = (PureAnd(effPure, Eq(Var x1, t)), Ttimes(Emp, Var x1)) in 
+            let outBound = prependEffTOEff [outBoundExtra] eff2 in 
+            prependESToEFF es_c outBound
+
+          else 
           List.flatten(List.map (fun head -> 
             let deri = derivitive effPure effEs head in 
             let x = verifier_getAfreeVar () in 
@@ -239,16 +247,15 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
               | (esd, None) -> prependEffTOEff [withinTimeExtra] [(TRUE, esd)]  in 
             let x1 = verifier_getAfreeVar () in 
             let eff2 = verifier caller list_parm e2 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
-            let outBoundExtra = (PureAnd(effPure, PureAnd (GtEq(Var x1, Number 0), Eq(Var x, t))), Ttimes(Emp, Var x)) in 
+            let outBoundExtra = (PureAnd(effPure, PureAnd (GtEq(Var x1, Number 0), Eq(Var x1, t))), Ttimes(Emp, Var x1)) in 
             let outBound = prependEffTOEff [outBoundExtra] eff2 in 
             List.append withinTime outBound
             ) fstSet)
           
           ) eff) in 
+        print_string (showEffect effAddBound);
         prependESToEFF es_c effAddBound
  
-
-
       ) current
     )
 
@@ -313,10 +320,10 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
             let his_cur =  (concatEffEff precondition current) in 
 
             let (result, tree) = checkPrecondition list_parm (his_cur) subPre in 
-            print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree) ^ "\n\n");
             
             if result then 
               (
+                (*             print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree) ^ "\n\n");*)
                 (*print_string ("[Precondition holds] when " ^caller ^" is calling " ^ mn ^"\n\n");*)
               let newState = ( (concatEffEff ( current) ( subPost))) in
               newState)
@@ -391,18 +398,17 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
 
     (*let varList = (*append*) (getAllVarFromEff acc) (*(getAllVarFromEff post)*) in  
     *)
-    let results = [] in 
-      (*List.map (fun eff -> 
+    let results = List.map (fun eff -> 
       let startTimeStamp1 = Sys.time() in
       let (result_tree, result) = Rewriting.printReportHelper list_parm (acc') eff in 
       let verification_time_number = (Sys.time() -. startTimeStamp1) *. 1000.0 in 
       (verification_time_number, result, result_tree)
-      ) post in *)
+      ) post in 
 
     let proves = List.filter (fun (_, b, _) -> b ==true ) results in 
     let disproves = List.filter (fun (_, b, _) -> b==false ) results in 
     let totol li = List.fold_left (fun acc (a, _, _) -> acc +. a) 0.0 li in  
-    let printing li = string_of_int (List.length li) ^ " cases with avg time " ^  string_of_float ((totol li)/.(float_of_int(List.length li))) ^ " ms\n" in 
+    let printing li = string_of_int (List.length li) ^ " case(s) with avg time " ^  string_of_float ((totol li)/.(float_of_int(List.length li))) ^ " ms\n" in 
 
 
     "\n========== Module: "^ mn ^" ==========\n" ^
@@ -414,8 +420,6 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     "[Proving   Time] " ^ printing proves ^
     "[Disprove  Time] " ^ printing disproves ^"\n" 
     ^ (List.fold_left (fun acc (_, _, a) -> acc  ^ printTree ~line_prefix:"* " ~get_name ~get_children a ^ "\n") "" results)
-    
-
 
     (*
     let (result_tree, result) =  Rewriting.printReportHelper  (acc') post in 
