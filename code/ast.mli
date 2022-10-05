@@ -23,6 +23,8 @@ and head =
       | Ev    of (event * terms) 
       | T     of terms 
 
+
+
 (*E vent sequence *)
 and es = Bot 
         | Emp 

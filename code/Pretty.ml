@@ -12,7 +12,12 @@ open Int32
 
 exception Foo of string
 
-
+let headToEs (h:head) : es =
+  match h with 
+  | Instant ev -> Event ev 
+  | Ev  (ev, t) -> Ttimes (Event ev , t)
+  | T  t -> Ttimes (Emp, t)
+;;
 
 (*used to generate the free veriables, for subsititution*)
 let freeVar = ["t1"; "t2"; "t3"; "t4";"t5";"t6";"t7";"t8";"t9";"t10"

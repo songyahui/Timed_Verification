@@ -166,9 +166,15 @@ let relatedToGlobalV (condIf:condition) (prog:program) : bool =
 let prependESToEFF es eff = 
   List.map (fun (pi, es1) -> (pi, Cons(es, es1))) eff ;;
 
+let prependEffTOEff (eff1:effect) (eff2:effect) = 
+  List.flatten (List.map (fun (p1, es1)-> List.map (fun (p2, es2) -> (PureAnd (p1, p2), Cons (es1, es2)) )eff2) eff1)
+;;
 
 let rec verifier (caller:string) (list_parm:param) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
+  | Value v -> current
+  | BinOp _ -> current
+
   | EventRaise (ev, p, ops) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present (ev, p, ops) )))) current
   | Seq (e1, e2) -> 
     let eff1 = verifier caller list_parm e1 precondition current prog in 
@@ -195,14 +201,34 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
       let state_C_ELSE  = addConstrain current condElse in 
       List.append (verifier caller list_parm e2 precondition state_C_IF prog) (verifier caller list_parm e3 precondition state_C_ELSE prog)
 
-  (*| Assign (v, e) -> verifier caller e precondition current prog 
-  | Timeout (e1, e2, n) -> 
+  | Assign a -> List.map ( fun (pi_c, es_c) -> (pi_c, Cons(es_c, Event (Present("TAO",None, [a])))) ) current
+  | Interrupt (e1, e2, t) -> current
+
+
+  | Timeout (e1, e2, t) -> 
     List.flatten (
       List.map ( fun (pi_c, es_c) -> 
-        let eff = verifier caller list_parm e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
-        let x = verifier_getAfreeVar () in 
-        let addABound = List.map (fun (pi, es) -> (PureAnd(pi, Gt(Var x, valueToTerm n)), Ttimes(es, Var x))) eff in 
-        prependESToEFF es_c addABound
+        let eff = verifier caller list_parm e1 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+
+        let effAddBound = List.flatten (List.map (fun (effPure, effEs) -> 
+          let fstSet = fst effPure effEs in 
+          List.flatten(List.map (fun head -> 
+            let deri = derivitive effPure effEs head in 
+            let x = verifier_getAfreeVar () in 
+            let withinTimeExtra = (PureAnd(effPure, PureAnd (GtEq(Var x, Number 0), Lt(Var x, t))), Ttimes(headToEs head, Var x)) in 
+            let withinTime = 
+              match deri with 
+              | (esd, Some pd) -> prependEffTOEff [withinTimeExtra] [(pd, esd)] 
+              | (esd, None) -> prependEffTOEff [withinTimeExtra] [(TRUE, esd)]  in 
+            let x1 = verifier_getAfreeVar () in 
+            let eff2 = verifier caller list_parm e2 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+            let outBoundExtra = (PureAnd(effPure, PureAnd (GtEq(Var x1, Number 0), Eq(Var x, t))), Ttimes(Emp, Var x)) in 
+            let outBound = prependEffTOEff [outBoundExtra] eff2 in 
+            List.append withinTime outBound
+            ) fstSet)
+          
+          ) eff) in 
+        prependESToEFF es_c effAddBound
  
 
 
@@ -210,12 +236,12 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
     )
 
 
-  | Deadline (e, n) -> 
+  | Deadline (e, t) -> 
     List.flatten (
       List.map ( fun (pi_c, es_c) -> 
         let eff = verifier caller list_parm e (concatEffEff precondition current) [(pi_c, Emp)] prog in 
         let x = verifier_getAfreeVar () in 
-        let addABound = List.map (fun (pi, es) -> (PureAnd(pi, PureAnd (Gt(Var x, Number 0), LtEq(Var x, valueToTerm n))), Ttimes(es, Var x))) eff in 
+        let addABound = List.map (fun (pi, es) -> (PureAnd(pi, PureAnd (GtEq(Var x, Number 0), LtEq(Var x, t))), Ttimes(es, Var x))) eff in 
         
         prependESToEFF es_c addABound
 
@@ -223,10 +249,11 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
     )
 
 
-  | Delay n -> 
+
+  | Delay t -> 
     let x = verifier_getAfreeVar () in 
-    List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, valueToTerm n)), Cons (es, Ttimes (Emp, Var x)))) current
- *)
+    List.map (fun (pi, es) -> (PureAnd(pi, Eq(Var x, t)), Cons (es, Ttimes (Emp, Var x)))) current
+
   | LocalDel (t, v , e) ->   verifier caller ((t, v) :: list_parm) e precondition current prog      
   | Assertion eff ->   
     let his_cur =  (concatEffEff precondition current) in 
@@ -294,7 +321,6 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
       )
     
 
-    | _ -> current
     ;;
 
 let rec extracPureFromPrecondition (eff:effect) :effect = 
