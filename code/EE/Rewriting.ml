@@ -274,7 +274,7 @@ let entailEvent ev1 ev2 : bool =
 
 
 let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
-  match es with 
+  match normalES es pi with 
   | Bot -> (Bot, None)
   | Emp -> (Bot, None)
   | Cons (es1 , es2) ->  
@@ -408,13 +408,21 @@ let reoccur lhs rhs delta : bool =
 
   ;;
 
-let rec gatherTermsFromPure (p:pure) : terms list =
+let rec gatherTermsFromTerms (t:terms): string list = 
+  match t with
+| Var name -> [name]
+| Number n -> []
+| Plus (t1, t2) -> List.append (gatherTermsFromTerms t1) (gatherTermsFromTerms t2)
+| Minus (t1, t2) -> List.append (gatherTermsFromTerms t1) (gatherTermsFromTerms t2)
+
+
+let rec gatherTermsFromPure (p:pure) : string list =
   match p with 
   | Gt (t1, t2) 
   | Lt (t1, t2)   
   | GtEq (t1, t2)   
   | LtEq (t1, t2)   
-  | Eq (t1, t2) ->  [t1;t2]
+  | Eq (t1, t2) ->  List.append (gatherTermsFromTerms t1) (gatherTermsFromTerms t2)
   | PureOr (p1, p2)  
   | PureAnd (p1, p2) -> List.append (gatherTermsFromPure p1) (gatherTermsFromPure p2)
   | Neg p1 -> (gatherTermsFromPure p1)
@@ -423,7 +431,8 @@ let rec gatherTermsFromPure (p:pure) : terms list =
 
 
 
-let overlapterms (p1:pure) (p2:pure) : bool = 
+(*
+   let overlapterms (p1:pure) (p2:pure) : bool = 
   let t1List = gatherTermsFromPure p1 in 
   let t2List = gatherTermsFromPure p2 in 
   let rec aux t1 li = 
@@ -436,7 +445,7 @@ let overlapterms (p1:pure) (p2:pure) : bool =
     | [] -> false 
     | x :: xs -> if aux x t2List then true else helper xs 
   in  helper t1List
-;;
+;;*)
 
 let delta : hypotheses ref = ref []
 
@@ -461,6 +470,30 @@ let gatherTTerms (eff:effect) : terms list =
 
 let showEntailGneral normalFormL normalFormR side   =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side)) ;; 
 
+
+let rec existNonRelatedToTerms p terms : bool =
+  let termsP =  List.(gatherTermsFromPure p) in 
+  let rec herlper t1 li = 
+    match li with 
+    | [] -> true 
+    | t2::xs -> if String.compare t1 t2 == 0 then false  else herlper t1 xs 
+  in 
+  let rec aux li: bool = 
+    match li with 
+    | [] -> false 
+    | x::xs -> if herlper x terms then true else aux xs 
+  in aux termsP ;;
+
+let filterOut (side:pure) (pR:pure): pure = 
+  let terms =  gatherTermsFromPure side in 
+  let splitConjpR = splitConj pR in 
+  let filter' = List.filter (fun p -> existNonRelatedToTerms p terms == false) splitConjpR in 
+
+  if List.length filter' == 0 then TRUE 
+  else List.fold_left (fun acc a -> PureAnd(acc, a)) (List.hd filter') (List.tl filter') 
+;;
+
+
 let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
@@ -480,7 +513,8 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
         
           else if reoccur (esL) (esR) !delta then 
    
-            let t1Set = gatherTTermsFromES esL in 
+            ([Node (showEntail ^ " [REOCCUR]",[] )], true)
+            (*let t1Set = gatherTTermsFromES esL in 
             let t2Set = gatherTTermsFromES esR in 
             let pluseTerms tList = 
               if List.length tList == 0 then None
@@ -493,19 +527,23 @@ let rec containment (side:pure) (effL:effect) (effR:effect) : (binary_tree * boo
               let side' =  PureAnd (side, Eq (tttt1, ttttt2)) in 
 
               if entailConstrains (PureAnd (pL, side')) pR then ([Node (showEntailGneral [(pL, esL)] [(pR, esR)]  side' ^ showRule REOCCUR,[])], true)
-              else ([Node (showEntailGneral [(pL, esL)] [(pR, esR)]  side'  ^ " [REOCCUR PURE ER] ", [])], false)
+              else ([Node (showEntailGneral [(pL, esL)] [(pR, esR)]  side'  ^ " [REOCCUR PURE ER1] ", [])], false)
             | _ -> 
               if overlapterms pR (normalPure side) == false then ([Node (showEntail ^ " [REOCCUR]",[] )], true)
               else (if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ showRule REOCCUR,[])], true)
-                else ([Node (showEntail ^ " [REOCCUR PURE ER] ", [])], false)))
+                else ([Node (showEntail ^ " [REOCCUR PURE ER2] ", [])], false)))
+            *)
              
           else 
             let fstSet = fst pL esL  in
             if List.length (fstSet) == 0 then 
-              (* SYH to compute weather rhs is overlapping side *)
+              (* SYH to compute weather rhs is overlapping side 
               if overlapterms pR (normalPure side) == false then ([Node (showEntail ^ " [PROVE]",[] )], true)
               else 
-                (if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ " [PROVE]", [] )], true)
+              *)
+                (if entailConstrains (PureAnd (pL, side)) (filterOut side pR) then 
+                  (print_string(showPure (PureAnd (pL, side)) ^ "==>" ^ showPure (filterOut side pR) ^"\n");
+                  ([Node (showEntail ^ " [PROVE]", [] )], true))
                 else ([Node (showEntail ^ " [PURE ER] ", [])], false)
                 )
 
