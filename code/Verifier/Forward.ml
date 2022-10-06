@@ -253,7 +253,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
             ) fstSet)
           
           ) eff) in 
-        print_string (showEffect effAddBound);
+        (*print_string (showEffect effAddBound);*)
         prependESToEFF es_c effAddBound
  
       ) current

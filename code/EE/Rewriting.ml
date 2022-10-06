@@ -495,7 +495,7 @@ let filterOut (side:pure) (pR:pure) list_Arg: pure =
 ;;
 
 
-let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) : (binary_tree * bool) = 
+let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
   let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side))  in
@@ -512,7 +512,7 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) : (binary_
           if nullable pL esL  = true &&  (nullable  (PureAnd(pL, pR)) esR  = false) then   
             ([Node (showEntail ^ showRule DISPROVE,[] )], false)
         
-          else if reoccur (esL) (esR) !delta then 
+          else if reoccur (esL) (esR) delta (*!delta*) then 
    
             ([Node (showEntail ^ " [REOCCUR]",[] )], true)
             (*let t1Set = gatherTTermsFromES esL in 
@@ -543,8 +543,8 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) : (binary_
               else 
               *)
                 (if entailConstrains (PureAnd (pL, side)) (filterOut side pR list_Arg) then 
-                  (print_string(showPure (PureAnd (pL, side)) ^ "==>" ^ showPure (filterOut side pR list_Arg) ^"\n");
-                  ([Node (showEntail ^ " [PROVE]", [] )], true))
+                  (*print_string(showPure (PureAnd (pL, side)) ^ "==>" ^ showPure (filterOut side pR list_Arg) ^"\n"); *)
+                  ([Node (showEntail ^ " [PROVE]", [] )], true)
                 else ([Node (showEntail ^ " [PURE ER] ", [])], false)
                 )
 
@@ -553,8 +553,9 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) : (binary_
               let (derL, sideL) = derivitive pL esL f  in 
               let (derR, sideR) = derivitive pR esR f  in 
               let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
-              let _ = delta := ((esL, esR) :: !delta) in 
-              let (subtree, result) = containment list_Arg  side' [(pL, derL)] [(pR, derR)]  in 
+              (*let _ = delta := ((esL, esR) :: !delta) in  *)
+              let delta' =  ((esL, esR) :: delta) in 
+              let (subtree, result) = containment list_Arg  side' [(pL, derL)] [(pR, derR)] delta' in 
               (List.append accT [subtree], accR && result) 
             ) ([], true) fstSet in 
             ([Node(showEntailmentEff [(pL, esL)] [(pR, esR)] ^ "  ***> " ^ (showPure (normalPure side)) ^ showRule UNFOLD , subtrees)], re)
@@ -652,7 +653,7 @@ let printReportHelper (list_parm:param) lhs rhs : (binary_tree * bool) =
   let side = if List.length alltheTVar == 0 then Ast.TRUE else
     List.fold_left (fun acc a -> Ast.PureAnd (acc , Ast.GtEq( a, Number 0))) (Ast.GtEq(List.hd alltheTVar, Number 0)) (List.tl alltheTVar) in 
   *)
-  containment  (*normalPure side*) list_Arg (Ast.TRUE) (renamedLHS) (renamedRHS)    
+  containment  (*normalPure side*) list_Arg (Ast.TRUE) (renamedLHS) (renamedRHS)  []  
 
   ;;
 

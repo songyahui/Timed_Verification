@@ -3,10 +3,10 @@
 void oneSugar() 
 /*
 req: TRUE∧(_^*)
-ens: (t>1)∧ (ε # t)
+ens: (t≥1)∧ (ε # t)
 */
 {
-    timeout (() , 1);
+    timeout ((), () , 1);
 }
 
 void addSugar (int n) 
