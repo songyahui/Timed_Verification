@@ -281,10 +281,12 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option) list =
     let es1 = (Ttimes(es1', t)) in 
     let derList1 = derivitive pi es1 f in (*  *)
     let longer = List.map (fun (es1_der, side1) -> (Cons(es1_der, es2), side1)) derList1 in 
-    let derList2  = derivitive pi es2 f in  
     if nullable pi es1
       then 
-        let shorter = List.map (fun (es2_der, side2) -> (es2_der, Some (optionPureAndHalf  side2 (Eq(t, Number 0))))) derList2 in
+        let temp = derivitive pi (Cons (es1', es2))  f in 
+        let shorter = List.map (fun (a1, a2) -> 
+        (a1, Some (optionPureAndHalf  a2 (Eq(t, Number 0))))
+        ) temp in
         List.append longer shorter
       else longer
 
@@ -523,6 +525,12 @@ let filterOut (side:pure) (pR:pure) list_Arg: pure =
   else List.fold_left (fun acc a -> PureAnd(acc, a)) (List.hd filter') (List.tl filter') 
 ;;
 
+let isBot es pi: bool = 
+  match normalES es pi with
+  | Bot -> true 
+  | _ ->  false 
+  ;;
+
 
 let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
@@ -610,7 +618,7 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (bi
                   if resultDer == false then (subtreeDer, resultDer)
                   else iteratorDerLHS (List.append accDerT subtreeDer, accDerR && resultDer) lhsDerListrest 
               in 
-              let (subtree, result) = iteratorDerLHS ([], true) esLDer in 
+              let (subtree, result) = iteratorDerLHS ([], true) (List.filter (fun (ees, _) -> isBot ees pL == false) esLDer) in 
 
               (List.append accT subtree, accR && result) 
             ) ([], true) fstSet in 
@@ -620,7 +628,7 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (bi
         if reIn == true then (subtreeIn, reIn) 
         else iterateRHS (List.append accInT subtreeIn , reIn || accInR) lirest 
       in 
-      let (subtree, re) = iterateRHS ([], false) normalFormR in 
+      let (subtree, re) = iterateRHS ([], false) (normalFormR) in 
             
 
       (List.append accT subtree , re && accR)
