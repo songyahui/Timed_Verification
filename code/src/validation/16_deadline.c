@@ -15,8 +15,9 @@ ens: TRUE∧(A . B)
 void test_deadline6(int n) 
 /*
 req: TRUE∧(_^*)
-ens: (t≤n)∧ ((A.B) # t)
+ens: (t≤n)∧ ((A.B) # t) .Done
 */
 {
     deadline (callee ()  ,n);
+    event["Done"];
 }

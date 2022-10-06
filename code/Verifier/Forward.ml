@@ -205,10 +205,12 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
       List.flatten(List.map (fun head -> 
         let x = verifier_getAfreeVar () in 
         let phi = (PureAnd(p, PureAnd (GtEq(Var x, Number 0), Lt(Var x, t))), Ttimes(his, Var x)) in 
-        let deri = derivitive p es head in 
-        match deri with 
-        | (esd, Some pd) -> phi :: (interrupt_interleave (PureAnd(p, pd), esd) (Cons(his, headToEs head)))
-        | (esd, None) -> phi :: (interrupt_interleave (p, esd) (Cons(his, headToEs head)))
+        let eff_der = derivitive p es head in 
+        List.flatten(List.map (fun deri -> 
+          match deri with 
+          | (esd, Some pd) -> phi :: (interrupt_interleave (PureAnd(p, pd), esd) (Cons(his, headToEs head)))
+          | (esd, None) -> phi :: (interrupt_interleave (p, esd) (Cons(his, headToEs head)))
+        )eff_der)
 
       ) fstSet)
     in 
@@ -238,18 +240,20 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
 
           else 
           List.flatten(List.map (fun head -> 
-            let deri = derivitive effPure effEs head in 
-            let x = verifier_getAfreeVar () in 
-            let withinTimeExtra = (PureAnd(effPure, PureAnd (GtEq(Var x, Number 0), Lt(Var x, t))), Ttimes(headToEs head, Var x)) in 
-            let withinTime = 
-              match deri with 
-              | (esd, Some pd) -> prependEffTOEff [withinTimeExtra] [(pd, esd)] 
-              | (esd, None) -> prependEffTOEff [withinTimeExtra] [(TRUE, esd)]  in 
-            let x1 = verifier_getAfreeVar () in 
-            let eff2 = verifier caller list_parm e2 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
-            let outBoundExtra = (PureAnd(effPure, PureAnd (GtEq(Var x1, Number 0), Eq(Var x1, t))), Ttimes(Emp, Var x1)) in 
-            let outBound = prependEffTOEff [outBoundExtra] eff2 in 
-            List.append withinTime outBound
+            let eff_Der = derivitive effPure effEs head in 
+            List.flatten(List.map (fun deri -> 
+              let x = verifier_getAfreeVar () in 
+              let withinTimeExtra = (PureAnd(effPure, PureAnd (GtEq(Var x, Number 0), Lt(Var x, t))), Ttimes(headToEs head, Var x)) in 
+              let withinTime = 
+                match deri with 
+                | (esd, Some pd) -> prependEffTOEff [withinTimeExtra] [(pd, esd)] 
+                | (esd, None) -> prependEffTOEff [withinTimeExtra] [(TRUE, esd)]  in 
+              let x1 = verifier_getAfreeVar () in 
+              let eff2 = verifier caller list_parm e2 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+              let outBoundExtra = (PureAnd(effPure, PureAnd (GtEq(Var x1, Number 0), Eq(Var x1, t))), Ttimes(Emp, Var x1)) in 
+              let outBound = prependEffTOEff [outBoundExtra] eff2 in 
+              List.append withinTime outBound
+            )eff_Der)
             ) fstSet)
           
           ) eff) in 

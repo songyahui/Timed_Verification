@@ -273,97 +273,126 @@ let entailEvent ev1 ev2 : bool =
 
 
 
-let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option)  =
+let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option) list =
   match normalES es pi with 
-  | Bot -> (Bot, None)
-  | Emp -> (Bot, None)
+  | Bot -> [(Bot, None)]
+  | Emp -> [(Bot, None)]
+  | Cons ((Ttimes(es1', t)) , es2) ->  
+    let es1 = (Ttimes(es1', t)) in 
+    let derList1 = derivitive pi es1 f in (*  *)
+    let longer = List.map (fun (es1_der, side1) -> (Cons(es1_der, es2), side1)) derList1 in 
+    let derList2  = derivitive pi es2 f in  
+    if nullable pi es1
+      then 
+        let shorter = List.map (fun (es2_der, side2) -> (es2_der, Some (optionPureAndHalf  side2 (Eq(t, Number 0))))) derList2 in
+        List.append longer shorter
+      else longer
+
   | Cons (es1 , es2) ->  
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let es1' = Cons (es1_der, es2) in 
-      let (es2_der, side2) = derivitive pi es2 f in    
-      if nullable pi es1
-        then (ESOr (es1', es2_der), optionPureAnd side1 side2)  
-        else (es1', side1)
+    let derList1 = derivitive pi es1 f in (*  *)
+    let longer = List.map (fun (es1_der, side1) -> (Cons(es1_der, es2), side1)) derList1 in 
+    let derList2  = derivitive pi es2 f in  
+    if nullable pi es1
+      then 
+        let shorter = derList2 in
+        List.append longer shorter
+      else longer
+
 
   | ESOr (es1, es2) -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      let (es2_der, side2) = derivitive pi es2 f in
-      (ESOr (es1_der, es2_der), optionPureAnd side1 side2) 
+      let derList1 = derivitive pi es1 f in 
+      let derList2 = derivitive pi es2 f in
+      List.append derList1 derList2
 
   | Kleene es1 -> 
-      let (es1_der, side1) = derivitive pi es1 f in 
-      (Cons (es1_der, es), side1)
+      let derList = derivitive pi es1 f in 
+      List.map (fun (es1_der, side1) -> (Cons (es1_der, es), side1))derList
+      
   | Par (es1, es2) ->
       let helper esIn = 
-        let (der, side) = derivitive pi esIn f in 
-        match normalES der pi with 
-        | Bot -> (esIn, None)
-        | _ -> (der, side)
+        let  derList  = derivitive pi esIn f in 
+        List.map (fun (der, side) -> 
+          match normalES der pi with 
+          | Bot -> (esIn, None)
+          | _ -> (der, side)
+        )derList
       in 
-      let (es1', side1) = helper es1 in 
-      let (es2', side2) = helper es2 in 
-      (Par (es1', es2'), optionPureAnd side1 side2)
+      let derList1 = helper es1 in 
+      let derList2 = helper es2 in 
+      List.flatten(
+        List.map (fun (esIn1, sideIn1) -> 
+          List.map (fun (esIn2, sideIn2) -> 
+            (Par(esIn1, esIn2), optionPureAnd sideIn1 sideIn2)
+            )derList2
+        )derList1
+      )
   | Guard (pi1) -> 
     (match f with 
-    | Instant (Tau pi2) -> if entailConstrains pi2 pi1 then (Emp, None) else (es, None)
-    | _ -> (es, None)
+    | Instant (Tau pi2) -> if entailConstrains pi2 pi1 then [(Emp, None)] else [(es, None)]
+    | _ -> [(es, None)]
     )
       
-  | Event (Any) -> (Emp, None)
+  | Event (Any) -> [(Emp, None)]
 
   | Event ev1 -> 
 		(match f with 
-		| T  t -> (Bot, None)
-		| Ev (ev, t) -> (Bot, None)
-		| Instant ev -> if entailEvent ev ev1 then (Emp, None) else (Bot, None)
+		| T  t -> [(Bot, None)]
+		| Ev (ev, t) -> [(Bot, None)]
+		| Instant ev -> if entailEvent ev ev1 then [(Emp, None)] else [(Bot, None)]
 		)
 
   | Ttimes (Ttimes (es1, t1) , t2 ) -> 
-    let (es1_der, side1) = derivitive pi (Ttimes (es1, t1)) f in 
-    if stricTcompareTerm t1 t2 then (es1_der, side1)
-    else 
-    (es1_der, Some (optionPureAndHalf side1 (Eq(t1, t2))))
+    let eff_der = derivitive pi (Ttimes (es1, t1)) f in 
+    List.map (fun (es1_der, side1)->
+      if stricTcompareTerm t1 t2 then (es1_der, side1)
+      else 
+      (es1_der, Some (optionPureAndHalf side1 (Eq(t1, t2))))
+    )eff_der
 
   | Ttimes (Emp, tIn) -> 
 		(match f with 
 		| T  t -> 
-      if stricTcompareTerm t tIn then (Emp, None)
-      else (Emp,  Some (Eq(t , tIn)))
-		| Ev (ev, t) -> (Bot, None)
-		| Instant ev -> (Bot, None)
+      if stricTcompareTerm t tIn then [(Emp, None)]
+      else [(Emp,  Some (Eq(t , tIn)))]
+		| Ev (ev, t) -> [(Bot, None)]
+		| Instant ev -> [(Bot, None)]
 		)
 
 	| Ttimes (Event ev1, tIn) -> 
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
-      (Ttimes (Event ev1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
+      [(Ttimes (Event ev1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))]
 		| Ev (ev, t) ->  if entailEvent ev ev1 then 
-      (if stricTcompareTerm tIn t then (Emp, None)
-      else (Emp,Some ( Eq(tIn, t)))) else (Bot, None)
+      (if stricTcompareTerm tIn t then [(Emp, None)]
+      else [(Emp,Some ( Eq(tIn, t)))]) else [(Bot, None)]
 
-		| Instant ev ->  if entailEvent ev ev1 then (Ttimes (Emp, tIn), None) else (Bot, None)
+		| Instant ev ->  if entailEvent ev ev1 then [(Ttimes (Emp, tIn), None)] else [(Bot, None)]
 		)
 	
 	| Ttimes (es1, tIn) -> 
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
-      (Ttimes (es1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
+      [(Ttimes (es1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))]
 		| Ev (ev, t) ->  
-		  let (es1_der, side1) = derivitive pi es1 (Instant ev) in 
-      (match normalES es1_der pi with 
-      | Emp -> if stricTcompareTerm tIn t then (Emp, side1)
-        else (Emp, Some (optionPureAndHalf side1 (Eq(tIn, t))))
-      | _ -> 
-        let t_new = getAfreeVar () in 
-        let p_new = optionPureAndHalf side1 (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
-        (Ttimes (es1_der, Var t_new), Some p_new)
-      )
-		
-		| Instant ev ->  let (es1_der, side1) = derivitive pi es1 f in 
-        match normalES es1_der pi with 
-        | Bot -> (Bot, Some (Eq (tIn, Number 0)))
+		  let eff_Der1 = derivitive pi es1 (Instant ev) in 
+      List.map (fun (es1_der, side1) -> 
+        (match normalES es1_der pi with 
+        | Emp -> if stricTcompareTerm tIn t then (Emp, side1)
+          else (Emp, Some (optionPureAndHalf side1 (Eq(tIn, t))))
         | _ -> 
-      (Ttimes (es1_der, tIn), side1)
+          let t_new = getAfreeVar () in 
+          let p_new = optionPureAndHalf side1 (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
+          (Ttimes (es1_der, Var t_new), Some p_new)
+      )
+      )eff_Der1
+		
+		| Instant ev ->  
+        let eff_Der1  = derivitive pi es1 f in 
+        List.map (fun (es1_der, side1) -> 
+          match normalES es1_der pi with 
+          | Bot -> (Bot, Some (Eq (tIn, Number 0)))
+          | _ -> (Ttimes (es1_der, tIn), side1)
+      )eff_Der1
 
 		)
 
@@ -556,13 +585,34 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (bi
 
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
-              let (derL, sideL) = derivitive pL esL f  in 
-              let (derR, sideR) = derivitive pR esR f  in 
-              let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
-              (*let _ = delta := ((esL, esR) :: !delta) in  *)
-              let delta' =  ((esL, esR) :: delta) in 
-              let (subtree, result) = containment list_Arg  side' [(pL, derL)] [(pR, derR)] delta' in 
-              (List.append accT [subtree], accR && result) 
+
+
+              let esLDer = derivitive pL esL f  in (* (derL, sideL) *)
+              let esRDer = derivitive pR esR f  in (*  (derR, sideR) *)
+
+              let rec iteratorDerRHS (accDerT, accDerR) rhsDerList lhsDer : (binary_tree list * bool) = 
+                let (derL, sideL) = lhsDer in 
+                match rhsDerList with 
+                | [] -> (accDerT, accDerR)
+                | (derR, sideR) :: rhsDerListrest -> 
+                  let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
+                  let delta' =  ((esL, esR) :: delta) in 
+                  let (subtreeDer, resultDer) = containment list_Arg  side' [(pL, derL)] [(pR, derR)] delta' in 
+                  if resultDer == true then ([subtreeDer], resultDer)
+                  else iteratorDerRHS (List.append accDerT [subtreeDer], accDerR|| resultDer) rhsDerListrest lhsDer 
+              in 
+
+              let rec iteratorDerLHS (accDerT, accDerR) lhsDerList: (binary_tree list * bool) = 
+                match lhsDerList with 
+                | [] -> (accDerT, accDerR)
+                | lhsDer :: lhsDerListrest -> 
+                  let (subtreeDer, resultDer) = iteratorDerRHS ([], false) esRDer lhsDer in 
+                  if resultDer == false then (subtreeDer, resultDer)
+                  else iteratorDerLHS (List.append accDerT subtreeDer, accDerR && resultDer) lhsDerListrest 
+              in 
+              let (subtree, result) = iteratorDerLHS ([], true) esLDer in 
+
+              (List.append accT subtree, accR && result) 
             ) ([], true) fstSet in 
             ([Node(showEntailmentEff [(pL, esL)] [(pR, esR)] ^ "  ***> " ^ (showPure (normalPure side)) ^ showRule UNFOLD , subtrees)], re)
 
