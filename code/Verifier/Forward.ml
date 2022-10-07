@@ -92,7 +92,9 @@ let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_ty
                               
 
   let formalArgs = List.map (fun (a, b) -> b) formal in 
-  let pairs = List.combine  realArgs' formalArgs in 
+
+  try 
+  (let pairs = List.combine  realArgs' formalArgs in 
 
   let rec subArgOnebyOne (effIn:effect) (pairs:(expression * var ) list): effect = 
     (match pairs with 
@@ -101,7 +103,10 @@ let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_ty
       let subThisPair = substituteEffWithAgr effIn realArg formalArg in
       subArgOnebyOne subThisPair xs 
     )
-  in subArgOnebyOne eff pairs;;
+  in subArgOnebyOne eff pairs)
+with Invalid_argument _ -> raise  (Foo "function arguments error!")
+
+;;
 
 
 
