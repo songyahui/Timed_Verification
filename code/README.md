@@ -54,3 +54,5 @@ Program Verification
 
 # 
 
+
+ocamlc -c Checker.cmo EE/Checker.ml 

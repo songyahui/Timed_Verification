@@ -428,7 +428,8 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
 
     "[Succeed  Cases] " ^ printing proves ^
     "[Failure  Cases] " ^ printing disproves ^"\n" 
-    ^ (List.fold_left (fun acc (_, _, a) -> acc  ^ printTree ~line_prefix:"* " ~get_name ~get_children a ^ "\n") "" results)
+    ^ "" 
+    (*(List.fold_left (fun acc (_, _, a) -> acc  ^ printTree ~line_prefix:"* " ~get_name ~get_children a ^ "\n") "" results) *)
 
     (*
     let (result_tree, result) =  Rewriting.printReportHelper  (acc') post in 

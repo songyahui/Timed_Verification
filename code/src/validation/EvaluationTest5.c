@@ -4,7 +4,6 @@ void callee ()
 /*
 req: TRUE∧(_^*)
 ens: TRUE∧(A . B)
-ens: TRUE∧(A )
 */
 {
     event["A"];
@@ -15,7 +14,6 @@ void callee1 ()
 /*
 req: TRUE∧(_^*)
 ens: TRUE∧(C . D)
-ens: TRUE∧(A )
 */
 {
     event["C"];
@@ -26,7 +24,6 @@ void callee2 ()
 /*
 req: TRUE∧(_^*)
 ens: TRUE∧(C . D)
-ens: TRUE∧(A )
 */
 {
     event["C"];
@@ -38,7 +35,6 @@ void callee3 ()
 /*
 req: TRUE∧(_^*)
 ens: TRUE∧(C . D)
-ens: TRUE∧(A )
 */
 {
     event["C"];
@@ -50,7 +46,6 @@ void callee4 ()
 /*
 req: TRUE∧(_^*)
 ens: TRUE∧(C . D)
-ens: TRUE∧(A )
 */
 {
     event["C"];

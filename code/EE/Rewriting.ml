@@ -410,10 +410,10 @@ let rec normalEffect (eff:effect) :effect =
   | (Ast.FALSE,  _) -> false  
   | _ -> true 
   ) (List.map (fun (p, es) -> 
-      (*let (es', pi') = normalESUnifyTime es p in 
+      let (es', pi') = normalESUnifyTime es p in 
       (  normalPure    (optionPureAndHalf  pi' p), es')) noPureOr) in 
-      *)
-      normalPure p, normalES es p) noPureOr )in 
+      
+      (*normalPure p, normalES es p) noPureOr )in *)
   if List.length final == 0 then (
     (*print_string (showEffect eff ^ "\n");raise (Foo ("lallalal")); *)
     [(FALSE, Bot)]
@@ -587,8 +587,8 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (bi
                   
                   ([Node (showEntail ^ " [PROVE]", [] )], true)
                 else 
-                  (print_string(showPure (PureAnd (pL, side)) ^ "==>" ^ showPure (filterOut side pR list_Arg) ^"\n"); 
-                  ([Node (showEntail ^ " [PURE ER] ", [])], false))
+                  (*print_string(showPure (PureAnd (pL, side)) ^ "==>" ^ showPure (filterOut side pR list_Arg) ^"\n"); *)
+                  ([Node (showEntail ^ " [PURE ER] ", [])], false)
                 )
 
             else 

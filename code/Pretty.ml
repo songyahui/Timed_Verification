@@ -120,7 +120,7 @@ let rec showES (es:es):string =
   | Guard (pi) ->  "[" ^ showPure pi ^ "]?" 
   | Cons (es1, es2) -> (showES es1) ^ " . " ^ (showES es2)
   | ESOr (es1, es2) ->  "("^(showES es1) ^ " + " ^ (showES es2)^")"
-  | Ttimes (es, t) -> "("^(showES es) ^ "#" ^ (showTerms t)^")"
+  | Ttimes (es, t) -> "(("^(showES es) ^ ")#" ^ (showTerms t)^")"
   | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
   | Par (es1, es2) -> "(("^(showES es1) ^ ") || (" ^ (showES es2)^"))"
   ;;
