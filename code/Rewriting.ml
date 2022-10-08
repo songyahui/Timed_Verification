@@ -1,12 +1,8 @@
-open String
 open List
 open Ast
-open Printf
 open Parser
-open Lexer
 open Askz3
 open Pretty
-open Int32
 
 
 
@@ -47,13 +43,13 @@ let getAfreeVar () :string  =
     x 
 ;;
 
-let rec compareEff eff1 eff2 =
+let compareEff eff1 eff2 =
   match (eff1, eff2) with
   | ([(FALSE, _ )], [(FALSE, _)]) -> true 
   | ([(FALSE, _ )], [(_, Bot )]) -> true 
   | ([(_, Bot)], [(FALSE, _ )]) -> true 
   | ([(_, Bot )], [(_, Bot)]) -> true 
-  | ( [(pi1, es1)], [ (pi2, es2 )]) -> aCompareES es1 es2
+  | ( [(_, es1)], [ (_, es2 )]) -> aCompareES es1 es2
   (*| ( (eff11, eff12),  (eff21, eff22)) -> 
       let one =  (compareEff eff11  eff21) && (compareEff eff12  eff22) in
       let two =  (compareEff eff11  eff22) && (compareEff eff12  eff21 ) in
@@ -90,8 +86,8 @@ let rec normalES (es:es) (pi:pure) : es =
       if entailConstrains pi (Gt(t1, t2)) then (Cons (Ttimes (Emp, t2), Cons(Ttimes (es1, (Minus (t1, t2))), es12))) 
       else Cons (Cons (Ttimes (es1, t1), Ttimes (Emp, (Minus (t2, t1)))), es12) 
     
-    | (Ttimes (es1, t1), Ttimes (Emp, t2)) 
-    | (Ttimes (Emp, t2), Ttimes (es1, t1)) -> raise (Foo "par 4")
+    | (Ttimes (_, _), Ttimes (Emp, _)) 
+    | (Ttimes (Emp, _), Ttimes (_, _)) -> raise (Foo "par 4")
 
     | _ -> Par (es1', es2')
 (* raise (Foo (showES es^" par 2")); *)
@@ -116,7 +112,7 @@ raise (Foo (showES es^" par 4"));
       | (Kleene (esIn1), Kleene (esIn2)) -> 
           if aCompareES esIn1 esIn2 == true then normalES2
           else Cons (normalES1, normalES2)
-      | (Kleene (esIn1), Cons(Kleene (esIn2), es2)) -> 
+      | (Kleene (esIn1), Cons(Kleene (esIn2), _)) -> 
           if aCompareES esIn1 esIn2 == true then normalES2
           else Cons (normalES1, normalES2) 
 
@@ -218,10 +214,10 @@ let rec nullable (pi :pure) (es:es) : bool=
   | Ttimes (es1, t) ->  
     let pure = (PureAnd(pi, Eq(t, Number 0)))  in 
     (*print_string (showPure pure ^ ", " ^ string_of_bool ( askZ3 pure) ^ "\n");*)
-    askZ3 pure
-  | Kleene es1 -> true
+    (askZ3 pure) && nullable pi es1
+  | Kleene _ -> true
   | Par (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
-  | Guard (pi1) -> false 
+  | Guard (_) -> false 
 ;;
 
 let nullableEff (eff:effect)  : bool = 
@@ -338,8 +334,8 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option) list =
 
   | Event ev1 -> 
 		(match f with 
-		| T  t -> [(Bot, None)]
-		| Ev (ev, t) -> [(Bot, None)]
+		| T  _ -> [(Bot, None)]
+		| Ev (_, _) -> [(Bot, None)]
 		| Instant ev -> if entailEvent ev ev1 then [(Emp, None)] else [(Bot, None)]
 		)
 
@@ -356,8 +352,8 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option) list =
 		| T  t -> 
       if stricTcompareTerm t tIn then [(Emp, None)]
       else [(Emp,  Some (Eq(t , tIn)))]
-		| Ev (ev, t) -> [(Bot, None)]
-		| Instant ev -> [(Bot, None)]
+		| Ev (_, _) -> [(Bot, None)]
+		| Instant _ -> [(Bot, None)]
 		)
 
 	| Ttimes (Event ev1, tIn) -> 
@@ -388,7 +384,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option) list =
       )
       )eff_Der1
 		
-		| Instant ev ->  
+		| Instant _ ->  
         let eff_Der1  = derivitive pi es1 f in 
         List.map (fun (es1_der, side1) -> 
           match normalES es1_der pi with 
@@ -402,7 +398,7 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option) list =
 
 
 
-let rec normalEffect (eff:effect) :effect =
+let normalEffect (eff:effect) :effect =
   let noPureOr:effect  = (* deletePureOrInEff *) eff in 
   let final = List.filter (fun (p, es) -> 
   match (p,  es ) with 
@@ -442,7 +438,7 @@ let reoccur lhs rhs delta : bool =
 let rec gatherTermsFromTerms (t:terms): string list = 
   match t with
 | Var name -> [name]
-| Number n -> []
+| Number _ -> []
 | Plus (t1, t2) -> List.append (gatherTermsFromTerms t1) (gatherTermsFromTerms t2)
 | Minus (t1, t2) -> List.append (gatherTermsFromTerms t1) (gatherTermsFromTerms t2)
 
@@ -487,10 +483,10 @@ let rec gatherTTermsFromES (es:es) : terms list =
   | Event _ -> [] 
   | Cons (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
 	| ESOr (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
-  | Ttimes (es1, t) ->  [t]
+  | Ttimes (_, t) ->  [t]
   | Kleene es1 -> (gatherTTermsFromES es1)
   | Par (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
-  | Guard (pi1) -> [] 
+  | Guard (_) -> [] 
   ;;
 
 let gatherTTerms (eff:effect) : terms list =
@@ -502,8 +498,8 @@ let gatherTTerms (eff:effect) : terms list =
 let showEntailGneral normalFormL normalFormR side   =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side)) ;; 
 
 
-let rec existNonRelatedToTerms p terms : bool =
-  let termsP =  List.(gatherTermsFromPure p) in 
+let existNonRelatedToTerms p terms : bool =
+  let termsP =  (gatherTermsFromPure p) in 
   let rec herlper t1 li = 
     match li with 
     | [] -> true 
@@ -654,7 +650,7 @@ match t with
     if (existNameAgr list_Arg name ) then Var name
     else 
     Var (str^name)
-| Number n -> t
+| Number _ -> t
 | Plus (t1, t2) -> Plus (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
 | Minus (t1, t2) -> Minus (reNameTerms list_parm t1 str, reNameTerms list_parm t2 str)
 
@@ -707,9 +703,7 @@ let printReportHelper (list_parm:param) lhs rhs : (binary_tree * bool) =
 
 
   *)
-  let a : hypotheses ref = ref [] in 
 
-  let _ = (delta: hypotheses ref) := !a in 
   let renamedLHS = reNameEffect list_parm lhs "l"  in  
   let renamedRHS = reNameEffect list_parm rhs "r"  in 
   let list_Arg = List.map (fun (_, a) -> a) list_parm in 
@@ -794,7 +788,7 @@ let rec fst_concrete (pi :pure) (es:es) : head list =
     | Emp -> [T t]
     | Event (ev) ->  [Ev(ev, t)]
     | _ -> fst_concrete pi es1')
-  | Cons (es1 , es2) ->  (*if nullable pi es1 then append (fst_concrete pi es1) (fst_concrete pi es2) else *) fst_concrete pi es1
+  | Cons (es1 , _) ->  (*if nullable pi es1 then append (fst_concrete pi es1) (fst_concrete pi es2) else *) fst_concrete pi es1
   | ESOr (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2)
 
   | Par (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2 )
@@ -812,7 +806,7 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
   (Cons(es1_der, es2), newV)
 
 | ESOr (es1 , es2) -> 
-  let (es1_der, newV) = derivitive_concrete valuation pi es1 f in 
+  let (es1_der, _) = derivitive_concrete valuation pi es1 f in 
   let (es2_der, newV) = derivitive_concrete valuation pi es2 f in 
   (ESOr (es1_der, es2_der), newV)
 
@@ -854,21 +848,21 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
     else (Bot, valuation) 
   | _ -> (Bot, valuation) )
   
-| Ttimes (Ttimes (es1, t1) , t2 ) -> 
+| Ttimes (Ttimes (es1, t1) , _ ) -> 
   derivitive_concrete valuation pi (Ttimes (es1, t1)) f
 
-| Ttimes (Emp, tIn) -> 
+| Ttimes (Emp, _) -> 
 		(match f with 
-		| T  t -> (Emp, valuation)
-		| Ev (ev, t) -> (Bot, valuation)
-		| Instant ev -> (Bot, valuation)
+		| T  _ -> (Emp, valuation)
+		| Ev (_, _) -> (Bot, valuation)
+		| Instant _ -> (Bot, valuation)
 		)
 	
 | Ttimes (es1, tIn) -> 
 		(match f with 
-		| T  t ->  let t_new = getAfreeVar () in 
+		| T  _ ->  let t_new = getAfreeVar () in 
       (Ttimes (es1, Var t_new), valuation)
-		| Ev (ev, t) ->  
+		| Ev (ev, _) ->  
 		  let (es1_der, v_vew) = derivitive_concrete valuation pi es1 (Instant ev) in 
       (match normalES es1_der pi with 
       | Emp -> (Emp, v_vew)
@@ -877,7 +871,7 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
         (Ttimes (es1_der, Var t_new), v_vew)
       )
 		
-		| Instant ev ->  let (es1_der, v_bew) = derivitive_concrete valuation pi es1 f in 
+		| Instant _ ->  let (es1_der, v_bew) = derivitive_concrete valuation pi es1 f in 
         match normalES es1_der pi with 
         | Bot -> (Bot, v_bew)
         | _ -> 

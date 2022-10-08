@@ -1,9 +1,6 @@
 
 open Ast
 open List
-open Sys
-open Unix
-open Printf
 open Checker
 
 

@@ -1,0 +1,25 @@
+(ocamllex
+ (modules lexer))
+
+(menhir
+ (modules parser)
+ (flags --explain --dump))
+
+
+(executables
+ (names Forward trs)
+ (modules parser 
+ lexer Pretty 
+ Forward trs 
+ Rewriting Askz3 
+ Checker Ast
+ )
+ (libraries z3))
+
+
+
+(env
+ (dev
+  (flags (:standard))))
+
+  

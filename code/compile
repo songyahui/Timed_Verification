@@ -24,6 +24,6 @@ ocamlc -o verify parser.cmo lexer.cmo Askz3.cmo  Pretty.cmo Rewriting.cmo Forwar
 
 rm -r *.cmi
 rm -r *.cmo
-rm lexer.ml
-rm parser.ml
-rm parser.mli
+#rm lexer.ml
+#rm parser.ml
+#rm parser.mli

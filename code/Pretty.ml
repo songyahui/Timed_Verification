@@ -2,12 +2,10 @@
 ----------------------PRINTING------------------------
 ----------------------------------------------------*)
 
-open String
 open List
 open Ast
 open Printf
 open Askz3
-open Int32
 
 
 exception Foo of string
@@ -26,7 +24,7 @@ let freeVar = ["t1"; "t2"; "t3"; "t4";"t5";"t6";"t7";"t8";"t9";"t10"
 
 
 
-let rec getAfreeVar (varList:string list):string  =
+let getAfreeVar (varList:string list):string  =
   let rec findOne li = 
     match li with 
         [] -> raise ( Foo "freeVar list too small exception!")
@@ -99,7 +97,7 @@ let rec showPure (p:pure):string =
 let rec showES (es:es):string = 
   let string_of_event ev : string = 
     match ev with 
-    | Present (str, param, ops) -> 
+    | Present (str, param, (*ops*)_) -> 
       let print_param = (
         match param with 
         | None -> ""
@@ -136,7 +134,7 @@ let rec showEffect (e:effect) :string =
   | (p, es):: rest ->  "("^showPure p  ^ " ∧ " ^  showES es  ^ ") ∨ ("  ^ showEffect rest ^")"
   ;;
 
-let rec printType (ty:_type) :string =
+let printType (ty:_type) :string =
   match ty with
     INT -> "int "
   | FLOAT -> "float "
@@ -152,7 +150,7 @@ let rec printParam (params: param):string =
 
 
 let rec print_real_Param (params: expression list):string = 
-  let rec printarg v = (match v with
+  let printarg v = (match v with
   | Value v -> string_of_value v 
   | Call (name, elist) -> name ^ "(" ^ print_real_Param elist ^ ")"
   | BinOp (e1, e2, str) -> string_of_value e1 ^ str ^ string_of_value e2 
@@ -204,7 +202,7 @@ let rec iter f = function
       f false x;
       iter f tl
 
-let rec addConstrain effect addPi = List.map (fun (pi, eff) -> ( (PureAnd (pi, addPi)), eff))  effect
+let addConstrain effect addPi = List.map (fun (pi, eff) -> ( (PureAnd (pi, addPi)), eff))  effect
    ;;
 
 let to_buffer ?(line_prefix = "") ~get_name ~get_children buf x =
@@ -242,7 +240,7 @@ type binary_tree =
 
 let get_name = function
     | Leaf -> "."
-    | Node (name, li) -> name;;
+    | Node (name, (*li*)_) -> name;;
 
 let get_children = function
     | Leaf -> []
@@ -448,7 +446,7 @@ let rec splitConj (p:pure) :(pure list) =
 
 let rec compareTerm (term1:terms) (term2:terms) : bool = 
   match (term1, term2) with 
-    (Var s1, Var s2) -> true
+    (Var _, Var _) -> true
   | (Number n1, Number n2) -> n1 == n2 
   | (Plus (tIn1, num1), Plus (tIn2, num2)) -> compareTerm tIn1 tIn2 && compareTerm num1  num2
   | (Minus (tIn1, num1), Minus (tIn2, num2)) -> compareTerm tIn1 tIn2 && compareTerm num1  num2
@@ -496,7 +494,7 @@ let rec existPi pi li =
     )
     ;;
 
-let rec normalTerms (t:terms):terms  = 
+let normalTerms (t:terms):terms  = 
   match t with 
     Minus (Minus(s, Number n1), Number n2) ->  Minus(s, Number (n1 + n2))
   | Minus (Number n1, Number n2) ->  Number (n1- n2) 
@@ -542,7 +540,7 @@ let rec removeredundant (li : pure list) : pure list =
   | x :: xs -> if redundent x xs then removeredundant xs else x :: (removeredundant xs)
 ;;
 
-let rec normalPureToDisj (p:pure):pure = 
+let normalPureToDisj (p:pure):pure = 
   let listOfCONJ = removeredundant (splitConj p) in  
   let filterList = List.filter (fun p ->
   match p with 
@@ -567,7 +565,7 @@ let rec normalPureToDisj (p:pure):pure =
   *)
   ;;
 
-let rec deletePureOrInEff (eff:effect):effect = List.flatten (List.map (fun (pi, es) -> 
+let deletePureOrInEff (eff:effect):effect = List.flatten (List.map (fun (pi, es) -> 
   let disjPure = normalPureToDisj pi in
   splitDisj disjPure es ) eff)
   ;;
@@ -622,7 +620,7 @@ let rec normalPure (pi:pure):pure =
 ;;
 
 
-let rec normalPureDeep (pi:pure):pure = 
+let normalPureDeep (pi:pure):pure = 
   let allPi = getAllPi pi [] in
   let rec clear_Pi pi li = 
     (match li with 

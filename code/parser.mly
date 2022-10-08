@@ -22,7 +22,32 @@
 %type <(Ast.entilment) list > ee
 %type <Ast.program> prog
 %type <Ast.es> es_p
+%type <Ast.assign> assign
+%type <Ast.assign list> assign_list
+%type <Ast.condition> cond
+%type <Ast.effect> effect
+%type <Ast.entilment> entailment
+%type <Ast.es> es
+%type <Ast.expression> expres
+%type <Ast.expression> expres_help
+%type <Ast.declare> head
+%type <string option> maybeGuard
+%type <Ast.assign list> maybe_assign_list
+%type <Ast.declare> meth
+%type <Ast.effect list> morePostcondition
+%type <Ast.param> param
+%type <Ast.value option> parm
+%type <Ast.declare list> prog_rest
+%type <Ast.pure> pure
+%type <Ast.expression list > real_param
+%type <Ast.expression list> real_singleP
+%type <(Ast._type * Ast.var) list> singleP
+%type <Ast.spec> spec
+%type <Ast.terms> term
+%type <Ast._type> type_
+%type <Ast.value> value
 %%
+
 
 ee: 
 | EOF {[]}

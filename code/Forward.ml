@@ -1,13 +1,8 @@
 open String
 open List
 open Ast
-open Printf
-open Parser
-open Lexer
 open Pretty
 open Rewriting 
-open Sys
-open Askz3
 
 let verifier_counter: int ref = ref 0;;
 
@@ -35,7 +30,7 @@ let rec string_of_list_effect eff =
   | a :: xs -> showEffect a ^ "∨" ^ string_of_list_effect xs 
 ;;
 
-let rec printSpec (s:spec ) :string = 
+let printSpec (s:spec ) :string = 
   match s with 
   PrePost (e1, e2) -> "\n[Pre: " ^ showEffect e1 ^ "]\n[Post:"^ (string_of_list_effect e2)  ^"]\n"
   ;;
@@ -49,12 +44,12 @@ let rec input_lines file =
   | _ -> failwith "Weird input_line return value"
 
 
-let rec concatEffEs (eff:effect) p es : effect = 
+let concatEffEs (eff:effect) p es : effect = 
   List.map (fun (p1, e1) -> ( (PureAnd(p1,p)), Cons (e1, es))) eff
 ;; 
  
 
-let rec concatEffEff (eff1:effect) (eff2:effect) : effect = 
+let concatEffEff (eff1:effect) (eff2:effect) : effect = 
   List.flatten (List.map (fun (p2, e2) -> concatEffEs eff1 p2 e2) eff2 )
   
 
@@ -65,7 +60,7 @@ let rec searchMeth (prog: program) (name:string) : meth option=
     [] -> None
   | x::xs -> 
     (match x with 
-      Include str -> searchMeth xs name
+      Include _ -> searchMeth xs name
     | Method (Meth (t, mn , list_parm, PrePost (pre, post), expression)) -> 
       if mn = name then Some (Meth (t, mn , list_parm, PrePost (pre, post), expression))
       else searchMeth xs name 
@@ -80,7 +75,7 @@ let rec searchMeth (prog: program) (name:string) : meth option=
 
 
 
-let rec substituteEffWithAgr (eff:effect) (realArg:expression) (formalArg: var):effect = 
+let substituteEffWithAgr (eff:effect) (realArg:expression) (formalArg: var):effect = 
   List.map (fun (pi, es) ->  (substitutePureWithAgr pi realArg formalArg, substituteESWithAgr es realArg formalArg)) eff
 ;;
 
@@ -91,7 +86,7 @@ let substituteEffWithAgrs (eff:effect) (realArgs: expression list) (formal: (_ty
                               | _-> true ) realArgs in 
                               
 
-  let formalArgs = List.map (fun (a, b) -> b) formal in 
+  let formalArgs = List.map (fun (_, b) -> b) formal in 
 
   try 
   (let pairs = List.combine  realArgs' formalArgs in 
@@ -150,12 +145,12 @@ let valueToTerm v : terms =
 
 let condToString (expr :condition) : string = 
   match expr with 
-     (Variable v, Integer n, "==")  -> v
-  |  (Variable v, Variable n, "==")  -> v
-  |  (Variable v, Integer n, "≤")  -> v
-  |  (Variable v, Integer n, "≥")  -> v
-  |  (Variable v, Integer n, ">")  -> v
-  |  (Variable v, Integer n, "<")  -> v
+     (Variable v, Integer _, "==")  -> v
+  |  (Variable v, Variable _, "==")  -> v
+  |  (Variable v, Integer _, "≤")  -> v
+  |  (Variable v, Integer _, "≥")  -> v
+  |  (Variable v, Integer _, ">")  -> v
+  |  (Variable v, Integer _, "<")  -> v
   | _ -> raise (Foo ("exception in condToString"^ string_of_cond expr))
   ;;
 
@@ -177,7 +172,7 @@ let prependEffTOEff (eff1:effect) (eff2:effect) =
 
 let rec verifier (caller:string) (list_parm:param) (expr:expression) (precondition:effect) (current:effect) (prog: program): effect = 
   match expr with 
-  | Value v -> current
+  | Value _ -> current
   | BinOp _ -> current
 
   | EventRaise (ev, p, ops) -> List.map (fun (pi, es) -> (pi, Cons (es, Event (Present (ev, p, ops) )))) current
@@ -220,7 +215,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
       ) fstSet)
     in 
     let delta: effect = List.flatten (
-      List.map ( fun (pi_c, es_c) -> 
+      List.map ( fun (pi_c, _) -> 
         let eff1 = verifier caller list_parm e1 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
         List.flatten(List.map (fun (p1, es1) -> 
           interrupt_interleave  (p1, es1) Emp
@@ -290,7 +285,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
   | LocalDel (t, v , e) ->   verifier caller ((t, v) :: list_parm) e precondition current prog      
   | Assertion eff ->   
     let his_cur =  (concatEffEff precondition current) in 
-    let (result, tree) = checkPrecondition list_parm (his_cur) eff in 
+    let (result, _) = checkPrecondition list_parm (his_cur) eff in 
     if result == true then current 
     else raise (Foo ("Assertion " ^ showEffect eff ^" does not hold!"))
 
@@ -319,7 +314,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
       (
 
         match me with 
-          Meth (t, mn , list_parm, PrePost (pre, post), expression) -> 
+          Meth (_, _ , list_parm, PrePost (pre, post), _) -> 
           
             
             let subPre = substituteEffWithAgrs pre exprList list_parm in 
@@ -328,7 +323,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
 
             let his_cur =  (concatEffEff precondition current) in 
 
-            let (result, tree) = checkPrecondition list_parm (his_cur) subPre in 
+            let (result, _) = checkPrecondition list_parm (his_cur) subPre in 
             
             if result then 
               (
@@ -356,8 +351,8 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
 
     ;;
 
-let rec extracPureFromPrecondition (eff:effect) :effect = 
-  List.map (fun (pi, es) ->  (pi, Emp))eff
+let extracPureFromPrecondition (eff:effect) :effect = 
+  List.map (fun (pi, _) ->  (pi, Emp))eff
 ;;
 
 let getGlobelDeclear (prog: program): globalV = 
@@ -369,7 +364,7 @@ let getGlobelDeclear (prog: program): globalV =
   ;;
 
 let verify_Main startTimeStamp (auguments) (prog: program): string = 
-  let (t, mn , list_parm, PrePost (pre, post), expression) = auguments in 
+  let (_, mn , list_parm, PrePost (pre, post), expression) = auguments in 
   let head = "[Verification for method: "^mn^"]\n"in 
     let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
     let postcon = "[Postcondition: "^ (string_of_list_effect ( post)) ^ "]\n" in 
@@ -386,13 +381,13 @@ let verify_Main startTimeStamp (auguments) (prog: program): string =
 let inferenceTime : float ref = ref 0.0 ;;
 
 
-let rec verification (decl:(bool * declare)) (prog: program): string = 
+let verification (decl:(bool * declare)) (prog: program): string = 
   let (isIn, dec) = decl in 
   if isIn == false then ""
   else 
   let startTimeStamp = Sys.time() in
   match dec with 
-  | Include str -> ""
+  | Include _ -> ""
   | Global _ -> ""
   | Method (Meth (t, mn , list_parm, PrePost (pre, post), expression)) -> 
     if String.compare mn "main" == 0 then verify_Main startTimeStamp (t, mn , list_parm, PrePost (pre, post), expression) prog 
@@ -442,7 +437,7 @@ let rec verification (decl:(bool * declare)) (prog: program): string =
     *)
  ;;
 
-let rec printMeth (me:meth) :string = 
+let printMeth (me:meth) :string = 
   match me with 
     Meth (t, mn , list_parm, PrePost (pre, post), expression) -> 
     let p = printType t ^ mn^ "(" ^ printParam list_parm ^ ") "^ printSpec (PrePost (pre, post))^"{"^ printExpr expression ^"}\n" in
@@ -491,8 +486,8 @@ let rec getIncludedFiles (p:(bool * declare) list) :(bool * declare) list =
       close_in_noerr ic;           (* 紧急关闭 *)
       raise e                      (* 以出错的形式退出: 文件已关闭,但通道没有写入东西 *)
   in 
-  let incl = List.filter (fun (ind, x) -> getIncl x) (p) in 
-  let getName:(string list ) = List.map (fun (ind, x) -> 
+  let incl = List.filter (fun (_, x) -> getIncl x) (p) in 
+  let getName:(string list ) = List.map (fun (_, x) -> 
                               match x with 
                               Include str -> str
                             | _ -> "") incl in
@@ -516,7 +511,7 @@ print_string (inputfile ^ "\n" ^ outputfile^"\n");*)
       (*let testprintProg = printProg (List.map (fun (_, a) -> a) raw_prog) in 
       print_string testprintProg; *)
 
-      let evn = List.map (fun (ind, a) -> a) prog in
+      let evn = List.map (fun (_, a) -> a) prog in
       let verification_re = List.fold_left (fun acc dec  -> acc ^ (verification dec evn)) "" prog  in
       (*let oc = open_out outputfile in    (* 新建或修改文件,返回通道 *)
       (*      let startTimeStamp = Sys.time() in*)
