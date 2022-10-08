@@ -1,16 +1,40 @@
 open Z3
+open Ast
 
-let rec term_to_expr ctx : Ast.term -> Expr.expr = function
-  | Const n        -> Arithmetic.Real.mk_numeral_i ctx n
+
+let rec term_to_expr ctx : Ast.terms -> Expr.expr = function
+  | Number n        -> Arithmetic.Real.mk_numeral_i ctx n
   | Var v          -> Arithmetic.Real.mk_const_s ctx v
+  (*
   | Gen i          -> Arithmetic.Real.mk_const_s ctx ("t" ^ string_of_int i ^ "'")
+  *)
   | Plus (t1, t2)  -> Arithmetic.mk_add ctx [ term_to_expr ctx t1; term_to_expr ctx t2 ]
   | Minus (t1, t2) -> Arithmetic.mk_sub ctx [ term_to_expr ctx t1; term_to_expr ctx t2 ]
 
 
-let rec pi_to_expr ctx : Ast.pi -> Expr.expr = function
-  | True                -> Boolean.mk_true ctx
-  | False               -> Boolean.mk_false ctx
+let rec pi_to_expr ctx : Ast.pure -> Expr.expr = function
+  | TRUE                -> Boolean.mk_true ctx
+  | FALSE               -> Boolean.mk_false ctx
+  | Gt (t1, t2) -> 
+      let t1 = term_to_expr ctx t1 in
+      let t2 = term_to_expr ctx t2 in
+      Arithmetic.mk_gt ctx t1 t2
+  | GtEq (t1, t2) -> 
+      let t1 = term_to_expr ctx t1 in
+      let t2 = term_to_expr ctx t2 in
+      Arithmetic.mk_ge ctx t1 t2
+  | Lt (t1, t2) -> 
+      let t1 = term_to_expr ctx t1 in
+      let t2 = term_to_expr ctx t2 in
+      Arithmetic.mk_lt ctx t1 t2
+  | LtEq (t1, t2) -> 
+      let t1 = term_to_expr ctx t1 in
+      let t2 = term_to_expr ctx t2 in
+      Arithmetic.mk_le ctx t1 t2
+  | Eq (t1, t2) -> 
+      let newP = PureAnd (GtEq(t1, t2), LtEq(t1, t2)) in 
+      pi_to_expr ctx newP
+(*
   | Atomic (op, t1, t2) -> (
       let t1 = term_to_expr ctx t1 in
       let t2 = term_to_expr ctx t2 in
@@ -20,10 +44,12 @@ let rec pi_to_expr ctx : Ast.pi -> Expr.expr = function
       | Le -> Arithmetic.mk_le ctx t1 t2
       | Gt -> Arithmetic.mk_gt ctx t1 t2
       | Ge -> Arithmetic.mk_ge ctx t1 t2)
-  | And (pi1, pi2)      -> Boolean.mk_and ctx [ pi_to_expr ctx pi1; pi_to_expr ctx pi2 ]
-  | Or (pi1, pi2)       -> Boolean.mk_or ctx [ pi_to_expr ctx pi1; pi_to_expr ctx pi2 ]
-  | Imply (pi1, pi2)    -> Boolean.mk_implies ctx (pi_to_expr ctx pi1) (pi_to_expr ctx pi2)
-  | Not pi              -> Boolean.mk_not ctx (pi_to_expr ctx pi)
+      *)
+  | PureAnd (pi1, pi2)      -> Boolean.mk_and ctx [ pi_to_expr ctx pi1; pi_to_expr ctx pi2 ]
+  | PureOr (pi1, pi2)       -> Boolean.mk_or ctx [ pi_to_expr ctx pi1; pi_to_expr ctx pi2 ]
+  (*| Imply (pi1, pi2)    -> Boolean.mk_implies ctx (pi_to_expr ctx pi1) (pi_to_expr ctx pi2)
+  *)
+  | Neg pi              -> Boolean.mk_not ctx (pi_to_expr ctx pi)
 
 
 let check pi =

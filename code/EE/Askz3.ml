@@ -4,6 +4,8 @@ open List
 open Sys
 open Unix
 open Printf
+open Checker
+
 
 exception FooAskz3 of string
 
@@ -121,6 +123,9 @@ let addAssert (str:string) :string =
 
 let counter : int ref = ref 0 ;;
 
+
+let askZ3 pi = check pi 
+(* 
 let askZ3 pi = 
   let _ = counter := !counter + 1 in 
   (*
@@ -153,7 +158,8 @@ let askZ3 pi =
       with e ->                      (* 一些不可预见的异常发生 *)
       close_in_noerr ic;           (* 紧急关闭 *)
       raise e                      (* 以出错的形式退出: 文件已关闭,但通道没有写入东西 *)
-      
+     
+*)
 ;;
                 
 

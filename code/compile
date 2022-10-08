@@ -7,8 +7,11 @@ ocamlc -c ast.mli
 ocamlc -c parser.mli
 ocamlc -c parser.ml
 ocamlc -c lexer.ml
+
+
+ocamlc -I ~/.opam/ocaml-base-compiler.4.10.2/lib/z3 -c -o Checker.cmo  EE/Checker.ml
 ocamlc -c -o Askz3.cmo EE/Askz3.ml
-#ocamlc -c -o Checker.cmo EE/Checker.ml
+
 
 ocamlc -c Askz3.cmo Pretty.ml
 ocamlc -c -o Rewriting.cmo EE/Rewriting.ml 
@@ -19,8 +22,8 @@ ocamlc -c -o trs.cmo EE/trs.ml
 ocamlc -o trs parser.cmo lexer.cmo Askz3.cmo  Pretty.cmo Rewriting.cmo trs.cmo
 ocamlc -o verify parser.cmo lexer.cmo Askz3.cmo  Pretty.cmo Rewriting.cmo Forward.cmo 
 
-rm *.cmi
-rm *.cmo
+rm -r *.cmi
+rm -r *.cmo
 rm lexer.ml
 rm parser.ml
 rm parser.mli
