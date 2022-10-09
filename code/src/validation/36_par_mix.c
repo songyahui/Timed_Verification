@@ -27,7 +27,7 @@ ens: TRUE∧(X . Y .Z .W)
 }
 
 // Should Succeed 
-void if_else_test1 () 
+void par_test1 () 
 /*
 req: TRUE∧(_^*)
 ens: TRUE ∧ ((A . B . C . D) || (X . Y . Z . W))

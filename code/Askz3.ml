@@ -121,7 +121,10 @@ let addAssert (str:string) :string =
 let counter : int ref = ref 0 ;;
 
 
-let askZ3 pi = check pi 
+let askZ3 pi = 
+  let _ = counter := !counter + 1 in 
+  check pi ;;
+  
 (* 
 let askZ3 pi = 
   let _ = counter := !counter + 1 in 

@@ -89,7 +89,7 @@ let rec showPure (p:pure):string =
   | PureOr (p1, p2) -> "("^showPure p1 ^ "∨" ^ showPure p2^")"
   | PureAnd (p1, p2) -> showPure p1 ^ "∧" ^ showPure p2
   | Neg (Eq (t1, t2)) -> "(~("^(showTerms t1) ^ "=" ^ (showTerms t2)^"))"
-  | Neg p -> "(!" ^ showPure p^")"
+  | Neg p -> "(~" ^ showPure p^")"
   ;; 
 
 
