@@ -36,7 +36,16 @@ and es = Bot
         | Par    of es * es 
         | Kleene of es
 
-
+and concrete_effect = 
+          CBot 
+        | CEmp 
+        | CEvent  of event 
+        | CGuard  of pure 
+        | CCons   of concrete_effect * concrete_effect
+        | CESOr   of concrete_effect * concrete_effect
+        | CTtimes of concrete_effect * int
+        | CPar    of concrete_effect * concrete_effect
+        | CKleene of concrete_effect 
 
 (*Arithimetic pure formulae*)
 and pure = TRUE
@@ -105,3 +114,10 @@ and declare = Include of string | Method of meth | Global of assign
 
 and program = declare list
 
+and concrete_spec = CPrePost of concrete_effect * (concrete_effect)
+
+and concrete_meth = CMeth of _type * mn * param * concrete_spec * expression
+
+and concrete_declare = CInclude of string | CMethod of concrete_meth | CGlobal of assign
+
+and concrete_prog = concrete_declare list 

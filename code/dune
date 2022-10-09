@@ -7,9 +7,10 @@
 
 
 (executables
- (names Forward trs)
+ (names Forward trs VerifyConcrete)
  (modules parser 
  lexer Pretty 
+ VerifyConcrete
  Forward trs 
  Rewriting Askz3 
  Checker Ast

@@ -18,7 +18,7 @@
 %left DISJ
 %left CONJ
 
-%start prog ee es_p 
+%start prog ee es_p concrete_prog
 %type <(Ast.entilment) list > ee
 %type <Ast.program> prog
 %type <Ast.es> es_p
@@ -46,6 +46,8 @@
 %type <Ast.terms> term
 %type <Ast._type> type_
 %type <Ast.value> value
+%type <Ast.concrete_effect> concrete_effect
+%type <Ast.concrete_prog> concrete_prog
 %%
 
 
@@ -144,6 +146,38 @@ prog:
 | me =  meth p = prog_rest {append [me] p}
 | hd = head  p = prog_rest {append [hd] p}
 | assign = assign SIMI  p = prog_rest {append [Global(assign)] p}
+
+concrete_effect:
+| EMPTY { CEmp }
+| LBrackets op=pure RBrackets m = maybeGuard {
+  match m with 
+  | None -> CEvent (Tau op)
+  | Some _ -> CGuard(op)
+}
+| str = EVENT p=parm ops= maybe_assign_list { CEvent (Present (str, p, ops)) }
+| NEGATION str = EVENT {CEvent (Absent str)}
+| LPAR r = concrete_effect RPAR { r }
+| a = concrete_effect CHOICE b = concrete_effect { CESOr(a, b) }
+| a = concrete_effect LILOR b = concrete_effect { CPar(a, b) }
+
+| LPAR r = concrete_effect SHARP t = INTE RPAR { CTtimes(r, t )}
+| UNDERLINE {CEvent (Any)}
+| a = concrete_effect CONCAT b = concrete_effect { CCons(a, b) } 
+| LPAR a = concrete_effect POWER KLEENE RPAR{CKleene a}
+
+
+
+concrete_spec: LSPEC REQUIRE e1 = concrete_effect pos =concrete_effect  RSPEC {CPrePost(e1, pos)}
+
+
+concrete_meth:t = type_   name = VAR   LPAR p = param RPAR s = concrete_spec LBRACK e = expres RBRACK {CMethod (CMeth (t , name, p, s, e))}
+
+concrete_prog_rest:
+| EOF {[]}
+| tl = concrete_prog hd = concrete_prog  {append tl hd}
+
+concrete_prog:
+| me =  concrete_meth p = concrete_prog_rest {append [me] p}
 
 morePostcondition:
 | {[]}

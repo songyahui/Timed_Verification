@@ -363,21 +363,7 @@ let getGlobelDeclear (prog: program): globalV =
   ) prog))
   ;;
 
-let verify_Main startTimeStamp (auguments) (prog: program): string = 
-  let (_, mn , list_parm, PrePost (pre, post), expression) = auguments in 
-  let head = "[Verification for method: "^mn^"]\n"in 
-    let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
-    let postcon = "[Postcondition: "^ (string_of_list_effect ( post)) ^ "]\n" in 
-    let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
-    let acc =  (verifier mn list_parm expression (pre) start prog) in 
-    let forward_time = "[Forward Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
-    let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalEffect acc) in 
-    
-    let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
-    let (result) =  printReport_concrete (getGlobelDeclear prog) acc' (List.hd post) in 
-    "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ forward_time ^ result ^ "\n" 
-  
-  ;;
+
 let inferenceTime : float ref = ref 0.0 ;;
 
 
@@ -389,9 +375,7 @@ let verification (decl:(bool * declare)) (prog: program): string =
   match dec with 
   | Include _ -> ""
   | Global _ -> ""
-  | Method (Meth (t, mn , list_parm, PrePost (pre, post), expression)) -> 
-    if String.compare mn "main" == 0 then verify_Main startTimeStamp (t, mn , list_parm, PrePost (pre, post), expression) prog 
-    else 
+  | Method (Meth (_, mn , list_parm, PrePost (pre, post), expression)) -> 
     let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
     let acc =  (verifier mn list_parm expression (pre) start prog) in 
     let forward_time_number = (Sys.time() -. startTimeStamp) *. 1000.0 in 
