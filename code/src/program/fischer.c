@@ -1,9 +1,25 @@
+x := -1; 
+cs:= 0;
+
+void proc (int i) 
+/* req: (e>0∧d>e) ∧ ((_)^*)
+   ens:  e>0∧d>e∧f0≥0∧f0≤d∧f1=e ∧ (([x=-1]? . ((Update(i))#f0) . ((ε)#f1) . ([x=i] . Critical(i) . Exit(i) + [(~(x=i))]) )^*)*/
+{
+ [x=-1] //block waiting until true
+ deadline(event["Update"(i)]{x:=i},d);
+   delay (e);
+   if (x==i) {
+     event["Critical"(i)]{cs:=(cs+1)};
+     event["Exit"(i)]{cs:=cs-1;x:=-1};
+     proc (i);
+   } else {
+    proc (i);
+  }}
 
 void process (int i, int d1, int d2)
-/* req: (d1>0∧d2>d1∧0≤t) ∧ ((_#t)^*)
-   ens: (t1≤d1∧t2=d2) ∧ (([x=-1]? . (Update(i){x := i}#t1) . (ε#t2) . (([x=i] . Critical(i){ct := (ct + 1); pc:=i} . Exit(i){ct := (ct-1); x := -1; pc:= -1} ) + [(!(x=i))])) ^*) */
+/* req: (e>0∧d>e) ∧ ((_)^*)
+   ens: (e>0∧d>e) ∧ (([cs≤1])^*) */
 {
-  delay (d2);
-  process (i, d1, d2);
+  proc(0) 
 
 }

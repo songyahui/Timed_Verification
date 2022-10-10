@@ -48,7 +48,7 @@ and concrete_effect =
         | CKleene of concrete_effect 
 
 (*Arithimetic pure formulae*)
-and pure = TRUE
+and pure =  TRUE
           | FALSE
           | Gt of terms * terms
           | Lt of terms * terms
