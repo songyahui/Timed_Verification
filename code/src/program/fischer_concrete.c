@@ -18,8 +18,10 @@ void proc (int i)
 
 void main (int i)
 /* req: (e>0∧d>e) ∧ ((_)^*)
-   ens: (e>0∧d>e) ∧ (([cs≤1])^*) */
+ens: (e>0∧d>e) ∧ (([x=1])^*)
+   ens: (e>0∧d>e) ∧ (([cs=1] + [cs=0])^*) */
 {
-  proc(0) 
+  proc(0);
+  proc(1)
 
 }

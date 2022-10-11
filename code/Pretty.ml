@@ -666,6 +666,10 @@ let string_of_head h: string =
   | Ev (ev, t) -> "(" ^ string_of_event ev ^","^showTerms t ^ ")"
   | T   t -> showTerms t ;;
 
+let string_of_concrete_head (h:concrete_head): string = 
+  match h with 
+  | CInstant ev -> string_of_event ev 
+  | CT   t -> showTerms t ;;
 
 let rec shaffleZIP li1 li2 = 
   let rec aux a li = 

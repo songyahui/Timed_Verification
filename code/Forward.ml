@@ -377,7 +377,7 @@ let verify_Main startTimeStamp (auguments) (prog: program): string =
   let acc =  (verifier mn list_parm expression (pre) start prog) in 
   let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalEffect acc) in 
   let forward_time = "[Inferring Time] " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
-  let (result) =  printReport_concrete (getGlobelDeclear prog) acc' (List.hd post) in 
+  let (result) =  printReport_concrete (getGlobelDeclear prog) list_parm acc' (List.hd post) in 
 
   "\n========== Module: "^ mn ^" ==========\n" ^
   "[Pre  Condition] " ^ showEffect pre ^"\n"^

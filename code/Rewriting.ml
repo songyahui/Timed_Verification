@@ -786,41 +786,46 @@ let rec updateValuation valuation (ops:assign list) : globalV =
 
   
 
-let rec fst_concrete (pi :pure) (es:es) : head list = 
+let rec fst_concrete (pi :pure) (es:es) : concrete_head list = 
   match es with
     Bot -> []
   | Emp -> []
-  | Event ev ->  [Instant ev]
+  | Event ev ->  [(CInstant ev)]
   | Ttimes (es1, t) -> 
     let es1' =normalES es1 pi in  
     (match  es1' with 
-    | Emp -> [T t]
-    | Event (ev) ->  [Ev(ev, t)]
+    | Emp -> [CT t]
+    | Event (ev) ->  [(CInstant ev)]
     | _ -> fst_concrete pi es1')
-  | Cons (es1 , _) ->  (*if nullable pi es1 then append (fst_concrete pi es1) (fst_concrete pi es2) else *) fst_concrete pi es1
+  | Cons (es1 , es2) ->  
+    if nullable pi es1 
+    then append (fst_concrete pi es1) (fst_concrete pi es2) 
+    else fst_concrete pi es1
   | ESOr (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2)
 
   | Par (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2 )
   | Kleene es1 -> fst_concrete pi es1
-  | Guard (pi1) -> [Instant(Tau pi1)]
+  | Guard (_) -> []
 
 ;;
 
-let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * globalV)  =
+(*
+OLD VERSION
+let rec derivitive_concrete valuation valuation (pi :pure) (es:es) (f:head) : (es * globalV)  =
   match normalES es pi with
   Bot -> (Bot, valuation) 
 | Emp -> (Bot, valuation)
 | Cons (es1 , es2) ->  
-  let (es1_der, newV) = derivitive_concrete valuation pi es1 f in 
+  let (es1_der, newV) = derivitive_concrete valuation valuation pi es1 f in 
   (Cons(es1_der, es2), newV)
 
 | ESOr (es1 , es2) -> 
-  let (es1_der, _) = derivitive_concrete valuation pi es1 f in 
-  let (es2_der, newV) = derivitive_concrete valuation pi es2 f in 
+  let (es1_der, _) = derivitive_concrete valuation valuation pi es1 f in 
+  let (es2_der, newV) = derivitive_concrete valuation valuation pi es2 f in 
   (ESOr (es1_der, es2_der), newV)
 
 
-| Kleene es1 ->   let (es1_der, newV) = derivitive_concrete valuation pi es1 f in 
+| Kleene es1 ->   let (es1_der, newV) = derivitive_concrete valuation valuation pi es1 f in 
   (Cons(es1_der, es), newV)
 
 
@@ -830,8 +835,8 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
   if entailConstrains (globalVToPure valuation) pi1 then (Emp, valuation) else (Bot, valuation)
 
 | Par (es1 , es2) -> 
-  let (es1_der, v1) = derivitive_concrete valuation pi es1 f in 
-  let (es2_der, v2) = derivitive_concrete valuation pi es2 f in 
+  let (es1_der, v1) = derivitive_concrete valuation valuation pi es1 f in 
+  let (es2_der, v2) = derivitive_concrete valuation valuation pi es2 f in 
   (match (normalES es1_der pi, normalES es2_der pi) with 
   | (Bot, Bot) -> (Par (es1, es2
   ), valuation)
@@ -858,7 +863,7 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
   | _ -> (Bot, valuation) )
   
 | Ttimes (Ttimes (es1, t1) , _ ) -> 
-  derivitive_concrete valuation pi (Ttimes (es1, t1)) f
+  derivitive_concrete valuation valuation pi (Ttimes (es1, t1)) f
 
 | Ttimes (Emp, _) -> 
 		(match f with 
@@ -872,7 +877,7 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
 		| T  _ ->  let t_new = getAfreeVar () in 
       (Ttimes (es1, Var t_new), valuation)
 		| Ev (ev, _) ->  
-		  let (es1_der, v_vew) = derivitive_concrete valuation pi es1 (Instant ev) in 
+		  let (es1_der, v_vew) = derivitive_concrete valuation valuation pi es1 (Instant ev) in 
       (match normalES es1_der pi with 
       | Emp -> (Emp, v_vew)
       | _ -> 
@@ -880,7 +885,7 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
         (Ttimes (es1_der, Var t_new), v_vew)
       )
 		
-		| Instant _ ->  let (es1_der, v_bew) = derivitive_concrete valuation pi es1 f in 
+		| Instant _ ->  let (es1_der, v_bew) = derivitive_concrete valuation valuation pi es1 f in 
         match normalES es1_der pi with 
         | Bot -> (Bot, v_bew)
         | _ -> 
@@ -893,6 +898,124 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
 
 
 ;;
+
+*)
+
+
+
+let rec derivitive_concrete valuation (pi :pure) (es:es) (f:concrete_head) : (es * pure option) list =
+  match normalES es pi with 
+  | Bot -> [(Bot, None)]
+  | Emp -> [(Bot, None)]
+  | ESOr (es1, es2) -> 
+      let derList1 = derivitive_concrete valuation pi es1 f in 
+      let derList2 = derivitive_concrete valuation pi es2 f in
+      List.append derList1 derList2
+  | Kleene es1 -> 
+      let derList = derivitive_concrete valuation pi es1 f in 
+      List.map (fun (es1_der, side1) -> (Cons (es1_der, es), side1)) derList
+      
+  | Guard (pi1) -> 
+    if entailConstrains (globalVToPure valuation) pi1 then [(Emp, None)]
+    else [(es, None)] 
+
+  | Event (Any) -> [(Emp, None)]
+
+  | Event ev1 -> 
+		(match f with 
+		| CT  _ -> [(Bot, None)]
+		| CInstant ev -> if entailEvent ev ev1 then [(Emp, None)] else [(Bot, None)]
+		)
+  
+
+  | Cons ((Ttimes(es1', t)) , es2) ->  
+    let es1 = (Ttimes(es1', t)) in 
+    let derList1 = derivitive_concrete valuation pi es1 f in (*  *)
+    let longer = List.map (fun (es1_der, side1) -> (Cons(es1_der, es2), side1)) derList1 in 
+    if nullable pi es1
+      then 
+        let temp = derivitive_concrete valuation pi (Cons (es1', es2))  f in 
+        let shorter = List.map (fun (a1, a2) -> 
+        (a1, Some (optionPureAndHalf  a2 (Eq(t, Number 0))))
+        ) temp in
+        List.append longer shorter
+      else longer
+
+  | Cons (es1 , es2) ->  
+    let derList1 = derivitive_concrete valuation pi es1 f in (*  *)
+    let longer = List.map (fun (es1_der, side1) -> (Cons(es1_der, es2), side1)) derList1 in 
+    let derList2  = derivitive_concrete valuation pi es2 f in  
+    if nullable pi es1
+      then 
+        let shorter = derList2 in
+        List.append longer shorter
+      else longer
+
+
+
+  | Par (es1, es2) ->
+      let helper esIn = 
+        let  derList  = derivitive_concrete valuation pi esIn f in 
+        List.map (fun (der, side) -> 
+          match normalES der pi with 
+          | Bot -> (esIn, None)
+          | _ -> (der, side)
+        )derList
+      in 
+      let derList1 = helper es1 in 
+      let derList2 = helper es2 in 
+      List.flatten(
+        List.map (fun (esIn1, sideIn1) -> 
+          List.map (fun (esIn2, sideIn2) -> 
+            (Par(esIn1, esIn2), optionPureAnd sideIn1 sideIn2)
+            )derList2
+        )derList1
+      )
+
+      
+
+
+  | Ttimes (Ttimes (es1, t1) , t2 ) -> 
+    let eff_der = derivitive_concrete valuation pi (Ttimes (es1, t1)) f in 
+    List.map (fun (es1_der, side1)->
+      if stricTcompareTerm t1 t2 then (es1_der, side1)
+      else 
+      (es1_der, Some (optionPureAndHalf side1 (Eq(t1, t2))))
+    )eff_der
+
+  | Ttimes (Emp, tIn) -> 
+		(match f with 
+		| CT  t -> 
+      if stricTcompareTerm t tIn then [(Emp, None)]
+      else [(Emp,  Some (Eq(t , tIn)))]
+		| CInstant _ -> [(Bot, None)]
+		)
+
+	| Ttimes (Event ev1, tIn) -> 
+		(match f with 
+		| CT  t ->  let t_new = getAfreeVar () in 
+      [(Ttimes (Event ev1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))]
+
+		| CInstant ev ->  if entailEvent ev ev1 then [(Ttimes (Emp, tIn), None)] else [(Bot, None)]
+		)
+	
+	| Ttimes (es1, tIn) -> 
+		(match f with 
+		| CT  t ->  let t_new = getAfreeVar () in 
+      [(Ttimes (es1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))]
+
+		| CInstant _ ->  
+        let eff_Der1  = derivitive_concrete valuation pi es1 f in 
+        List.map (fun (es1_der, side1) -> 
+          match normalES es1_der pi with 
+          | Bot -> (Bot, Some (Eq (tIn, Number 0)))
+          | _ -> (Ttimes (es1_der, tIn), side1)
+      ) eff_Der1
+
+		)
+
+;;
+
 let compareHead h1 h2 : bool =
   match (h1, h2) with 
   | (Instant ev1, Instant ev2) -> compareEvent ev1 ev2 
@@ -912,14 +1035,13 @@ let rec normalFstSet (li : head list ): (head list) =
   | x ::xs -> if existHead x xs then normalFstSet xs else x :: (normalFstSet xs)
   ;;
 
-let updateState valuation  (f:head)  : globalV = 
+let updateState valuation  (f:concrete_head)  : globalV = 
   match f with 
-  | Instant (Present(_, _, ops)) 
-  | Ev (Present(_, _, ops), _) -> updateValuation valuation ops
+  | CInstant (Present(_, _, ops)) -> updateValuation valuation ops
   | _ -> valuation
   ;;
 
-let rec containment_concrete valuation (effL:effect) (effR:effect) delta: (binary_tree * bool) = 
+let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:effect) delta: (binary_tree * bool) = 
 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
@@ -930,40 +1052,84 @@ let rec containment_concrete valuation (effL:effect) (effR:effect) delta: (binar
 
   else 
     let (finalTress, finalRe) = List.fold_left (fun (accT, accR) (pL, esL) -> 
-      let (subtree, re) = List.fold_left (fun (accInT, accInR) (pR, esR) -> 
+      let rec iterateRHS (accInT, accInR) li = 
+        match li with
+        | [] -> (accInT, accInR) 
+        | (pR, esR) :: lirest -> 
         let (subtreeIn, reIn) = 
+
           (*if askZ3 pL == false then (Node (showEntail ^ " [PURE ER LHS] ", []), false) else 
           *)
-          if reoccur (esL) (esR) delta then 
-            (Node (showEntail ^ showRule REOCCUR,[] ), true)
-             
+          if nullable pL esL  = true &&  (nullable  (PureAnd(pL, pR)) esR  = false) then   
+            ([Node (showEntail ^ showRule DISPROVE,[] )], false)
+        
+          else if reoccur (esL) (esR) delta (*!delta*) then 
+   
+            ([Node (showEntail ^ " [REOCCUR]",[] )], true)
+
           else 
-            let fstSet = normalFstSet (fst_concrete pL esL)  in
-            (*print_string ((List.fold_left (fun acc a -> acc ^ "," ^ string_of_head a) "" fstSet) ^"\n");
-            *)
-            if List.length (fstSet) == 0 then (Node (showEntail ^ " [NO FST1]",[] ), true)
+            let fstSet = fst_concrete pL esL  in
+            if List.length (fstSet) == 0 then 
+              (* SYH to compute weather rhs is overlapping side 
+              if overlapterms pR (normalPure side) == false then ([Node (showEntail ^ " [PROVE]",[] )], true)
+              else 
+              *)
+                (if entailConstrains (PureAnd (pL, side)) (filterOut side pR list_Arg) then 
+                  
+                  ([Node (showEntail ^ " [PROVE]", [] )], true)
+                else 
+                  (*print_string(showPure (PureAnd (pL, side)) ^ "==>" ^ showPure (filterOut side pR list_Arg) ^"\n"); *)
+                  ([Node (showEntail ^ " [PURE ER] ", [])], false)
+                )
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
               print_string ("Look Inside!!!!"^ "\n");
-              print_string(string_of_head f^"\n");
+              print_string(string_of_concrete_head f^"\n");
 
               print_string(string_of_globalV valuation^"\n");
               let valuation' = updateState valuation f in 
               print_string(string_of_globalV valuation' ^"\n");
 
-              let (derL, _) = derivitive_concrete valuation pL esL f  in 
-              let (derR, _) = derivitive_concrete valuation pR esR f  in 
-              let delta' = ((esL, esR) :: delta) in 
-              let (subtree, result) = containment_concrete valuation' [(pL, derL)] [(pR, derR)] delta' in 
-              (List.append accT [subtree], accR && result) 
+
+              let esLDer = derivitive_concrete valuation pL esL f  in (* (derL, sideL) *)
+              let esRDer = derivitive_concrete valuation pR esR f  in (*  (derR, sideR) *)
+
+              let rec iteratorDerRHS (accDerT, accDerR) rhsDerList lhsDer : (binary_tree list * bool) = 
+                let (derL, sideL) = lhsDer in 
+                match rhsDerList with 
+                | [] -> (accDerT, accDerR)
+                | (derR, sideR) :: rhsDerListrest -> 
+                  let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
+                  let delta' =  ((esL, esR) :: delta) in 
+                  let (subtreeDer, resultDer) = containment_concrete valuation' list_Arg  side' [(pL, derL)] [(pR, derR)] delta' in 
+                  if resultDer == true then ([subtreeDer], resultDer)
+                  else iteratorDerRHS (List.append accDerT [subtreeDer], accDerR|| resultDer) rhsDerListrest lhsDer 
+              in 
+
+              let rec iteratorDerLHS (accDerT, accDerR) lhsDerList: (binary_tree list * bool) = 
+                match lhsDerList with 
+                | [] -> (accDerT, accDerR)
+                | lhsDer :: lhsDerListrest -> 
+                  let (subtreeDer, resultDer) = iteratorDerRHS ([], false) esRDer lhsDer in 
+                  if resultDer == false then (subtreeDer, resultDer)
+                  else iteratorDerLHS (List.append accDerT subtreeDer, accDerR && resultDer) lhsDerListrest 
+              in 
+              let (subtree, result) = iteratorDerLHS ([], true) (List.filter (fun (ees, _) -> isBot ees pL == false) esLDer) in 
+
+              (List.append accT subtree, accR && result) 
+
+
             ) ([], true) fstSet in 
-            (Node (showEntail ^ showRule UNFOLD, subtrees ), re)
+            ([Node(showEntailmentEff [(pL, esL)] [(pR, esR)] ^ "  ***> " ^ (showPure (normalPure side)) ^ showRule UNFOLD , subtrees)], re)
 
           in 
-        (subtreeIn::accInT, reIn || accInR)  
-      ) ([], false) normalFormR in 
-      (List.append  accT subtree, re && accR)
+        if reIn == true then (subtreeIn, reIn) 
+        else iterateRHS (List.append accInT subtreeIn , reIn || accInR) lirest 
+      in 
+      let (subtree, re) = iterateRHS ([], false) (normalFormR) in 
+            
 
+      (List.append accT subtree , re && accR)
     ) ([], true) normalFormL in 
     if List.length (finalTress) == 1 then 
       (List.hd finalTress, finalRe)
@@ -972,19 +1138,22 @@ let rec containment_concrete valuation (effL:effect) (effR:effect) delta: (binar
 
 ;;
 
-let printReportHelper_concrete valuation lhs rhs : (binary_tree * bool) = 
-  
+let printReportHelper_concrete valuation (list_parm:param) lhs rhs : (binary_tree * bool) = 
+  let renamedLHS = reNameEffect list_parm lhs "l"  in  
+  let renamedRHS = reNameEffect list_parm rhs "r"  in 
+  let list_Arg = List.map (fun (_, a) -> a) list_parm in 
+  containment_concrete  valuation list_Arg (Ast.TRUE) (renamedLHS) (renamedRHS)  []  
 
-  containment_concrete valuation (lhs) (rhs) [] 
+
 
   ;;
 
-let printReport_concrete (valuation: globalV) (lhs:effect) (rhs:effect) :string =
+let printReport_concrete (valuation: globalV) (list_parm:param) (lhs:effect) (rhs:effect) :string =
   print_string ("Initial State!!!!");
   print_string(string_of_globalV valuation^"\n");
   let _ = initialise () in 
   let startTimeStamp = Sys.time() in
-  let (tree, re) =  printReportHelper_concrete valuation lhs rhs  in
+  let (tree, re) =  printReportHelper_concrete valuation list_parm lhs rhs  in
   let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
   let result = printTree ~line_prefix:"* " ~get_name ~get_children tree in
   let buffur = ( "===================================="^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n") ^verification_time^" \n\n"^ result)
@@ -993,7 +1162,7 @@ let printReport_concrete (valuation: globalV) (lhs:effect) (rhs:effect) :string 
 
   (*
     print_string (showES es^"\n");
-  print_string (showES (ESOr (derivitive_concrete pi es1 f, derivitive_concrete pi es2 f))^"\n");
+  print_string (showES (ESOr (derivitive_concrete valuation pi es1 f, derivitive_concrete valuation pi es2 f))^"\n");
 
   raise (Foo (string_of_globalV (!valuationTRS)));
 
