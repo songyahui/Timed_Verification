@@ -23,10 +23,7 @@ and head =
       | Ev    of (event * terms) 
       | T     of terms 
 
-and concrete_head = 
-      | CInstant of event
-      | CT of terms
-      
+
 
 (*E vent sequence *)
 and es = Bot 

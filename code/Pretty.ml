@@ -17,11 +17,7 @@ let headToEs (h:head) : es =
   | T  t -> Ttimes (Emp, t)
 ;;
 
-let concrete_headToEs (h:concrete_head) : es =
-  match h with 
-  | CInstant ev -> Event ev 
-  | CT  t -> Ttimes (Emp, t)
-;;
+
 
 (*used to generate the free veriables, for subsititution*)
 let freeVar = ["t1"; "t2"; "t3"; "t4";"t5";"t6";"t7";"t8";"t9";"t10"
@@ -672,10 +668,6 @@ let string_of_head h: string =
   | Ev (ev, t) -> "(" ^ string_of_event ev ^","^showTerms t ^ ")"
   | T   t -> showTerms t ;;
 
-let string_of_concrete_head (h:concrete_head): string = 
-  match h with 
-  | CInstant ev -> string_of_event ev 
-  | CT   t -> showTerms t ;;
 
 let rec shaffleZIP li1 li2 = 
   let rec aux a li = 
