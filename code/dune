@@ -19,7 +19,7 @@
 
 
 (env
- (dev
-  (flags (:standard))))
+  (dev
+    (flags (:standard -w -21))))
 
   

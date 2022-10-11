@@ -913,7 +913,7 @@ let rec normalES_concrete (es:es) (pi:pure) : es =
 
 
 and fst_concrete (pi :pure) (es:es) : concrete_head list = 
-  match normalES_concrete es pi with
+  match normalES es pi with
     Bot -> []
   | Emp -> []
   | Event ev ->  [(CInstant ev)]
@@ -1042,7 +1042,8 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:concrete_head) : (es
       List.map (fun (es1_der, side1) -> (Cons (es1_der, es), side1)) derList
       
   | Guard (pi1, es1) -> 
-    if entailConstrains (globalVToPure valuation) pi1 then [(es1, None)]
+    if entailConstrains (globalVToPure valuation) pi1 
+    then derivitive_concrete valuation pi es1 f
     else [(es, None)] 
 
   | Event (Any) -> [(Emp, None)]
@@ -1183,12 +1184,16 @@ let updateState valuation  (f:concrete_head)  : globalV =
 
 
 let rec normalESUnifyTimeConcrete (es:es) (pi:pure) : (es * pure option ) = 
-  let es' = normalES_concrete es pi in 
+  let es' = normalES es pi in 
+
   match es' with
   | Ttimes (Ttimes (es1, t1) , t2 ) -> 
     (*print_string (showES es ^"\n"); *)
     if stricTcompareTerm t1 t2 then (Ttimes (es1, t1), None)
     else (Ttimes (es1, t1), Some (Eq(t1, t2))) 
+  | Ttimes(es1, t1) -> 
+    let (es1', pi1) =   normalESUnifyTimeConcrete es1 pi in   
+    (Ttimes(es1', t1), pi1)
   | Cons (es1, es2) -> 
     let (es1', pi1) =   normalESUnifyTimeConcrete es1 pi in   
     let (es2', pi2) =   normalESUnifyTimeConcrete es2 pi in   
@@ -1200,7 +1205,16 @@ let rec normalESUnifyTimeConcrete (es:es) (pi:pure) : (es * pure option ) =
   | Kleene (es1) ->
     let (es1', pi1) =   normalESUnifyTimeConcrete es1 pi in   
     (Kleene (es1'),  pi1)
-  | _ -> (es', None)
+  | Par (es1, es2) -> 
+    let (es1', pi1) =   normalESUnifyTimeConcrete es1 pi in   
+    let (es2', pi2) =   normalESUnifyTimeConcrete es2 pi in   
+    (Par(es1', es2'), optionPureAnd pi1 pi2)
+  | Guard (p1, es1) -> 
+    let (es1', pi1) =   normalESUnifyTimeConcrete es1 pi in   
+    (Guard(p1, es1'), pi1)
+  | Bot|Emp|Event _ -> (es', None)
+
+  (*| _ -> (es', None) *)
   ;;
 
 let normalConcreteEffect (eff:effect) :effect =
@@ -1215,6 +1229,7 @@ let normalConcreteEffect (eff:effect) :effect =
       (  normalPure    (optionPureAndHalf  pi' p), es')) noPureOr) in 
       
       (*normalPure p, normalES_concrete es p) noPureOr )in *)
+  
   if List.length final == 0 then (
     (*print_string (showEffect eff ^ "\n");raise (Foo ("lallalal")); *)
     [(FALSE, Bot)]
@@ -1233,7 +1248,10 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
   let normalFormL = normalConcreteEffect effL in 
   let normalFormR = normalConcreteEffect effR in
   let showEntail  = showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
-  print_string (showEntail^"\n");
+  
+  print_string (showEntail ^"\n");
+
+  
   if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
     (Node (showEntail ^ showRule DISPROVE,[] ), false)
 

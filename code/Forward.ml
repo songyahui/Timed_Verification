@@ -321,9 +321,9 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
             let subPost = substituteEffWithAgrs (List.hd post) exprList list_parm in
 
 
-            let new_var = verifier_getAfreeVar() in 
+            (*let new_var = verifier_getAfreeVar() in 
             let subPost' = reNameEffect list_parm subPost new_var in 
-            
+            *)
 
             let his_cur =  (concatEffEff precondition current) in 
 
@@ -333,7 +333,7 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
               (
                 (*             print_string ((printTree ~line_prefix:"* " ~get_name ~get_children tree) ^ "\n\n");*)
                 (*print_string ("[Precondition holds] when " ^caller ^" is calling " ^ mn ^"\n\n");*)
-              let newState = ( (concatEffEff ( current) ( subPost'))) in
+              let newState = ( (concatEffEff ( current) ( subPost))) in
               newState)
             else 
             
@@ -381,7 +381,9 @@ let verify_Main startTimeStamp (auguments) (prog: program): string =
   let (_, mn , list_parm, PrePost (pre, post), expression) = auguments in 
   let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
   let acc =  (verifier mn list_parm expression (pre) start prog) in 
+  
   let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalConcreteEffect acc) in 
+
   let forward_time = "[Inferring Time] " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
   let (result) =  printReport_concrete (getGlobelDeclear prog) list_parm acc' (List.hd post) in 
 
