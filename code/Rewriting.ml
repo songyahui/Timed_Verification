@@ -474,7 +474,6 @@ let rec gatherTermsFromPure (p:pure) : string list =
   in  helper t1List
 ;;*)
 
-let delta : hypotheses ref = ref []
 
 let rec gatherTTermsFromES (es:es) : terms list = 
   match es with
@@ -749,23 +748,33 @@ let globalVToPure (v:globalV) : pure =
   helper pureList
 ;;
 
-let rec updateOneValue (str, terms) screenshot: globalV = 
-  match screenshot with 
+let rec retriveVar valuation str : int = 
+  match valuation with 
   | [] -> raise (Foo (str ^" does not exist in current V "))
-  | (s, t) :: rest -> if String.compare s str == 0 then (str, terms):: rest 
+  | (s, t) ::rest -> if String.compare s str == 0 then t 
+  else retriveVar rest str
+  ;;
+
+let rec retriveAndCompute valuation terms : int = 
+  match terms with 
+  | Var str -> retriveVar valuation str
+  | Number n -> n 
+  | Plus (t1, t2) -> (retriveAndCompute valuation t1) + (retriveAndCompute valuation t2)
+  | Minus (t1, t2) -> (retriveAndCompute valuation t1) - (retriveAndCompute valuation t2)
+
+
+let rec updateOneValue ((str, terms)) valuation: globalV = 
+  match valuation with 
+  | [] -> raise (Foo (str ^" does not exist in current V "))
+  | (s, t) :: rest -> if String.compare s str == 0 
+    then (str, retriveAndCompute valuation terms):: rest 
     else (s, t) :: (updateOneValue (str, terms) rest)
 
 ;;
 
-let termToInt t : int = 
-  match  t with 
-  | Number n -> n 
-  | _ -> raise (Foo "error termToInt")
-;;
 
 
-
-let rec updateValuation valuation (ops:globalV) : globalV = 
+let rec updateValuation valuation (ops:assign list) : globalV = 
   match ops with
   | [] -> valuation
   | (str, terms):: rest -> 
@@ -844,7 +853,7 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * global
     then 
    
     (* print_string (string_of_event ((Present(s, v, o))) ^" "^ string_of_event (Present(str, va, ops))  ^" "^ string_of_bool (compareEvent ((Present(s, v, o))) (Present(str, va, ops)) ) ^"\n"); *)
-    (Emp, updateValuation valuation (List.map (fun (s, t) -> (s, termToInt t)) ops) )
+    (Emp, updateValuation valuation ops )
     else (Bot, valuation) 
   | _ -> (Bot, valuation) )
   
@@ -903,11 +912,18 @@ let rec normalFstSet (li : head list ): (head list) =
   | x ::xs -> if existHead x xs then normalFstSet xs else x :: (normalFstSet xs)
   ;;
 
+let updateState valuation  (f:head)  : globalV = 
+  match f with 
+  | Instant (Present(_, _, ops)) 
+  | Ev (Present(_, _, ops), _) -> updateValuation valuation ops
+  | _ -> valuation
+  ;;
 
-let rec containment_concrete valuation (effL:effect) (effR:effect) : (binary_tree * bool) = 
+let rec containment_concrete valuation (effL:effect) (effR:effect) delta: (binary_tree * bool) = 
+
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
-  let showEntail  = (*(string_of_globalV valuation ^"\n") ^ " -- "^ *) showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
+  let showEntail  = showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
   (*  print_string (showEntail^"\n");*)
   if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
     (Node (showEntail ^ showRule DISPROVE,[] ), false)
@@ -918,7 +934,7 @@ let rec containment_concrete valuation (effL:effect) (effR:effect) : (binary_tre
         let (subtreeIn, reIn) = 
           (*if askZ3 pL == false then (Node (showEntail ^ " [PURE ER LHS] ", []), false) else 
           *)
-          if reoccur (esL) (esR) !delta then 
+          if reoccur (esL) (esR) delta then 
             (Node (showEntail ^ showRule REOCCUR,[] ), true)
              
           else 
@@ -928,11 +944,18 @@ let rec containment_concrete valuation (effL:effect) (effR:effect) : (binary_tre
             if List.length (fstSet) == 0 then (Node (showEntail ^ " [NO FST1]",[] ), true)
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
-            let (derL, valuation') = derivitive_concrete valuation pL esL f  in 
-            let (derR, _) = derivitive_concrete valuation' pR esR f  in 
-            let _ = delta := ((esL, esR) :: !delta) in 
-            let (subtree, result) = containment_concrete valuation' [(pL, derL)] [(pR, derR)]  in 
-            (List.append accT [subtree], accR && result) 
+              print_string ("Look Inside!!!!"^ "\n");
+              print_string(string_of_head f^"\n");
+
+              print_string(string_of_globalV valuation^"\n");
+              let valuation' = updateState valuation f in 
+              print_string(string_of_globalV valuation' ^"\n");
+
+              let (derL, _) = derivitive_concrete valuation pL esL f  in 
+              let (derR, _) = derivitive_concrete valuation pR esR f  in 
+              let delta' = ((esL, esR) :: delta) in 
+              let (subtree, result) = containment_concrete valuation' [(pL, derL)] [(pR, derR)] delta' in 
+              (List.append accT [subtree], accR && result) 
             ) ([], true) fstSet in 
             (Node (showEntail ^ showRule UNFOLD, subtrees ), re)
 
@@ -951,14 +974,14 @@ let rec containment_concrete valuation (effL:effect) (effR:effect) : (binary_tre
 
 let printReportHelper_concrete valuation lhs rhs : (binary_tree * bool) = 
   
-  let a : hypotheses ref = ref [] in 
-  let _ = (delta: hypotheses ref) := !a in 
 
-  containment_concrete valuation (lhs) (rhs)    
+  containment_concrete valuation (lhs) (rhs) [] 
 
   ;;
 
 let printReport_concrete (valuation: globalV) (lhs:effect) (rhs:effect) :string =
+  print_string ("Initial State!!!!");
+  print_string(string_of_globalV valuation^"\n");
   let _ = initialise () in 
   let startTimeStamp = Sys.time() in
   let (tree, re) =  printReportHelper_concrete valuation lhs rhs  in

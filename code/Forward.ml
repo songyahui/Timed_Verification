@@ -355,6 +355,11 @@ let extracPureFromPrecondition (eff:effect) :effect =
   List.map (fun (pi, _) ->  (pi, Emp))eff
 ;;
 
+let termToInt (t:terms) = 
+  match t with 
+  | Number n -> n 
+  | _ -> raise (Foo "termToInt")
+
 let getGlobelDeclear (prog: program): globalV = 
   List.map (fun (str, t) -> (str, termToInt t)) (List.flatten (List.map (fun a -> 
     match a with 
@@ -368,17 +373,18 @@ let inferenceTime : float ref = ref 0.0 ;;
 
 let verify_Main startTimeStamp (auguments) (prog: program): string = 
   let (_, mn , list_parm, PrePost (pre, post), expression) = auguments in 
-  let head = "[Verification for method: "^mn^"]\n"in 
-    let precon = "[Precondition: "^(showEffect ( pre)) ^ "]\n" in
-    let postcon = "[Postcondition: "^ (string_of_list_effect ( post)) ^ "]\n" in 
-    let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
-    let acc =  (verifier mn list_parm expression (pre) start prog) in 
-    let forward_time = "[Forward Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
-    let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalEffect acc) in 
-    let accumulated = "[Real Effect: " ^(showEffect acc') ^ "]\n" in 
-    let (result) =  printReport_concrete (getGlobelDeclear prog) acc' (List.hd post) in 
-    "=======================\n"^ head ^ precon ^ accumulated ^ postcon ^ forward_time ^ result ^ "\n" 
-  
+  let start = List.map (fun (pi, _)-> (pi, Emp)) pre in 
+  let acc =  (verifier mn list_parm expression (pre) start prog) in 
+  let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalEffect acc) in 
+  let forward_time = "[Inferring Time] " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
+  let (result) =  printReport_concrete (getGlobelDeclear prog) acc' (List.hd post) in 
+
+  "\n========== Module: "^ mn ^" ==========\n" ^
+  "[Pre  Condition] " ^ showEffect pre ^"\n"^
+  "[Post Condition] " ^ string_of_list_effect post ^"\n"^
+  "[Final  Effects] " ^ showEffect ( acc') ^"\n"^
+  forward_time ^ result
+
   ;;
 
 
