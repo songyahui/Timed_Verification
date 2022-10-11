@@ -98,7 +98,7 @@ raise (Foo (showES es^" par 4"));
 *))
 
 
-  | Guard (pi1) -> Guard (pi1) 
+  | Guard (pi1, es1) -> Guard (pi1, normalES es1 pi) 
   | Cons (Cons (esIn1, esIn2), es2)-> normalES (Cons (esIn1, Cons (esIn2, es2))) pi 
   | Cons (es1, es2) -> 
       let normalES1 = normalES es1 pi  in
@@ -249,7 +249,7 @@ let rec fst (pi :pure) (es:es) : head list =
 
   | Par (es1, es2) -> append (fst pi es1 ) (fst pi es2 )
   | Kleene es1 -> fst pi es1
-  | Guard (pi1) -> [Instant(Tau pi1); Instant (Tau (Neg pi1))]
+  | Guard (pi1, _) -> [Instant(Tau pi1); Instant (Tau (Neg pi1))]
 
 ;;
 
@@ -324,9 +324,9 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option) list =
             )derList2
         )derList1
       )
-  | Guard (pi1) -> 
+  | Guard (pi1, es1) -> 
     (match f with 
-    | Instant (Tau pi2) -> if entailConstrains pi2 pi1 then [(Emp, None)] else [(es, None)]
+    | Instant (Tau pi2) -> if entailConstrains pi2 pi1 then [(es1, None)] else [(es, None)]
     | _ -> [(es, None)]
     )
       
@@ -797,6 +797,7 @@ let rec fst_concrete (pi :pure) (es:es) : concrete_head list =
     | Emp -> [CT t]
     | Event (ev) ->  [(CInstant ev)]
     | _ -> fst_concrete pi es1')
+  | Guard (_ , es2) ->   (fst_concrete pi es2) 
   | Cons (es1 , es2) ->  
     if nullable pi es1 
     then append (fst_concrete pi es1) (fst_concrete pi es2) 
@@ -805,7 +806,6 @@ let rec fst_concrete (pi :pure) (es:es) : concrete_head list =
 
   | Par (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2 )
   | Kleene es1 -> fst_concrete pi es1
-  | Guard (_) -> []
 
 ;;
 
@@ -915,11 +915,15 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:concrete_head) : (es
       let derList = derivitive_concrete valuation pi es1 f in 
       List.map (fun (es1_der, side1) -> (Cons (es1_der, es), side1)) derList
       
-  | Guard (pi1) -> 
-    if entailConstrains (globalVToPure valuation) pi1 then [(Emp, None)]
+  | Guard (pi1, es1) -> 
+    if entailConstrains (globalVToPure valuation) pi1 then [(es1, None)]
     else [(es, None)] 
 
   | Event (Any) -> [(Emp, None)]
+  | Event (Tau (pi1)) -> 
+    if entailConstrains (globalVToPure valuation) pi1 then [(Emp, None)]
+    else [(Bot, None)] 
+
 
   | Event ev1 -> 
 		(match f with 
@@ -1042,7 +1046,10 @@ let updateState valuation  (f:concrete_head)  : globalV =
   ;;
 
 let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:effect) delta: (binary_tree * bool) = 
-
+  (*
+  print_string ("Next State: \n");
+  print_string(string_of_globalV valuation^"\n");
+*)
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
   let showEntail  = showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in

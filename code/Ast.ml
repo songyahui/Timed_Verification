@@ -32,7 +32,7 @@ and concrete_head =
 and es = Bot 
         | Emp 
         | Event  of event 
-        | Guard  of pure 
+        | Guard  of pure * es 
         | Cons   of es * es
         | ESOr   of es * es
         | Ttimes of es * terms

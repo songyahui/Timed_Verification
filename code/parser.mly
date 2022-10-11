@@ -31,7 +31,7 @@
 %type <Ast.expression> expres
 %type <Ast.expression> expres_help
 %type <Ast.declare> head
-%type <string option> maybeGuard
+%type <Ast.es option> maybeGuard
 %type <Ast.assign list> maybe_assign_list
 %type <Ast.declare> meth
 %type <Ast.effect list> morePostcondition
@@ -214,14 +214,14 @@ pure:
 
 maybeGuard :
 | {None}
-| GUARD {Some "a"}
+| GUARD ex= es {Some ex}
 
 es:
 | EMPTY { Emp }
 | LBrackets op=pure RBrackets m = maybeGuard {
   match m with 
   | None -> Event (Tau op)
-  | Some _ -> Guard(op)
+  | Some ex -> Guard(op, ex)
 }
 | str = EVENT p=parm ops= maybe_assign_list { Event (Present (str, p, ops)) }
 | NEGATION str = EVENT {Event (Absent str)}

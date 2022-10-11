@@ -27,7 +27,7 @@ let rec string_of_list_effect eff =
   match eff with 
   | [] -> ""
   | [a] -> showEffect a
-  | a :: xs -> showEffect a ^ "∨" ^ string_of_list_effect xs 
+  | a :: xs -> showEffect a ^ " ∧ " ^ string_of_list_effect xs 
 ;;
 
 let printSpec (s:spec ) :string = 
@@ -342,8 +342,10 @@ let rec verifier (caller:string) (list_parm:param) (expr:expression) (preconditi
     | GuardE (pi, e1) -> 
       List.flatten (
         List.map ( fun (pi_c, es_c) -> 
-        let eff1 = verifier caller list_parm e1 (concatEffEff precondition current) [(pi_c, Guard pi)] prog in 
-        prependESToEFF es_c eff1
+
+        let eff1 = verifier caller list_parm e1 (concatEffEff precondition current) [(pi_c, Emp)] prog in 
+        let eff1' = List.map (fun (piIn, esIn)-> (piIn, Guard(pi, esIn))) eff1 in
+        prependESToEFF es_c eff1'
 
         ) current
       )

@@ -115,7 +115,7 @@ let rec showES (es:es):string =
     Bot -> "⊥"
   | Emp -> "ε"
   | Event (ev) -> string_of_event ev 
-  | Guard (pi) ->  "[" ^ showPure pi ^ "]?" 
+  | Guard (pi, es1) ->  "[" ^ showPure pi ^ "]?"  ^ (showES es1)
   | Cons (es1, es2) -> (showES es1) ^ " . " ^ (showES es2)
   | ESOr (es1, es2) ->  "("^(showES es1) ^ " + " ^ (showES es2)^")"
   | Ttimes (es, t) -> "(("^(showES es) ^ ")#" ^ (showTerms t)^")"
@@ -339,7 +339,7 @@ let rec substituteESWithAgr (es:es) (realArg:expression) (formalArg: var):es =
   | Event (Tau pi)  -> Event (Tau (substitutePureWithAgr pi realArg formalArg))
   | Event (Present (str, v, ops)) -> Event (Present (str, v, (List.map (fun (fff, t)-> (fff, substituteTermWithAgr t realArg formalArg)) ops)))
   | Event _  -> es
-  | Guard (pi) -> Guard (substitutePureWithAgr pi realArg formalArg)
+  | Guard (pi, es1) -> Guard (substitutePureWithAgr pi realArg formalArg, substituteESWithAgr es1 realArg formalArg)
   | Cons (es1, es2) ->  Cons (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | ESOr (es1, es2) ->  ESOr (substituteESWithAgr es1 realArg formalArg, substituteESWithAgr es2 realArg formalArg)
   | Ttimes (esIn, t) -> Ttimes (substituteESWithAgr esIn realArg formalArg, substituteTermWithAgr t realArg formalArg)
@@ -576,7 +576,7 @@ let rec aCompareES es1 es2 =
   | (Emp, Emp) -> true
   | (Event ev1, Event ev2) -> 
     compareEvent ev1 ev2 
-  | (Guard pi1, Guard pi2) -> comparePure pi1 pi2
+  | (Guard (pi1, es11), Guard (pi2, es22)) -> comparePure pi1 pi2 && aCompareES es11 es22
   | (Cons (es1L, es1R), Cons (es2L, es2R)) -> 
     if (aCompareES es1L es2L) == false then false
     else (aCompareES es1R es2R)
