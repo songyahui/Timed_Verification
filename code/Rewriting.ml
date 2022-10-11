@@ -791,7 +791,7 @@ let rec fst_concrete (pi :pure) (es:es) : head list =
     let es1' = normalES es1 pi in  
     (match  es1' with 
     | Emp -> [T t]
-    | Event (ev) ->  [Ev(ev, t)]
+    | Event (ev) -> [ Ev(ev, t) ]
     | _ -> List.map (fun h -> 
       let t_new = getAfreeVar () in 
       match h with 
@@ -809,6 +809,133 @@ let rec fst_concrete (pi :pure) (es:es) : head list =
 ;;
 
 
+let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * pure option) list =
+  match normalES es pi with 
+  | Bot -> [(Bot, None)]
+  | Emp -> [(Bot, None)]
+  | Cons ((Ttimes(es1', t)) , es2) ->  
+    let es1 = (Ttimes(es1', t)) in 
+    let derList1 = derivitive_concrete valuation pi es1 f in (*  *)
+    let longer = List.map (fun (es1_der, side1) -> (Cons(es1_der, es2), side1)) derList1 in 
+    if nullable pi es1
+      then 
+        let temp = derivitive_concrete valuation pi (Cons (es1', es2))  f in 
+        let shorter = List.map (fun (a1, a2) -> 
+        (a1, Some (optionPureAndHalf  a2 (Eq(t, Number 0))))
+        ) temp in
+        List.append longer shorter
+      else longer
+
+  | Cons (es1 , es2) ->  
+    let derList1 = derivitive_concrete valuation pi es1 f in (*  *)
+    let longer = List.map (fun (es1_der, side1) -> (Cons(es1_der, es2), side1)) derList1 in 
+    let derList2  = derivitive_concrete valuation pi es2 f in  
+    if nullable pi es1
+      then 
+        let shorter = derList2 in
+        List.append longer shorter
+      else longer
+
+
+  | ESOr (es1, es2) -> 
+      let derList1 = derivitive_concrete valuation pi es1 f in 
+      let derList2 = derivitive_concrete valuation pi es2 f in
+      List.append derList1 derList2
+
+  | Kleene es1 -> 
+      let derList = derivitive_concrete valuation pi es1 f in 
+      List.map (fun (es1_der, side1) -> (Cons (es1_der, es), side1))derList
+      
+  | Par (es1, es2) ->
+      let helper esIn = 
+        let  derList  = derivitive_concrete valuation pi esIn f in 
+        List.map (fun (der, side) -> 
+          match normalES der pi with 
+          | Bot -> (esIn, None)
+          | _ -> (der, side)
+        )derList
+      in 
+      let derList1 = helper es1 in 
+      let derList2 = helper es2 in 
+      List.flatten(
+        List.map (fun (esIn1, sideIn1) -> 
+          List.map (fun (esIn2, sideIn2) -> 
+            (Par(esIn1, esIn2), optionPureAnd sideIn1 sideIn2)
+            )derList2
+        )derList1
+      )
+  | Guard (_, _) -> [(es, None)]
+  | Event (Tau _) ->  [(es, None)]
+
+      
+  | Event (Any) -> [(Emp, None)]
+
+  | Event ev1 -> 
+		(match f with 
+		| T  _ -> [(Bot, None)]
+		| Ev (_, _) -> [(Bot, None)]
+		| Instant ev -> if entailEvent ev ev1 then [(Emp, None)] else [(Bot, None)]
+		)
+
+  | Ttimes (Ttimes (es1, t1) , t2 ) -> 
+    let eff_der = derivitive_concrete valuation pi (Ttimes (es1, t1)) f in 
+    List.map (fun (es1_der, side1)->
+      if stricTcompareTerm t1 t2 then (es1_der, side1)
+      else 
+      (es1_der, Some (optionPureAndHalf side1 (Eq(t1, t2))))
+    )eff_der
+
+  | Ttimes (Emp, tIn) -> 
+		(match f with 
+		| T  t -> 
+      if stricTcompareTerm t tIn then [(Emp, None)]
+      else [(Emp,  Some (Eq(t , tIn)))]
+		| Ev (_, _) -> [(Bot, None)]
+		| Instant _ -> [(Bot, None)]
+		)
+
+	| Ttimes (Event ev1, tIn) -> 
+		(match f with 
+		| T  t ->  let t_new = getAfreeVar () in 
+      [(Ttimes (Event ev1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))]
+		| Ev (ev, t) ->  if entailEvent ev ev1 then 
+      (if stricTcompareTerm tIn t then [(Emp, None)]
+      else [(Emp,Some ( Eq(tIn, t)))]) else [(Bot, None)]
+
+		| Instant ev ->  if entailEvent ev ev1 then [(Ttimes (Emp, tIn), None)] else [(Bot, None)]
+		)
+	
+	| Ttimes (es1, tIn) -> 
+		(match f with 
+		| T  t ->  let t_new = getAfreeVar () in 
+      [(Ttimes (es1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))]
+		| Ev (ev, t) ->  
+		  let eff_Der1 = derivitive_concrete valuation pi es1 (Instant ev) in 
+      List.map (fun (es1_der, side1) -> 
+        (match normalES es1_der pi with 
+        | Emp -> if stricTcompareTerm tIn t then (Emp, side1)
+          else (Emp, Some (optionPureAndHalf side1 (Eq(tIn, t))))
+        | _ -> 
+          let t_new = getAfreeVar () in 
+          let p_new = optionPureAndHalf side1 (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))) in 
+          (Ttimes (es1_der, Var t_new), Some p_new)
+      )
+      )eff_Der1
+		
+		| Instant _ ->  
+        let eff_Der1  = derivitive_concrete valuation pi es1 f in 
+        List.map (fun (es1_der, side1) -> 
+          match normalES es1_der pi with 
+          | Bot -> (Bot, Some (Eq (tIn, Number 0)))
+          | _ -> (Ttimes (es1_der, tIn), side1)
+      )eff_Der1
+
+		)
+
+;;
+
+
+(*
 let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * pure option) list =
   match normalES es pi with 
   | Bot -> [(Bot, None)]
@@ -977,6 +1104,7 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * pure o
 		)
 
 ;;
+*)
 
 let compareHead h1 h2 : bool =
   match (h1, h2) with 
@@ -999,7 +1127,9 @@ let rec normalFstSet (li : head list ): (head list) =
 
 let updateState valuation  (f:head)  : globalV = 
   match f with 
-  | Instant (Present(_, _, ops)) -> updateValuation valuation ops
+  | Instant (Present(_, _, ops)) 
+  | Ev ((Present(_, _, ops)), _) -> 
+      updateValuation valuation ops
   | _ -> valuation
   ;;
 
@@ -1035,14 +1165,6 @@ let rec normalConcreteES valuation (es:es) (pi:pure) : es =
 
     | _ -> Par (es1', es2')
 )
-
-
-  | Guard (pi1, es1) -> 
-    if entailConstrains (globalVToPure valuation) pi1 
-    (* then derivitive_concrete valuation pi es1 f *)
-    then es1
-    else es
-
 
 
   
@@ -1112,6 +1234,8 @@ let rec normalConcreteES valuation (es:es) (pi:pure) : es =
       | ESOr(Emp, aa) -> Kleene aa 
       | _ ->  Kleene normalInside)
 
+  | Guard (pi1, es1) -> Guard (pi1, normalConcreteES valuation es1 pi)
+
 ;;
 
 
@@ -1121,8 +1245,27 @@ let rec postprocessDeleteBar valuation (es:es) : es =
     if entailConstrains (globalVToPure valuation) pi1 
     then es2
     else Bot
+  | (Event(Tau pi1)) -> 
+    if entailConstrains (globalVToPure valuation) pi1 
+    then Emp
+    else Bot
+
+  | Cons (Guard (pi1, es1), es2) ->
+    if entailConstrains (globalVToPure valuation) pi1 
+  (* then derivitive_concrete valuation pi es1 f *)
+    then Cons (es1, es2)
+    else es
+  | Guard (pi1, es1) -> 
+    if entailConstrains (globalVToPure valuation) pi1 
+  (* then derivitive_concrete valuation pi es1 f *)
+    then es1
+    else es
+
   | Par (es1, es2) -> 
     Par (postprocessDeleteBar valuation es1, postprocessDeleteBar valuation es2)
+  | ESOr(es1, es2) -> 
+    ESOr (postprocessDeleteBar valuation es1, postprocessDeleteBar valuation es2)
+
   | _ -> es 
   ;;
 
@@ -1207,13 +1350,14 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
             else 
             let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
 
-              (*print_string ("Look Inside!!!!"^ "\n");
-              print_string(string_of_concrete_head f^"\n");
+              print_string ("Look Inside!!!!"^ "\n");
+              print_string(string_of_head f^"\n");
 
               print_string(string_of_globalV valuation^"\n");
-              print_string(string_of_globalV valuation' ^"\n");*)
-
               let valuation' = updateState valuation f in 
+
+              print_string(string_of_globalV valuation' ^"\n");
+
 
               let esLDer = derivitive_concrete valuation pL esL f  in (* (derL, sideL) *)
               let esRDer = derivitive_concrete valuation pR esR f  in (*  (derR, sideR) *)
