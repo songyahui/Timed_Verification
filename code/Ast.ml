@@ -22,7 +22,7 @@ and head =
       | Instant of event
       | Ev    of (event * terms) 
       | T     of terms 
-
+and headTrace = head list 
 
 
 (*E vent sequence *)
