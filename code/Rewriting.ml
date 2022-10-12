@@ -798,7 +798,7 @@ let rec updateValuation valuation (ops:assign list) : globalV =
 
 
 
-let rec fst_concrete (pi :pure) (es:es) : head list = 
+let rec fst_concrete valuation  (pi :pure) (es:es) : head list = 
   match es with
     Bot -> []
   | Emp -> []
@@ -814,15 +814,17 @@ let rec fst_concrete (pi :pure) (es:es) : head list =
       match h with 
       | Instant ev -> Ev(ev, Var t_new)
       | _ -> h
-      ) (fst_concrete pi es1')*)
+      ) (fst_concrete valuation  pi es1')*)
     )
   | Cons (es1 , _) ->  (*if nullable pi es1 
-  then append (fst_concrete pi es1) (fst_concrete pi es2) else*) fst_concrete pi es1
-  | ESOr (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2)
+  then append (fst_concrete valuation  pi es1) (fst_concrete valuation  pi es2) else*) fst_concrete valuation  pi es1
+  | ESOr (es1, es2) -> append (fst_concrete valuation  pi es1 ) (fst_concrete valuation  pi es2)
 
-  | Par (es1, es2) -> append (fst_concrete pi es1 ) (fst_concrete pi es2 )
-  | Kleene es1 -> fst_concrete pi es1
-  | Guard (_, _) -> []
+  | Par (es1, es2) -> append (fst_concrete valuation  pi es1 ) (fst_concrete valuation  pi es2 )
+  | Kleene es1 -> fst_concrete valuation  pi es1
+  | Guard (pi1, es1) -> 
+    if entailConstrains (globalVToPure valuation) pi1 then 
+    fst_concrete valuation  pi es1 else []
 
 ;;
 
@@ -905,18 +907,25 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * pure o
         | x::xs -> if String.compare (string_of_head ff) (string_of_head x) == 0 
         then true else   existHead ff xs 
       in 
-      if String.compare (showES temp) (showES es) == 0 && existHead f (fst_concrete pi es)
+      if String.compare (showES temp) (showES es) == 0 && existHead f (fst_concrete valuation  pi es)
       then 
-        raise (Foo "lallalallal")
+      (temp, optionPureAnd side1 side2)
+        (*raise (Foo "lallalallal") *)
       else (temp, optionPureAnd side1 side2)
 
       
-  | Guard (_, _) -> raise (Foo "derivitive_concrete Guard")
-
+  | Guard (pi1, es1) ->
+    if entailConstrains (globalVToPure valuation) pi1 
+    then derivitive_concrete valuation pi es1 f 
+    (*then es1 *)
+    else (es, None)
+    
+    
       
   | Event (Any) -> (Emp, None)
 
   | Event ev1 -> 
+    (*print_string (string_of_head f ^ "   " ^showES (Event ev1) ^ "\n");*)
 		(match f with 
 		| T  _ -> (Bot, None)
 		| Ev (_, _) -> (Bot, None)
@@ -1147,7 +1156,7 @@ let rec postprocessDeleteBar valuation (es:es) : es =
     then Emp
     else Bot
 
-  | Cons (Guard (pi1, es1), es2) ->
+  (*| Cons (Guard (pi1, es1), es2) ->
     if entailConstrains (globalVToPure valuation) pi1 
   (* then derivitive_concrete valuation pi es1 f *)
     then Cons (es1, es2)
@@ -1157,6 +1166,7 @@ let rec postprocessDeleteBar valuation (es:es) : es =
   (* then derivitive_concrete valuation pi es1 f *)
     then es1
     else es
+    *)
 
   | Par (es1, es2) -> 
     Par (postprocessDeleteBar valuation es1, postprocessDeleteBar valuation es2)
@@ -1199,8 +1209,8 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
   let normalFormR = normalConcreteEffect valuation effR in
   let showEntail  = showEntailmentEff normalFormL normalFormR (*^ "  ***> " ^ (showPure (normalPure side))*)  in
   
-  print_string (showEntail ^"\n");
-  
+  (*print_string (showEntail ^"\n");
+  *)
 
   if nullableEff  normalFormL  = true &&  (nullableEff normalFormR  = false) then   
     (Node (showEntail ^ showRule DISPROVE,[] ), false)
@@ -1225,7 +1235,7 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
               print_string ("Next State: \n");
   print_string(string_of_globalV valuation^"\n");
 
-            print_string("Deadlock: \n" ^ showEntail^ "\n" ^ List.fold_left(fun acc a -> acc ^ " " ^ string_of_head a) "" (fst_concrete pL esL));
+            print_string("Deadlock: \n" ^ showEntail^ "\n" ^ List.fold_left(fun acc a -> acc ^ " " ^ string_of_head a) "" (fst_concrete valuation  pL esL));
             raise (Foo "Deadlock");
 
             ([Node (showEntail ^ " [Deadlock]",[] )], false))
@@ -1235,7 +1245,7 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
             ([Node (showEntail ^ " [REOCCUR]",[] )], true)
 
           else 
-            let fstSet = fst_concrete pL esL  in
+            let fstSet = fst_concrete valuation  pL esL  in
             if List.length (fstSet) == 0 then 
               (* SYH to compute weather rhs is overlapping side 
               if overlapterms pR (normalPure side) == false then ([Node (showEntail ^ " [PROVE]",[] )], true)
