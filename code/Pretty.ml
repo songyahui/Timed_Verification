@@ -119,12 +119,11 @@ let rec showES (es:es):string =
   | Event (ev) -> string_of_event ev 
   | Guard (pi, es1) ->  "[" ^ showPure pi ^ "]?"  ^ (showES es1)
   | Cons (es1, es2) -> (showES es1) ^ " . " ^ (showES es2)
-  | ESOr (es1, es2) ->  "("^(showES es1) ^ " + " ^ (showES es2)^")"
+  | ESOr (es1, es2) ->  "(("^(showES es1) ^ ") + (" ^ (showES es2)^"))"
   | Ttimes (es, t) -> "(("^(showES es) ^ ")#" ^ (showTerms t)^")"
   | Kleene es -> "(" ^ (showES es) ^ "^" ^ "*"^")"
   | Par (es1, es2) -> "(("^(showES es1) ^ ") || (" ^ (showES es2)^"))"
   ;;
-
 
 
 
@@ -645,7 +644,6 @@ let string_of_globalV (v: globalV) : string =
   List.fold_left (fun acc (str, n) -> acc ^ "\n" ^ str ^ "=" ^ string_of_int n) "" v
   ;; 
 
-
 let string_of_event ev : string = 
     match ev with 
     | Present (str, param, ops) -> 
@@ -654,7 +652,7 @@ let string_of_event ev : string =
         | None -> ""
         | Some v -> "(" ^ string_of_value v ^ ")"
       )in 
-      (String.make 1 (String.get str 0 )) ^ print_param  ^ 
+      (str) ^ print_param  ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
       print_ops 
     | Absent str -> "~" ^ str

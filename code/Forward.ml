@@ -374,6 +374,15 @@ let getGlobelDeclear (prog: program): globalV =
   ) prog))
   ;;
 
+let getGlobelVar (prog: program): param = 
+  List.map (fun (str, _) -> (INT , str)) (List.flatten (List.map (fun a -> 
+    match a with 
+    | Global assign -> [assign]
+    | _ -> []
+  ) prog))
+  ;;
+
+
 
 let inferenceTime : float ref = ref 0.0 ;;
 
@@ -385,7 +394,7 @@ let verify_Main startTimeStamp (auguments) (prog: program): string =
   let acc' = List.map (fun (pi, es) -> (normalPureDeep pi, es)) (normalEffect acc) in 
 
   let forward_time = "[Inferring Time] " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
-  let (result) =  printReport_concrete (getGlobelDeclear prog) list_parm acc' (List.hd post) in 
+  let (result) =  printReport_concrete (getGlobelDeclear prog) (List.append (getGlobelVar prog) list_parm) acc' (List.hd post) in 
 
   "\n========== Module: "^ mn ^" ==========\n" ^
   "[Pre  Condition] " ^ showEffect pre ^"\n"^
