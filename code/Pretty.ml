@@ -105,8 +105,7 @@ let rec showES (es:es):string =
         | None -> ""
         | Some v -> "(" ^ string_of_value v ^ ")"
       )in 
-      str
-      (*String.make 1 (String.get str 0 )*) ^ print_param (* ^ 
+      (String.make 1 (String.get str 0 )) ^ print_param (* ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
       print_ops *)
     | Absent str -> "!" ^ str
@@ -652,7 +651,7 @@ let string_of_event ev : string =
         | None -> ""
         | Some v -> "(" ^ string_of_value v ^ ")"
       )in 
-      (str) ^ print_param  ^ 
+      (String.make 1 (String.get str 0 )) ^ print_param  ^ 
       let print_ops = if List.length (ops) == 0 then "" else "{" ^ string_of_assigns ops ^ "}" in 
       print_ops 
     | Absent str -> "~" ^ str

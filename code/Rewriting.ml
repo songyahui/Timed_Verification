@@ -809,12 +809,12 @@ let rec fst_concrete (pi :pure) (es:es) : head list =
     (match  es1' with 
     | Emp -> [T t]
     | Event (ev) -> [ Ev(ev, t) ]
-    | _ -> List.map (fun h -> 
+    | _ -> raise (Foo (showES es1'))(*List.map (fun h -> 
       let t_new = getAfreeVar () in 
       match h with 
       | Instant ev -> Ev(ev, Var t_new)
       | _ -> h
-      ) (fst_concrete pi es1')
+      ) (fst_concrete pi es1')*)
     )
   | Cons (es1 , _) ->  (*if nullable pi es1 
   then append (fst_concrete pi es1) (fst_concrete pi es2) else*) fst_concrete pi es1
@@ -939,20 +939,25 @@ let rec derivitive_concrete valuation (pi :pure) (es:es) (f:head) : (es * pure o
 		)
 
 	| Ttimes (Event ev1, tIn) -> 
-    print_string ("\n Ttimes: " ^ string_of_head f ^ "   " ^ showES es ^ "\n");
+
 		(match f with 
-		| T  t ->  let t_new = getAfreeVar () in 
-    (Ttimes (Event ev1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
-		| Ev (ev, t) ->  if entailEvent ev ev1 then 
-      (if stricTcompareTerm tIn t then 
-      (print_string ("\n I am here: " ^ string_of_head f ^ "   " ^ showES es ^ "\n");
-      (Emp, None))
-      else (Emp,Some ( Eq(tIn, t)))) else (Bot, None)
+		| T  _ ->  
+    (Bot, None)
+    (*let t_new = getAfreeVar () in 
+      (Ttimes (Event ev1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
+      *)
+		| Ev (ev, t) ->  
+      if entailEvent ev ev1 then 
+        (if stricTcompareTerm tIn t then (Emp, None)
+        else (Emp,Some ( Eq(tIn, t)))) 
+      else (Bot, None)
 
 		| Instant ev ->  if entailEvent ev ev1 then (Ttimes (Emp, tIn), None) else (Bot, None)
 		)
 	
 	| Ttimes (es1, tIn) -> 
+
+    raise (Foo ("derivitive_concrete Ttimes (es1, tIn)"));
 		(match f with 
 		| T  t ->  let t_new = getAfreeVar () in 
       (Ttimes (es1, Var t_new), Some (PureAnd(Eq(Plus (t,Var t_new) , tIn), GtEq (Var t_new, Number 0))))
@@ -1221,7 +1226,7 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
   print_string(string_of_globalV valuation^"\n");
 
             print_string("Deadlock: \n" ^ showEntail^ "\n" ^ List.fold_left(fun acc a -> acc ^ " " ^ string_of_head a) "" (fst_concrete pL esL));
-            raise (Foo "...");
+            raise (Foo "Deadlock");
 
             ([Node (showEntail ^ " [Deadlock]",[] )], false))
         
@@ -1244,7 +1249,11 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
                   ([Node (showEntail ^ " [PURE ER] ", [])], false)
                 )
             else 
-            let (subtrees, re) = List.fold_left (fun (accT, accR) f -> 
+            
+            let rec iterateLHSF (accT, accR) fL = 
+              match fL with 
+              | [] -> (accT, accR)
+              | f :: iterateLHSFrest -> 
 
               (*print_string ("Look Inside!!!!"^ "\n");
               print_string(string_of_head f^"\n");
@@ -1288,10 +1297,13 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
               *)
               if result == false then ([subtree], result)
               else 
-              (List.append accT [subtree], accR && result) 
+              iterateLHSF (List.append accT [subtree], accR && result) iterateLHSFrest
 
 
-            ) ([], true) fstSet in 
+             in 
+            let (subtrees, re) = iterateLHSF ([], true) fstSet in 
+
+            
             ([Node(showEntailmentEff [(pL, esL)] [(pR, esR)] ^ "  ***> " ^ (showPure (normalPure side)) ^ showRule UNFOLD  ^ 
             List.fold_left(fun acc a -> acc ^ " " ^ string_of_head a) "" fstSet, subtrees)], re)
 
