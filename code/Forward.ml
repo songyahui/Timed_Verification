@@ -429,7 +429,7 @@ let verification (decl:(bool * declare)) (prog: program): string =
     *)
     let results = List.map (fun eff -> 
       let startTimeStamp1 = Sys.time() in
-      let (result_tree, result) = Rewriting.printReportHelper list_parm (acc') eff in 
+      let (result_tree, result) = Rewriting.printReportHelper (List.append (getGlobelVar prog) list_parm) (acc') eff in 
       let verification_time_number = (Sys.time() -. startTimeStamp1) *. 1000.0 in 
       (verification_time_number, result, result_tree)
       ) post in 

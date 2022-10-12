@@ -234,7 +234,7 @@ let rec nullable (pi :pure) (es:es) : bool=
     (askZ3 pure) && nullable pi es1
   | Kleene _ -> true
   | Par (es1 , es2) -> (nullable pi es1) && (nullable pi es2)
-  | Guard (_) -> false 
+  | Guard (_) -> false
 ;;
 
 let nullableEff (eff:effect)  : bool = 
@@ -861,7 +861,7 @@ let rec parallecompose  (pi :pure) (trace1: headTrace) (trace2: headTrace) :head
     ;;
 
 (* returns posible head traces  *)
-let rec fst_concrete valuation  (pi :pure) (es:es) : (headTrace) list = 
+(*let rec fst_concrete valuation  (pi :pure) (es:es) : (headTrace) list = 
   match es with
     Bot -> []
   | Emp -> []
@@ -906,6 +906,62 @@ let rec fst_concrete valuation  (pi :pure) (es:es) : (headTrace) list =
     fst_concrete valuation  pi es1 else []
 
 ;;
+*)
+
+let rec fst_concrete valuation  (pi :pure) (es:es) : (head) list = 
+  match es with
+    Bot -> []
+  | Emp -> []
+  (*| Event (Tau _) -> []*)
+  | Event ev ->  [Instant ev]
+  | Ttimes (es1, t) -> 
+    let es1' = normalES es1 pi in  
+    (match  es1' with 
+    | Emp -> [T t]
+    | Event (ev) -> [ Ev(ev, t) ]
+    | _ -> raise (Foo (showES es1'))(*List.map (fun h -> 
+      let t_new = getAfreeVar () in 
+      match h with 
+      | Instant ev -> Ev(ev, Var t_new)
+      | _ -> h
+      ) (fst_concrete valuation  pi es1')*)
+    )
+  | Cons (es1 , _) ->  (*if nullable pi es1 
+  then append (fst_concrete valuation  pi es1) (fst_concrete valuation  pi es2) else*) fst_concrete valuation  pi es1
+  | ESOr (es1, es2) -> append (fst_concrete valuation  pi es1 ) (fst_concrete valuation  pi es2)
+
+  | Par (es1, es2) -> 
+    let htrace1 = (fst_concrete valuation  pi es1 ) in 
+    let htrace2 = (fst_concrete valuation  pi es2 ) in 
+    let zipH = shaffleZIP htrace1 htrace2 in 
+    (*print_string ("ziplength1: " ^ string_of_int (List.length htrace1) ^ "\n");
+    print_string ("ziplength2: " ^ string_of_int (List.length htrace2) ^ "\n");
+
+    print_string ("ziplength: " ^ string_of_int (List.length zipH) ^ "\n");
+    print_string (showES es ^ "\n");
+
+    *)
+
+    List.flatten (List.map (fun (trace1, trace2) -> 
+      match (trace1, trace2) with 
+      |  (Ev(_, t1), T t2) -> 
+                if entailConstrains pi (Gt(t2, t1)) then [trace1]
+                else [trace1; trace2]
+      | (T t1, Ev(_, t2)) -> 
+                if entailConstrains pi (Gt(t1, t2)) then [trace2]
+                else [trace1; trace2]
+      | _ -> [trace1; trace2]
+
+  
+  )zipH)
+
+  | Kleene es1 -> fst_concrete valuation  pi es1
+  | Guard (pi1, es1) -> 
+    if entailConstrains (globalVToPure valuation) pi1 then 
+    fst_concrete valuation  pi es1 else []
+
+;;
+
 let rec normalConcreteES valuation (es:es) (pi:pure) : es = 
   match es with
     Bot -> es
@@ -1369,7 +1425,7 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
                 )
             else 
             
-            let rec iterateLHSF (accT, accR) (fL:headTrace list) = 
+            let rec iterateLHSF (accT, accR) (fL:head list) = 
               match fL with 
               | [] -> (accT, accR)
               | f :: iterateLHSFrest -> 
@@ -1379,13 +1435,13 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
 
               print_string(string_of_globalV valuation^"\n");*)
 
-              let valuation' = updateStateRec valuation f in 
+              let valuation' = updateState valuation f in 
 
               (*print_string(string_of_globalV valuation' ^"\n");*)
 
 
-              let (derL, sideL) = derivitive_concreteRec valuation pL esL f  in (* (derL, sideL) *)
-              let (derR, sideR) = derivitive_concreteRec valuation pR esR f  in (*  (derR, sideR) *)
+              let (derL, sideL) = derivitive_concrete valuation pL esL f  in (* (derL, sideL) *)
+              let (derR, sideR) = derivitive_concrete valuation pR esR f  in (*  (derR, sideR) *)
               let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
               let delta' =  ((esL, esR) :: delta) in 
 
