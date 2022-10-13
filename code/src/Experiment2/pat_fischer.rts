@@ -1,0 +1,75 @@
+﻿#define N 2;
+#define Delta 3;
+#define Epsilon 4;
+#define Idle -1;
+
+var x = Idle;
+var counter;
+
+//timed version
+P(i) = ifb(x == Idle) {
+	 	((update.i{x = i} -> Wait[Epsilon]) within[Delta]);
+			([x == i](cs.i{counter++} -> exit.i{counter--; x=Idle} -> P(i))
+		    [] [x != i]P(i))
+	   };
+		    
+FischersProtocol = ||| i:{0..N-1}@P(i);	
+
+FischersProtocol2 = ||| i:{0..2-1}@P(i);	
+FischersProtocol3 = ||| i:{0..3-1}@P(i);	
+FischersProtocol4 = ||| i:{0..4-1}@P(i);	
+FischersProtocol5 = ||| i:{0..5-1}@P(i);	
+FischersProtocol6 = ||| i:{0..6-1}@P(i);	
+FischersProtocol7 = ||| i:{0..7-1}@P(i);	
+
+
+#assert FischersProtocol2 refines MutualExclusionProcess;
+#assert FischersProtocol3 refines MutualExclusionProcess;
+#assert FischersProtocol4 refines MutualExclusionProcess;
+#assert FischersProtocol5 refines MutualExclusionProcess;
+#assert FischersProtocol6 refines MutualExclusionProcess;
+#assert FischersProtocol7 refines MutualExclusionProcess;
+
+
+
+//untimed version
+uP(i) = ifb(x == Idle) {
+			update.i{x = i} -> 
+		    ([x == i](cs.i{counter++} -> exit.i{counter--; x=Idle} -> uP(i))
+		    [] [x != i]uP(i))
+	   };
+uFischersProtocol = ||| i:{0..N-1}@uP(i);	
+FischersProtocolDiv = ||| i:{0..N-1}@(P(i) \ {update.i, cs.i, exit.i});	
+
+#assert FischersProtocol deadlockfree;
+#assert FischersProtocolDiv divergencefree;
+
+//verifying mutual exclusion by reachability analysis
+#define MutualExclusionFail counter > 1;
+#assert FischersProtocol reaches MutualExclusionFail;
+#assert FischersProtocol refines uFischersProtocol;
+#assert uFischersProtocol refines FischersProtocol;
+
+//verifying mutual exclusion by trace refinement checking
+MutualExclusionProcess = Relevant ||| Irrelevant;
+Relevant = cs.0 -> exit.0 -> Relevant [] cs.1 -> exit.1 -> Relevant [] cs.2 -> exit.2 -> Relevant [] cs.3 -> exit.3 -> Relevant;
+Irrelevant = update.0 -> Irrelevant [] update.1 -> Irrelevant [] update.2 -> Irrelevant [] update.3 -> Irrelevant;
+#assert FischersProtocol refines MutualExclusionProcess;
+
+//verifying responsiveness by LTL model checking
+#define request x != Idle;
+#define accessCS counter > 0;
+
+#assert FischersProtocol |= [](request -> <>accessCS);
+#assert FischersProtocol |= [](update.0 -> <>cs.0);
+
+//verifying bounded responsiveness by refinement checking
+Bounded = update.0 -> Started [] cs.0 -> Bounded [] exit.0 -> Bounded
+            [] update.1 -> Bounded [] cs.1 -> Bounded [] exit.1 -> Bounded
+            [] update.2 -> Bounded [] cs.2 -> Bounded [] exit.2 -> Bounded
+            [] update.3 -> Bounded [] cs.3 -> Bounded [] exit.3 -> Bounded;
+Started = Working deadline[20]; Bounded;
+Working = update.0 -> Working [] cs.0 -> Skip [] exit.0 -> Working
+            [] update.1 -> Working [] cs.1 -> Working [] exit.1 -> Working
+            [] update.2 -> Working [] cs.2 -> Working [] exit.2 -> Working
+            [] update.3 -> Working [] cs.3 -> Working [] exit.3 -> Working;
