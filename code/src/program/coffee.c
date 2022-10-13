@@ -38,7 +38,7 @@ ens: (t≤5∧t≥n∧t1≤3)∧(Sugar#t).(Coffee#t1)
 int coffeeMachine ()
 /*
     req: TRUE ∧ ε
-    ens: (t≤9)∧ ((((!Done)^*))#t).Done 
+    ens: (t≤9)∧ ((((~Done)^*))#t).Done 
     */
 {
     event["Cup"];
