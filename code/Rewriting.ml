@@ -5,7 +5,6 @@ open Askz3
 open Pretty
 
 
-
 (*
 ocamlc -o trs  Tree.ml  Rewriting.ml
 *)
@@ -908,6 +907,8 @@ let rec parallecompose  (pi :pure) (trace1: headTrace) (trace2: headTrace) :head
 ;;
 *)
 
+
+
 let rec fst_concrete valuation  (pi :pure) (es:es) : (head) list = 
   match es with
     Bot -> []
@@ -934,12 +935,20 @@ let rec fst_concrete valuation  (pi :pure) (es:es) : (head) list =
     let htrace1 = (fst_concrete valuation  pi es1 ) in 
     let htrace2 = (fst_concrete valuation  pi es2 ) in 
     let zipH = shaffleZIP htrace1 htrace2 in 
-    (*print_string ("ziplength1: " ^ string_of_int (List.length htrace1) ^ "\n");
-    print_string ("ziplength2: " ^ string_of_int (List.length htrace2) ^ "\n");
+    (*if cheatinggloalVar then 
+     List.flatten (List.map (fun (trace1, trace2) -> 
+      match (trace1, trace2) with 
+      |  (Ev(_, _), T _) -> 
+        if String.compare "lf1" (string_of_head trace2) == 0 then [trace1]
+        else [trace1; trace2]
+      | (T _, Ev(_, _)) -> 
+        if String.compare "lf1" (string_of_head trace1) == 0 then [trace2]
+        else [trace1; trace2]
+                
+      | _ -> [trace1; trace2]
+      )zipH)
 
-    print_string ("ziplength: " ^ string_of_int (List.length zipH) ^ "\n");
-    print_string (showES es ^ "\n");
-
+    else 
     *)
 
     List.flatten (List.map (fun (trace1, trace2) -> 
@@ -949,16 +958,18 @@ let rec fst_concrete valuation  (pi :pure) (es:es) : (head) list =
                 else [trace1; trace2]
       | (T t1, Ev(_, t2)) -> 
                 if entailConstrains pi (Gt(t1, t2)) then [trace2]
-                else [trace1; trace2]
+                else [trace1; trace2]          
       | _ -> [trace1; trace2]
-
-  
   )zipH)
+  (*
+     
+  *)
 
   | Kleene es1 -> fst_concrete valuation  pi es1
   | Guard (pi1, es1) -> 
     if entailConstrains (globalVToPure valuation) pi1 then 
     fst_concrete valuation  pi es1 else []
+    
 
 ;;
 
@@ -1515,8 +1526,9 @@ let printReport_concrete (valuation: globalV) (list_parm:param) (lhs:effect) (rh
   let startTimeStamp = Sys.time() in
   let (tree, re) =  printReportHelper_concrete valuation list_parm lhs rhs  in
   let verification_time = "[Verification Time: " ^ string_of_float ((Sys.time() -. startTimeStamp) *. 1000.0) ^ " ms]\n" in
-  let result (*result *) = printTree ~line_prefix:"* " ~get_name ~get_children tree in
-  let buffur = ( "===================================="^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n") ^verification_time^" \n\n" ^ result  (*^ result*))
+  let _ (*result *) = printTree ~line_prefix:"* " ~get_name ~get_children tree in
+  let buffur = ( "===================================="^"\n[Result] " ^(if re then "Succeed\n" else "Fail\n")
+   ^verification_time^" \n\n"  (*^ result*))
   in buffur
   ;;
 

@@ -5,7 +5,7 @@
 open List
 open Ast
 open Printf
-open Askz3
+
 
 
 exception Foo of string
@@ -598,14 +598,7 @@ let rec aCompareES es1 es2 =
 
 
 
-let entailConstrains pi1 pi2 = 
 
-  let sat = not (askZ3 (Neg (PureOr (Neg pi1, pi2)))) in
-  (*
-  print_string (showPure pi1 ^" -> " ^ showPure pi2 ^" == ");
-  print_string (string_of_bool (sat) ^ "\n");
-  *)
-  sat;;
 
 let rec normalPure (pi:pure):pure = 
   match pi with 

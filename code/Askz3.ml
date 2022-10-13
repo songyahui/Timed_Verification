@@ -2,6 +2,7 @@
 open Ast
 open List
 open Checker
+open Pretty
 
 
 exception FooAskz3 of string
@@ -121,9 +122,36 @@ let addAssert (str:string) :string =
 let counter : int ref = ref 0 ;;
 
 
+let (historyTable: ((string * bool)list)ref) = ref [] ;;
+
+let rec existInhistoryTable pi table= 
+  match table with 
+  | [] -> None
+  | (x, b)::xs -> 
+    if String.compare x (showPure pi) == 0 then Some b 
+    else existInhistoryTable pi  xs
+;;
+
 let askZ3 pi = 
+  match existInhistoryTable pi !historyTable with 
+  | Some b  -> b
+  | None ->
+  
   let _ = counter := !counter + 1 in 
-  check pi ;;
+  let re = check pi in 
+  let ()= historyTable := (showPure pi, re)::!historyTable in 
+  
+  re;;
+
+
+let entailConstrains pi1 pi2 = 
+
+  let sat = not (askZ3 (Neg (PureOr (Neg pi1, pi2)))) in
+  (*
+  print_string (showPure pi1 ^" -> " ^ showPure pi2 ^" == ");
+  print_string (string_of_bool (sat) ^ "\n");
+  *)
+  sat;;
   
 (* 
 let askZ3 pi = 
