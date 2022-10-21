@@ -1,69 +1,67 @@
 ====================================
 [Result] Succeed
-[Verification Time: 8.436 ms]
+[Verification Time: 2.75 ms]
  
 
-* lt<-1 ∧ ((ε)#lt) |- rt<0 ∧ ((ε)#rt)  ***> ⊤ [UNFOLD] 
-* └─ lt<-1 ∧ ε |- rt<0 ∧ ε  ***> lt=rt [PROVE]
-
-====================================
-[Result] Fail
-[Verification Time: 5.403 ms]
- 
-
-* lt<-1 ∧ ((ε)#lt) |- rt1<-2 ∧ ((ε)#rt1)  ***> ⊤ [UNFOLD] 
-* └─ lt<-1 ∧ ε |- rt1<-2 ∧ ε  ***> lt=rt1 [PURE ER] 
+* lt<-1∧lt≥0∧rt≥0 ∧ ((ε)#lt) |- rt<0 ∧ ((ε)#rt)  ***> ⊤ [PURE False LHS] 
 
 ====================================
 [Result] Succeed
-[Verification Time: 5.411 ms]
+[Verification Time: 2.749 ms]
  
 
-* lt>2∧lt<5 ∧ ((ε)#lt) |- 0≤rt1 ∧ ((ε)#rt1)  ***> ⊤ [UNFOLD] 
-* └─ lt>2∧lt<5 ∧ ε |- 0≤rt1 ∧ ε  ***> lt=rt1 [PROVE]
+* lt<-1∧lt≥0∧rt1≥0 ∧ ((ε)#lt) |- rt1<-2 ∧ ((ε)#rt1)  ***> ⊤ [PURE False LHS] 
 
 ====================================
 [Result] Succeed
-[Verification Time: 19.393 ms]
+[Verification Time: 32.817 ms]
  
 
-* lt>2 ∧ ((A . B)#lt) |- rt>0 ∧ ((A . B)#rt)  ***> ⊤ [UNFOLD] 
-* └─ lt>2 ∧ ((B)#t1) |- rt>0 ∧ ((B)#t2)  ***> t0+t1=lt∧t1≥0∧t0+t2=rt∧t2≥0 [UNFOLD] 
-*     └─ lt>2 ∧ ε |- rt>0 ∧ ε  ***> t2=t1∧t0+t1=lt∧t1≥0∧t0+t2=rt∧t2≥0 [PROVE]
-
-====================================
-[Result] Fail
-[Verification Time: 5.323 ms]
- 
-
-* lt=0 ∧ ((ε)#lt) . D |- ⊤ ∧ D  ***> ⊤ [UNFOLD] 
-* ├─ lt=0 ∧ D |- ⊥ ∧ ⊥  ***> ⊤ [UNFOLD] 
-* │   └─ lt=0 ∧ ε |- ⊥ ∧ ⊥  ***> ⊤ [DISPROVE] 
-* └─ lt=0 ∧ ε |- ⊤ ∧ ε  ***> lt=0 [PROVE]
-
-====================================
-[Result] Fail
-[Verification Time: 35.802 ms]
- 
-
-* lt=2 ∧ ((ε)#lt) . D |- rt≤3 ∧ ((D)#rt)  ***> ⊤ [UNFOLD] 
-* └─ lt=2 ∧ D |- rt≤3 ∧ ((D)#t0)  ***> lt+t0=rt∧t0≥0 [UNFOLD] 
-*     └─ lt=2 ∧ ε |- rt≤3 ∧ ((ε)#t0)  ***> lt+t0=rt∧t0≥0 [PURE ER] 
-
-====================================
-[Result] Fail
-[Verification Time: 19.439 ms]
- 
-
-* lt≤2 ∧ ((D)#lt) |- rt=2 ∧ ((ε)#rt) . D  ***> ⊤ [UNFOLD] 
-* └─ lt≤2 ∧ ε |- ⊥ ∧ ⊥  ***> ⊤ [DISPROVE] 
+* lt>2∧lt<5∧lt≥0∧rt1≥0 ∧ ((ε)#lt) |- 0≤rt1 ∧ ((ε)#rt1)  ***> ⊤ [UNFOLD] 
+* └─ lt>2∧lt<5∧lt≥0∧rt1≥0 ∧ ε |- 0≤rt1 ∧ ε  ***> lt=rt1 [PROVE]
 
 ====================================
 [Result] Succeed
-[Verification Time: 16.644 ms]
+[Verification Time: 26.515 ms]
  
 
-* 0≤lt ∧ D |- 0=rt ∧ ((D)#rt)  ***> ⊤ [UNFOLD] 
-* └─ 0≤lt ∧ ε |- 0=rt ∧ ((ε)#rt)  ***> ⊤ [PROVE]
+* lt>2∧lt≥0∧rt≥0 ∧ ((A . B)#lt) |- rt>0 ∧ ((A . B)#rt)  ***> ⊤ [UNFOLD] 
+* └─ lt>2∧lt≥0∧rt≥0 ∧ ((B)#t1) |- rt>0 ∧ ((B)#t2)  ***> t0+t1=lt∧t1≥0∧t0+t2=rt∧t2≥0 [UNFOLD] 
+*     └─ lt>2∧lt≥0∧rt≥0 ∧ ε |- rt>0 ∧ ε  ***> t2=t1∧t0+t1=lt∧t1≥0∧t0+t2=rt∧t2≥0 [PROVE]
+
+====================================
+[Result] Fail
+[Verification Time: 7.121 ms]
+ 
+
+* lt=0∧lt≥0 ∧ ((ε)#lt) . D |- ⊤ ∧ D  ***> ⊤ [UNFOLD] 
+* ├─ lt=0∧lt≥0 ∧ D |- ⊥ ∧ ⊥  ***> ⊤ [UNFOLD] 
+* │   └─ lt=0∧lt≥0 ∧ ε |- ⊥ ∧ ⊥  ***> ⊤ [DISPROVE] 
+* └─ lt=0∧lt≥0 ∧ ε |- ⊤ ∧ ε  ***> lt=0 [PROVE]
+
+====================================
+[Result] Fail
+[Verification Time: 23.811 ms]
+ 
+
+* lt=2∧lt≥0∧rt≥0 ∧ ((ε)#lt) . D |- rt≤3 ∧ ((D)#rt)  ***> ⊤ [UNFOLD] 
+* └─ lt=2∧lt≥0∧rt≥0 ∧ D |- rt≤3 ∧ ((D)#t0)  ***> lt+t0=rt∧t0≥0 [UNFOLD] 
+*     └─ lt=2∧lt≥0∧rt≥0 ∧ ε |- rt≤3 ∧ ((ε)#t0)  ***> lt+t0=rt∧t0≥0 [PURE ER] 
+
+====================================
+[Result] Fail
+[Verification Time: 24.34 ms]
+ 
+
+* lt≤2∧lt≥0∧rt≥0 ∧ ((D)#lt) |- rt=2 ∧ ((ε)#rt) . D  ***> ⊤ [UNFOLD] 
+* └─ lt≤2∧lt≥0∧rt≥0 ∧ ε |- ⊥ ∧ ⊥  ***> ⊤ [DISPROVE] 
+
+====================================
+[Result] Fail
+[Verification Time: 21.369 ms]
+ 
+
+* 0≤lt∧rt≥0 ∧ D |- 0=rt ∧ ((D)#rt)  ***> ⊤ [UNFOLD] 
+* └─ 0≤lt∧rt≥0 ∧ ε |- 0=rt ∧ ((ε)#rt)  ***> ⊤ [PURE ER] 
 
 

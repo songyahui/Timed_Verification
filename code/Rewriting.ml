@@ -450,70 +450,63 @@ let reoccur lhs rhs delta : bool =
 
   ;;
 
-let rec gatherTermsFromTerms (t:terms): string list = 
+let rec existNameAgr (li:string list) (name:string): bool = 
+  match li with
+  | [] -> false 
+  | x :: xs -> if String.compare x name == 0 then true else existNameAgr xs name 
+;;
+
+let rec gatherTermsFromTerms (list_parm:param) (t:terms): string list = 
   match t with
-| Var name -> [name]
+| Var name -> 
+  let list_Arg = List.map (fun (_, a) -> a) list_parm in 
+  if (existNameAgr list_Arg name ) then [name]
+  else []
 | Number _ -> []
-| Plus (t1, t2) -> List.append (gatherTermsFromTerms t1) (gatherTermsFromTerms t2)
-| Minus (t1, t2) -> List.append (gatherTermsFromTerms t1) (gatherTermsFromTerms t2)
+| Plus (t1, t2) -> List.append (gatherTermsFromTerms list_parm t1) (gatherTermsFromTerms list_parm t2)
+| Minus (t1, t2) -> List.append (gatherTermsFromTerms list_parm t1) (gatherTermsFromTerms list_parm t2)
 
 
-let rec gatherTermsFromPure (p:pure) : string list =
+let rec gatherTermsFromPure (list_parm:param) (p:pure) : string list =
   match p with 
   | Gt (t1, t2) 
   | Lt (t1, t2)   
   | GtEq (t1, t2)   
   | LtEq (t1, t2)   
-  | Eq (t1, t2) ->  List.append (gatherTermsFromTerms t1) (gatherTermsFromTerms t2)
+  | Eq (t1, t2) ->  List.append (gatherTermsFromTerms list_parm t1) (gatherTermsFromTerms list_parm t2)
   | PureOr (p1, p2)  
-  | PureAnd (p1, p2) -> List.append (gatherTermsFromPure p1) (gatherTermsFromPure p2)
-  | Neg p1 -> (gatherTermsFromPure p1)
+  | PureAnd (p1, p2) -> List.append (gatherTermsFromPure list_parm p1) (gatherTermsFromPure list_parm p2)
+  | Neg p1 -> (gatherTermsFromPure list_parm p1)
   | TRUE|FALSE -> []
   ;;
 
 
 
-(*
-   let overlapterms (p1:pure) (p2:pure) : bool = 
-  let t1List = gatherTermsFromPure p1 in 
-  let t2List = gatherTermsFromPure p2 in 
-  let rec aux t1 li = 
-    match li with 
-    | [] -> false 
-    | t2::xs -> if stricTcompareTerm t1 t2 then true else aux t1 xs 
-  in 
-  let rec helper li = 
-    match li with 
-    | [] -> false 
-    | x :: xs -> if aux x t2List then true else helper xs 
-  in  helper t1List
-;;*)
 
-
-let rec gatherTTermsFromES (es:es) : terms list = 
+let rec gatherTTermsFromES (list_parm:param) (es:es) : terms list = 
   match es with
     Bot -> [] 
   | Emp -> []
   | Event _ -> [] 
-  | Cons (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
-	| ESOr (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
+  | Cons (es1 , es2) -> List.append (gatherTTermsFromES list_parm es1) (gatherTTermsFromES list_parm es2)
+	| ESOr (es1 , es2) -> List.append (gatherTTermsFromES list_parm es1) (gatherTTermsFromES list_parm es2)
   | Ttimes (_, t) ->  [t]
-  | Kleene es1 -> (gatherTTermsFromES es1)
-  | Par (es1 , es2) -> List.append (gatherTTermsFromES es1) (gatherTTermsFromES es2)
+  | Kleene es1 -> (gatherTTermsFromES list_parm es1)
+  | Par (es1 , es2) -> List.append (gatherTTermsFromES list_parm es1) (gatherTTermsFromES list_parm es2)
   | Guard (_) -> [] 
   ;;
 
-let gatherTTerms (eff:effect) : terms list =
+let gatherTTerms (list_parm:param) (eff:effect) : terms list =
   List.flatten (List.map (fun (_, es) -> 
-    gatherTTermsFromES es 
+    gatherTTermsFromES list_parm es 
   ) eff) ;;
 
 
 let showEntailGneral normalFormL normalFormR side   =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side)) ;; 
 
 
-let existNonRelatedToTerms p terms : bool =
-  let termsP =  (gatherTermsFromPure p) in 
+let existNonRelatedToTerms p terms list_parm : bool =
+  let termsP =  (gatherTermsFromPure list_parm p) in 
   let rec herlper t1 li = 
     match li with 
     | [] -> true 
@@ -525,11 +518,11 @@ let existNonRelatedToTerms p terms : bool =
     | x::xs -> if herlper x terms then true else aux xs 
   in aux termsP ;;
 
-let filterOut (side:pure) (pR:pure) list_Arg: pure = 
-  let terms =  gatherTermsFromPure side in 
-  let terms = List.append list_Arg terms in 
+let filterOut (side:pure) (pR:pure) list_parm: pure = 
+  let terms =  gatherTermsFromPure list_parm side in 
+  let terms = List.append (List.map (fun (_, a)-> a) list_parm) terms in 
   let splitConjpR = splitConj pR in 
-  let filter' = List.filter (fun p -> existNonRelatedToTerms p terms == false) splitConjpR in 
+  let filter' = List.filter (fun p -> existNonRelatedToTerms p terms list_parm == false) splitConjpR in 
 
   if List.length filter' == 0 then TRUE 
   else List.fold_left (fun acc a -> PureAnd(acc, a)) (List.hd filter') (List.tl filter') 
@@ -542,7 +535,7 @@ let isBot es pi: bool =
   ;;
 
 
-let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (binary_tree * bool) = 
+let rec containment (list_parm:param) (side:pure) (effL:effect) (effR:effect) delta: (binary_tree * bool) = 
   let normalFormL = normalEffect effL in 
   let normalFormR = normalEffect effR in
   let showEntail  =  showEntailmentEff normalFormL normalFormR ^ "  ***> " ^ (showPure (normalPure side))  in
@@ -556,35 +549,15 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (bi
         | [] -> (accInT, accInR) 
         | (pR, esR) :: lirest -> 
         let (subtreeIn, reIn) = 
-          (*if askZ3 pL == false then 
-            (print_string (showPure pL ^"\n");
-            (Node (showEntail ^ " [PURE ER LHS] ", []), false)) else 
-          *)
+          if askZ3 pL == false then 
+            ([Node (showEntail ^ " [PURE False LHS] ", [])], true)) else 
+          
           if nullable pL esL  = true &&  (nullable  (PureAnd(pL, pR)) esR  = false) then   
             ([Node (showEntail ^ showRule DISPROVE,[] )], false)
         
           else if reoccur (esL) (esR) delta (*!delta*) then 
    
             ([Node (showEntail ^ " [REOCCUR]",[] )], true)
-            (*let t1Set = gatherTTermsFromES esL in 
-            let t2Set = gatherTTermsFromES esR in 
-            let pluseTerms tList = 
-              if List.length tList == 0 then None
-              else 
-              Some (List.fold_left (fun acc a -> Plus (acc, a) ) (List.hd tList) (List.tl tList))
-            in 
-            (match (pluseTerms t1Set, pluseTerms t2Set) with 
-            | Some (tttt1), Some(ttttt2) -> 
-
-              let side' =  PureAnd (side, Eq (tttt1, ttttt2)) in 
-
-              if entailConstrains (PureAnd (pL, side')) pR then ([Node (showEntailGneral [(pL, esL)] [(pR, esR)]  side' ^ showRule REOCCUR,[])], true)
-              else ([Node (showEntailGneral [(pL, esL)] [(pR, esR)]  side'  ^ " [REOCCUR PURE ER1] ", [])], false)
-            | _ -> 
-              if overlapterms pR (normalPure side) == false then ([Node (showEntail ^ " [REOCCUR]",[] )], true)
-              else (if entailConstrains (PureAnd (pL, side)) pR then ([Node (showEntail ^ showRule REOCCUR,[])], true)
-                else ([Node (showEntail ^ " [REOCCUR PURE ER2] ", [])], false)))
-            *)
              
           else 
             let fstSet = fst pL esL  in
@@ -593,7 +566,7 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (bi
               if overlapterms pR (normalPure side) == false then ([Node (showEntail ^ " [PROVE]",[] )], true)
               else 
               *)
-                (if entailConstrains (PureAnd (pL, side)) (filterOut side pR list_Arg) then 
+                (if entailConstrains (PureAnd (pL, side)) (filterOut side pR list_parm) then 
                   
                   ([Node (showEntail ^ " [PROVE]", [] )], true)
                 else 
@@ -615,7 +588,7 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (bi
                 | (derR, sideR) :: rhsDerListrest -> 
                   let side' = optionPureAndHalf (optionPureAnd sideL sideR)  side  in 
                   let delta' =  ((esL, esR) :: delta) in 
-                  let (subtreeDer, resultDer) = containment list_Arg  side' [(pL, derL)] [(pR, derR)] delta' in 
+                  let (subtreeDer, resultDer) = containment list_parm  side' [(pL, derL)] [(pR, derR)] delta' in 
                   if resultDer == true then ([subtreeDer], resultDer)
                   else iteratorDerRHS (List.append accDerT [subtreeDer], accDerR|| resultDer) rhsDerListrest lhsDer 
               in 
@@ -651,11 +624,7 @@ let rec containment list_Arg  (side:pure) (effL:effect) (effR:effect) delta: (bi
 
   ;;
 
-let rec existNameAgr (li:string list) (name:string): bool = 
-  match li with
-  | [] -> false 
-  | x :: xs -> if String.compare x name == 0 then true else existNameAgr xs name 
-;;
+
 
 let rec reNameTerms (list_parm:param) t str: terms = 
 match t with
@@ -721,15 +690,14 @@ let printReportHelper (list_parm:param) lhs rhs : (binary_tree * bool) =
 
   let renamedLHS = reNameEffect list_parm lhs "l"  in  
   let renamedRHS = reNameEffect list_parm rhs "r"  in 
-  let list_Arg = List.map (fun (_, a) -> a) list_parm in 
 
-
-  (*
-    let alltheTVar = (gatherTTerms renamedRHS) in 
+  
+  let alltheTVar = List.append (gatherTTerms list_parm renamedLHS) (gatherTTerms list_parm renamedRHS) in 
   let side = if List.length alltheTVar == 0 then Ast.TRUE else
-    List.fold_left (fun acc a -> Ast.PureAnd (acc , Ast.GtEq( a, Number 0))) (Ast.GtEq(List.hd alltheTVar, Number 0)) (List.tl alltheTVar) in 
-  *)
-  containment  (*normalPure side*) list_Arg (Ast.TRUE) (renamedLHS) (renamedRHS)  []  
+    List.fold_left (fun acc a -> Ast.PureAnd (acc , Ast.GtEq( a, Number 0))) 
+    (Ast.GtEq(List.hd alltheTVar, Number 0)) (List.tl alltheTVar) in 
+  
+  containment  list_parm (Ast.TRUE) (List.map (fun (p, es)-> (PureAnd (p,side),es)) renamedLHS) (renamedRHS)  []  
 
   ;;
 
@@ -859,53 +827,6 @@ let rec parallecompose  (pi :pure) (trace1: headTrace) (trace2: headTrace) :head
     )
     ;;
 
-(* returns posible head traces  *)
-(*let rec fst_concrete valuation  (pi :pure) (es:es) : (headTrace) list = 
-  match es with
-    Bot -> []
-  | Emp -> []
-  (*| Event (Tau _) -> []*)
-  | Event ev ->  [[Instant ev]]
-  | Ttimes (es1, t) -> 
-    let es1' = normalES es1 pi in  
-    (match  es1' with 
-    | Emp -> [[T t]]
-    | Event (ev) -> [[ Ev(ev, t) ]]
-    | _ -> raise (Foo (showES es1'))(*List.map (fun h -> 
-      let t_new = getAfreeVar () in 
-      match h with 
-      | Instant ev -> Ev(ev, Var t_new)
-      | _ -> h
-      ) (fst_concrete valuation  pi es1')*)
-    )
-  | Cons (es1 , _) ->  (*if nullable pi es1 
-  then append (fst_concrete valuation  pi es1) (fst_concrete valuation  pi es2) else*) fst_concrete valuation  pi es1
-  | ESOr (es1, es2) -> append (fst_concrete valuation  pi es1 ) (fst_concrete valuation  pi es2)
-
-  | Par (es1, es2) -> 
-    let htrace1 = (fst_concrete valuation  pi es1 ) in 
-    let htrace2 = (fst_concrete valuation  pi es2 ) in 
-    let zipH = shaffleZIP htrace1 htrace2 in 
-    (*print_string ("ziplength1: " ^ string_of_int (List.length htrace1) ^ "\n");
-    print_string ("ziplength2: " ^ string_of_int (List.length htrace2) ^ "\n");
-
-    print_string ("ziplength: " ^ string_of_int (List.length zipH) ^ "\n");
-    print_string (showES es ^ "\n");
-
-    *)
-
-    List.flatten (List.map (fun (trace1, trace2) -> 
-    parallecompose pi ( trace1) ( trace2)
-  
-  )zipH)
-
-  | Kleene es1 -> fst_concrete valuation  pi es1
-  | Guard (pi1, es1) -> 
-    if entailConstrains (globalVToPure valuation) pi1 then 
-    fst_concrete valuation  pi es1 else []
-
-;;
-*)
 
 
 
@@ -1511,8 +1432,8 @@ let rec containment_concrete valuation list_Arg (side:pure) (effL:effect) (effR:
 let printReportHelper_concrete valuation (list_parm:param) lhs rhs : (binary_tree * bool) = 
   let renamedLHS = reNameEffect list_parm lhs "l"  in  
   let renamedRHS = reNameEffect list_parm rhs "r"  in 
-  let list_Arg = List.map (fun (_, a) -> a) list_parm in 
-  containment_concrete  valuation list_Arg (Ast.TRUE) (renamedLHS) (renamedRHS)  []  
+  let _ = List.map (fun (_, a) -> a) list_parm in 
+  containment_concrete  valuation list_parm (Ast.TRUE) (renamedLHS) (renamedRHS)  []  
 
 
 
