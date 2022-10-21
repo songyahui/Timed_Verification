@@ -1,20 +1,20 @@
 ====================================
 [Result] Succeed
-[Verification Time: 2.75 ms]
+[Verification Time: 43.194 ms]
  
 
-* lt<-1∧lt≥0∧rt≥0 ∧ ((ε)#lt) |- rt<0 ∧ ((ε)#rt)  ***> ⊤ [PURE False LHS] 
+* lt<-1∧lt≥0∧rt≥0 ∧ ε |- rt<0 ∧ ((ε)#rt)  ***> ⊤ [PURE False LHS] 
 
 ====================================
 [Result] Succeed
-[Verification Time: 2.749 ms]
+[Verification Time: 8.498 ms]
  
 
-* lt<-1∧lt≥0∧rt1≥0 ∧ ((ε)#lt) |- rt1<-2 ∧ ((ε)#rt1)  ***> ⊤ [PURE False LHS] 
+* lt<-1∧lt≥0∧rt1≥0 ∧ ε |- rt1<-2 ∧ ((ε)#rt1)  ***> ⊤ [PURE False LHS] 
 
 ====================================
 [Result] Succeed
-[Verification Time: 32.817 ms]
+[Verification Time: 54.569 ms]
  
 
 * lt>2∧lt<5∧lt≥0∧rt1≥0 ∧ ((ε)#lt) |- 0≤rt1 ∧ ((ε)#rt1)  ***> ⊤ [UNFOLD] 
@@ -22,7 +22,7 @@
 
 ====================================
 [Result] Succeed
-[Verification Time: 26.515 ms]
+[Verification Time: 31.365 ms]
  
 
 * lt>2∧lt≥0∧rt≥0 ∧ ((A . B)#lt) |- rt>0 ∧ ((A . B)#rt)  ***> ⊤ [UNFOLD] 
@@ -30,18 +30,35 @@
 *     └─ lt>2∧lt≥0∧rt≥0 ∧ ε |- rt>0 ∧ ε  ***> t2=t1∧t0+t1=lt∧t1≥0∧t0+t2=rt∧t2≥0 [PROVE]
 
 ====================================
-[Result] Fail
-[Verification Time: 7.121 ms]
+[Result] Succeed
+[Verification Time: 13.929 ms]
  
 
-* lt=0∧lt≥0 ∧ ((ε)#lt) . D |- ⊤ ∧ D  ***> ⊤ [UNFOLD] 
-* ├─ lt=0∧lt≥0 ∧ D |- ⊥ ∧ ⊥  ***> ⊤ [UNFOLD] 
-* │   └─ lt=0∧lt≥0 ∧ ε |- ⊥ ∧ ⊥  ***> ⊤ [DISPROVE] 
-* └─ lt=0∧lt≥0 ∧ ε |- ⊤ ∧ ε  ***> lt=0 [PROVE]
+* lt=0∧lt≥0 ∧ D |- ⊤ ∧ D  ***> ⊤ [UNFOLD] 
+* └─ lt=0∧lt≥0 ∧ ε |- ⊤ ∧ ε  ***> ⊤ [PROVE]
 
 ====================================
 [Result] Fail
-[Verification Time: 23.811 ms]
+[Verification Time: 31.618 ms]
+ 
+
+* lt>0∧lt≥0 ∧ ((ε)#lt) . D |- ⊤ ∧ D  ***> ⊤ [UNFOLD] 
+* └─ lt>0∧lt≥0 ∧ D |- ⊥ ∧ ⊥  ***> ⊤ [UNFOLD] 
+*     └─ lt>0∧lt≥0 ∧ ε |- ⊥ ∧ ⊥  ***> ⊤ [DISPROVE] 
+
+====================================
+[Result] Succeed
+[Verification Time: 50.991 ms]
+ 
+
+* 0≤lt∧lt≥0∧rt≥0 ∧ ((ε)#lt) . D |- 0≤rt ∧ ((ε)#rt) . D  ***> ⊤ [UNFOLD] 
+* ├─ 0≤lt∧lt≥0∧rt≥0 ∧ D |- 0≤rt ∧ D  ***> lt=rt [UNFOLD] 
+* │   └─ 0≤lt∧lt≥0∧rt≥0 ∧ ε |- 0≤rt ∧ ε  ***> lt=rt [PROVE]
+* └─ 0≤lt∧lt≥0∧rt≥0 ∧ ε |- 0≤rt ∧ ε  ***> lt=0∧rt=0 [PROVE]
+
+====================================
+[Result] Fail
+[Verification Time: 35.787 ms]
  
 
 * lt=2∧lt≥0∧rt≥0 ∧ ((ε)#lt) . D |- rt≤3 ∧ ((D)#rt)  ***> ⊤ [UNFOLD] 
@@ -50,7 +67,7 @@
 
 ====================================
 [Result] Fail
-[Verification Time: 24.34 ms]
+[Verification Time: 37.082 ms]
  
 
 * lt≤2∧lt≥0∧rt≥0 ∧ ((D)#lt) |- rt=2 ∧ ((ε)#rt) . D  ***> ⊤ [UNFOLD] 
@@ -58,10 +75,10 @@
 
 ====================================
 [Result] Fail
-[Verification Time: 21.369 ms]
+[Verification Time: 24.497 ms]
  
 
 * 0≤lt∧rt≥0 ∧ D |- 0=rt ∧ ((D)#rt)  ***> ⊤ [UNFOLD] 
-* └─ 0≤lt∧rt≥0 ∧ ε |- 0=rt ∧ ((ε)#rt)  ***> ⊤ [PURE ER] 
+* └─ 0≤lt∧rt≥0 ∧ ε |- 0=rt ∧ ε  ***> ⊤ [PURE ER] 
 
 

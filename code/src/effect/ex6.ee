@@ -9,6 +9,10 @@
 
 (t=0)∧ ((ε)#t).Done |- TRUE ∧ Done ; 
 
+(t>0)∧ ((ε)#t).Done |- TRUE ∧ Done ; 
+
+(0≤t) ∧ ((ε)#t).Done |- (0≤t) ∧ ((ε)#t).Done ; 
+
 (t=2)∧ ((ε)#t).Done |- (t≤3) ∧ (Done # t) ; 
 
 (t≤2) ∧ (Done # t) |- (t=2)∧ ((ε)#t).Done ;

@@ -166,7 +166,12 @@ let rec normalES (es:es) (pi:pure) : es =
         )
       ;)
 
-  | Ttimes (Bot, _) -> Bot        
+  | Ttimes (Bot, _) -> Bot     
+  | Ttimes (Emp, terms) -> 
+    if entailConstrains pi (Eq(terms, Number 0)) then 
+    Emp 
+    else   Ttimes (Emp, normalTerms terms)    
+   
   | Ttimes (es1, terms) -> 
       let t = normalTerms terms in 
       let normalInside = normalES es1 pi  in 
@@ -350,7 +355,8 @@ let rec derivitive (pi :pure) (es:es) (f:head) : (es * pure option) list =
 
   | Event ev1 -> 
 		(match f with 
-		| T  _ -> [(Bot, None)]
+		| T  _ -> 
+      [(Bot, None)(* ;(Event ev1, Some(Eq(t, Number 0))) *)]
 		| Ev (_, _) -> [(Bot, None)]
 		| Instant ev -> if entailEvent ev ev1 then [(Emp, None)] else [(Bot, None)]
 		)
@@ -550,9 +556,9 @@ let rec containment (list_parm:param) (side:pure) (effL:effect) (effR:effect) de
         | (pR, esR) :: lirest -> 
         let (subtreeIn, reIn) = 
           if askZ3 pL == false then 
-            ([Node (showEntail ^ " [PURE False LHS] ", [])], true)) else 
+            ([Node (showEntail ^ " [PURE False LHS] ", [])], true)
           
-          if nullable pL esL  = true &&  (nullable  (PureAnd(pL, pR)) esR  = false) then   
+          else if nullable pL esL  = true &&  (nullable  (PureAnd(pL, pR)) esR  = false) then   
             ([Node (showEntail ^ showRule DISPROVE,[] )], false)
         
           else if reoccur (esL) (esR) delta (*!delta*) then 
